@@ -1,0 +1,7 @@
+<#if licenseFirst??>
+${licenseFirst}
+</#if>
+${licensePrefix}EquestriCraftPlugin for equestricraft.serv.nu.
+<#if licenseLast??>
+${licenseLast}
+</#if>

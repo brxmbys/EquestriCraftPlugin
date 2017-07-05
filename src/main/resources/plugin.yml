@@ -1,0 +1,9 @@
+name: EquestriCraftPlugin
+main: io.github.davidg95.equestricraftplugin.EquestriCraftPlugin
+version: 1.0
+commands:
+    equestristatus:
+       description: Shows a status update.
+       usage: /<command>
+       permission: EquestriCraftPlugin.status
+       permission-message: You don't have <permission>
