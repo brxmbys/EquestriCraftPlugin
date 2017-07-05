@@ -3,6 +3,7 @@
  */
 package io.github.davidg95.equestricraftplugin;
 
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.locks.StampedLock;
@@ -88,5 +89,23 @@ public class DataContainer {
 
     public void horseWriteLock(long stamp) {
         horseLock.unlockWrite(stamp);
+    }
+
+    /**
+     * Removes dead horses from the list. This is thread safe.
+     */
+    public void removeDeadHorses() {
+        final long stamp = horseLock.writeLock();
+        try {
+            final Iterator horseIt = horses.iterator();
+            while (horseIt.hasNext()) {
+                final MyHorse horse = (MyHorse) horseIt.next();
+                if (horse.isDead()) {
+                    horseIt.remove();
+                }
+            }
+        } finally {
+            horseLock.unlockWrite(stamp);
+        }
     }
 }
