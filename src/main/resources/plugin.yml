@@ -13,7 +13,12 @@ commands:
         permission: EquestriCraftPlugin.createhorse
         permission-message: You don't have <permission>
     geldingtool:
-        description: place a gelding tool in your hand.
+        description: Place a gelding tool in your hand.
         usage: /geldingtool
         permission: EquestriCraftPlugin.geldingtool
         permission-message: You don't have <permission>
+    horsemedicine:
+        description: Place healing medicine in your hand.
+        usage: /horsemedicine
+        permission: EquestriCraftPlugin.horcemedicine
+        permission-message: You dont have <permission>
