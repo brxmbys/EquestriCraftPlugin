@@ -71,7 +71,7 @@ public class HorseCheckerThread extends Thread {
                         horse.defecate();
                     }
 
-                    //Roughly every 3 and a half days a hrose will get ill.
+                    //Roughly every 3 and a half days a horse will get ill.
                     if (getCurrentTime() - horse.getLastIll() >= ILL_WAIT) { //Check the horse as not been ill too recently.
                         final double random = Math.random() * 30000000;
                         if (random <= 5) {
@@ -82,6 +82,7 @@ public class HorseCheckerThread extends Thread {
             } finally {
                 container.horseReadUnlock(stamp);
             }
+            container.removeDeadHorses();
             try {
                 Thread.sleep(50);
             } catch (InterruptedException ex) {
