@@ -59,12 +59,27 @@ public class DataContainer {
     public void addHorse(Horse h) {
         final long stamp = horseLock.writeLock();
         try {
+            final Iterator<MyHorse> iter = horses.iterator();
+            while (iter.hasNext()) {
+                final MyHorse horse = iter.next();
+                if (horse.getUuid() == h.getUniqueId()) {
+                    horse.setHorse(h);
+                    return;
+                }
+            }
             horses.add(new MyHorse(h));
         } finally {
             horseLock.unlockWrite(stamp);
         }
     }
 
+    /**
+     * Get the MyHorse object which contains the given Horse object.
+     *
+     * @param h the horse to contain.
+     * @return the yHorse object which contains the horse. Null if it doesn't
+     * exists.
+     */
     public MyHorse getHorse(Horse h) {
         final long stamp = horseLock.writeLock();
         try {
@@ -110,9 +125,9 @@ public class DataContainer {
     public void removeDeadHorses() {
         final long stamp = horseLock.writeLock();
         try {
-            final Iterator horseIt = horses.iterator();
+            final Iterator<MyHorse> horseIt = horses.iterator();
             while (horseIt.hasNext()) {
-                final MyHorse horse = (MyHorse) horseIt.next();
+                final MyHorse horse = horseIt.next();
                 if (horse.isDead()) {
                     horseIt.remove();
                 }
@@ -122,6 +137,9 @@ public class DataContainer {
         }
     }
 
+    /**
+     * Persist horses to file.
+     */
     public void saveHorses() {
         final File file = new File(HORSES_FILE);
         if (!file.exists()) {
@@ -141,6 +159,9 @@ public class DataContainer {
         }
     }
 
+    /**
+     * Load horses from file
+     */
     private void loadHorses() {
         try (InputStream is = new FileInputStream(HORSES_FILE)) {
             final ObjectInputStream oi = new ObjectInputStream(is);
