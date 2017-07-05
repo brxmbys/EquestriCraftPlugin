@@ -31,7 +31,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.PotionSplashEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -44,15 +43,25 @@ import org.bukkit.plugin.java.JavaPlugin;
  */
 public class EquestriCraftPlugin extends JavaPlugin implements Listener {
 
+    /**
+     * A reference to the plugin object.
+     */
     public static Plugin plugin;
 
     private DataContainer container;
-    public List<World> worlds;
+    private List<World> worlds;
     private HorseCheckerThread checkerThread;
     private Properties properties;
     private static final String PROPERTIES_FILE = "equestricraftplugin.properties";
 
+    /**
+     * The name of the medicine used to heal horses.
+     */
     public static final String POTION_NAME = "Medicine";
+    /**
+     * The name of the tool used to geld stallions.
+     */
+    public static final String SHEARS_NAME = "Gelding Shears";
 
     @Override
     public void onEnable() {
@@ -73,7 +82,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
 
     @Override
     public void onDisable() {
-
+        getLogger().log(Level.INFO, "Saving horses to file");
+        container.saveHorses();
     }
 
     @Override
@@ -120,9 +130,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                 final Player player = (Player) sender;
                 final PlayerInventory inventory = player.getInventory();
                 final ItemStack shears = new ItemStack(Material.SHEARS, 1);
-                final String shearsName = "Gelding Shears";
                 final ItemMeta im = shears.getItemMeta();
-                im.setDisplayName(shearsName);
+                im.setDisplayName(SHEARS_NAME);
                 final List<String> comments = new ArrayList<>();
                 comments.add("Used for gelding a Stallion");
                 im.setLore(comments);
@@ -132,6 +141,21 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                 sender.sendMessage("Only players may use this command");
             }
             return true;
+        } else if (cmd.getName().equalsIgnoreCase("horsemedicine")) {
+            if (sender instanceof Player) {
+                final Player player = (Player) sender;
+                final PlayerInventory inventory = player.getInventory();
+                final ItemStack medicine = new ItemStack(Material.POTION, 64);
+                final ItemMeta im = medicine.getItemMeta();
+                im.setDisplayName(POTION_NAME);
+                final List<String> comments = new ArrayList<>();
+                comments.add("Used to heal an ill horse");
+                im.setLore(comments);
+                medicine.setItemMeta(im);
+                inventory.addItem(medicine);
+            } else {
+                sender.sendMessage("Only players may use this command");
+            }
         }
         return false;
     }
@@ -149,7 +173,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         if (!inHand.getItemMeta().hasDisplayName()) { //Check the shears have a display name.
             return;
         }
-        if (!inHand.getItemMeta().getDisplayName().equals("Gelding Shears")) { //Check the shears are the Gelding Shears.
+        if (!inHand.getItemMeta().getDisplayName().equals(SHEARS_NAME)) { //Check the shears are the Gelding Shears.
             return;
         }
         if (event.getEntity() instanceof Horse) { //Check it was a horse they are hitting.
@@ -164,14 +188,14 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onPotionSplash(PotionSplashEvent evt) {
-        for (Entity e : evt.getAffectedEntities()) {
-            ThrownPotion potion = evt.getPotion();
-            if (potion.getCustomName().equals(POTION_NAME)) {
-                if (e instanceof Horse) {
-                    final MyHorse mh = container.getHorse((Horse) e);
-                    if (mh.getSickness() == MyHorse.ILL) {
-                        mh.setSickness(MyHorse.WELL);
-                        mh.setLastIll(getCurrentTime());
+        final ThrownPotion potion = evt.getPotion(); //Get the thrown potion.
+        if (potion.getItem().getItemMeta().hasDisplayName() && potion.getItem().getItemMeta().getDisplayName().equals(POTION_NAME)) { //Check the potion is a healing potion.
+            for (Entity e : evt.getAffectedEntities()) { //Loop through all the affected entities.
+                if (e instanceof Horse) { //Check the entity is a horse.
+                    final MyHorse mh = container.getHorse((Horse) e); //Get the horse.
+                    if (mh.getSickness() == MyHorse.ILL) { //Check if the horse was ill.
+                        mh.setSickness(MyHorse.WELL); //Make the horse well.
+                        mh.setLastIll(getCurrentTime()); //Set the last ill time.
                     }
                 }
             }
@@ -205,17 +229,17 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         } catch (FileNotFoundException ex) {
             saveProperties();
         } catch (IOException ex) {
-            Logger.getLogger(EquestriCraftPlugin.class.getName()).log(Level.SEVERE, null, ex);
+            getLogger().log(Level.SEVERE, null, ex);
         }
     }
 
     private void saveProperties() {
-        File f = new File(PROPERTIES_FILE);
+        final File f = new File(PROPERTIES_FILE);
         if (!f.exists()) {
             try {
                 f.createNewFile();
             } catch (IOException ex) {
-                Logger.getLogger(EquestriCraftPlugin.class.getName()).log(Level.SEVERE, null, ex);
+                getLogger().log(Level.SEVERE, null, ex);
             }
         }
         try (OutputStream os = new FileOutputStream(PROPERTIES_FILE)) {
@@ -226,9 +250,9 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             properties.setProperty("ILL_WAIT", Integer.toString(HorseCheckerThread.ILL_WAIT));
             properties.store(os, null);
         } catch (FileNotFoundException ex) {
-            Logger.getLogger(EquestriCraftPlugin.class.getName()).log(Level.SEVERE, null, ex);
+            getLogger().log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
-            Logger.getLogger(EquestriCraftPlugin.class.getName()).log(Level.SEVERE, null, ex);
+            getLogger().log(Level.SEVERE, null, ex);
         }
     }
 }
