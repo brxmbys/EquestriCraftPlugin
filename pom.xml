@@ -54,4 +54,6 @@
             <scope>provided</scope>
         </dependency>
     </dependencies>
+    <name>EquestriCraftPlugin</name>
+    <description>Plugin developed from equestricraft.serv.nu.</description>
 </project>
