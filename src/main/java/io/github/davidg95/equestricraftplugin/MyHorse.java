@@ -21,7 +21,7 @@ import org.bukkit.metadata.MetadataValue;
  */
 public class MyHorse implements Serializable {
 
-    private final Horse horse;
+    private Horse horse;
 
     private transient long lastEat; //The time the horse last ate.
     private transient long lastDrink; //The time the horse last drank.
@@ -30,7 +30,7 @@ public class MyHorse implements Serializable {
     private transient long lastIll; //The time the horse was healed.
 
     private int gender; //The horses gender.
-    private final UUID uuid;
+    private UUID uuid;
 
     /**
      * Indicate that the horse is well. Value = 1.
@@ -234,6 +234,25 @@ public class MyHorse implements Serializable {
      */
     public boolean isDead() {
         return this.horse.isDead();
+    }
+
+    /**
+     * Get the UUID of the horse.
+     *
+     * @return the horses UUID.
+     */
+    public UUID getUuid() {
+        return uuid;
+    }
+
+    /**
+     * Set the horse object. This also updates the UUID.
+     *
+     * @param horse the horse.
+     */
+    public void setHorse(Horse horse) {
+        this.horse = horse;
+        this.uuid = horse.getUniqueId();
     }
 
     /**
