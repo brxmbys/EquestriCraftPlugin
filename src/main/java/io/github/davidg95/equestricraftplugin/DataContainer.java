@@ -3,10 +3,20 @@
  */
 package io.github.davidg95.equestricraftplugin;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.locks.StampedLock;
+import java.util.logging.Level;
 import org.bukkit.entity.Horse;
 
 /**
@@ -17,12 +27,15 @@ public class DataContainer {
 
     private static final DataContainer CONTAINER;
 
-    private final List<MyHorse> horses;
+    private List<MyHorse> horses;
     private final StampedLock horseLock;
+
+    public static final String HORSES_FILE = "horses.config";
 
     private DataContainer() {
         horses = new LinkedList<>();
         horseLock = new StampedLock();
+        loadHorses();
     }
 
     static {
@@ -106,6 +119,36 @@ public class DataContainer {
             }
         } finally {
             horseLock.unlockWrite(stamp);
+        }
+    }
+
+    public void saveHorses() {
+        final File file = new File(HORSES_FILE);
+        if (!file.exists()) {
+            try {
+                file.createNewFile();
+            } catch (IOException ex) {
+                EquestriCraftPlugin.plugin.getLogger().log(Level.SEVERE, null, ex);
+            }
+        }
+        try (OutputStream os = new FileOutputStream(HORSES_FILE)) {
+            final ObjectOutputStream oo = new ObjectOutputStream(os);
+            oo.writeObject(horses);
+        } catch (FileNotFoundException ex) {
+            EquestriCraftPlugin.plugin.getLogger().log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            EquestriCraftPlugin.plugin.getLogger().log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private void loadHorses() {
+        try (InputStream is = new FileInputStream(HORSES_FILE)) {
+            final ObjectInputStream oi = new ObjectInputStream(is);
+            horses = (List<MyHorse>) oi.readObject();
+        } catch (FileNotFoundException ex) {
+            saveHorses();
+        } catch (IOException | ClassNotFoundException ex) {
+            EquestriCraftPlugin.plugin.getLogger().log(Level.SEVERE, null, ex);
         }
     }
 }
