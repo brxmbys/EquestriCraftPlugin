@@ -5,5 +5,15 @@ commands:
     equestristatus:
        description: Shows a status update.
        usage: /<command>
-       permission: EquestriCraftPlugin.status
+       permission: EquestriCraftPlugin.equestristatus
        permission-message: You don't have <permission>
+    createhorse:
+        description: Creates a new horse.
+        usage: /createhorse <stallion|mare|gelding>
+        permission: EquestriCraftPlugin.createhorse
+        permission-message: You don't have <permission>
+    geldingtool:
+        description: place a gelding tool in your hand.
+        usage: /geldingtool
+        permission: EquestriCraftPlugin.geldingtool
+        permission-message: You don't have <permission>
