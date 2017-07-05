@@ -3,9 +3,11 @@
  */
 package io.github.davidg95.equestricraftplugin;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -17,15 +19,18 @@ import org.bukkit.metadata.MetadataValue;
  *
  * @author David
  */
-public class MyHorse {
+public class MyHorse implements Serializable {
 
     private final Horse horse;
 
-    private long lastEat;
-    private long lastDrink;
-    private long lastSicknessChange;
-    private long lastDefecate;
-    private long lastIll;
+    private transient long lastEat; //The time the horse last ate.
+    private transient long lastDrink; //The time the horse last drank.
+    private transient long lastSicknessChange; //The time the horses sickness state changed.
+    private transient long lastDefecate; //The time the horse last defecated.
+    private transient long lastIll; //The time the horse was healed.
+
+    private int gender; //The horses gender.
+    private final UUID uuid;
 
     /**
      * Indicate that the horse is well. Value = 1.
@@ -55,6 +60,7 @@ public class MyHorse {
 
     public MyHorse(Horse horse) {
         this.horse = horse;
+        this.uuid = horse.getUniqueId();
         setSickness(WELL);
         lastEat = getCurrentTime();
         lastDrink = getCurrentTime();
@@ -208,6 +214,7 @@ public class MyHorse {
      */
     public void setGender(int gender) {
         horse.setMetadata("gender", new FixedMetadataValue(EquestriCraftPlugin.plugin, gender));
+        this.gender = gender;
     }
 
     /**
@@ -217,13 +224,7 @@ public class MyHorse {
      * MyHorse.GELDING.
      */
     public int getGender() {
-        final List<MetadataValue> values = horse.getMetadata("gender");
-        for (MetadataValue value : values) {
-            if (value.getOwningPlugin() == EquestriCraftPlugin.plugin) {
-                return value.asInt();
-            }
-        }
-        return 0;
+        return gender;
     }
 
     /**
