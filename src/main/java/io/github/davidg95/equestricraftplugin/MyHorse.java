@@ -40,6 +40,19 @@ public class MyHorse {
      */
     public static final int ILL = 3;
 
+    /**
+     * Indicates the horses gender is a stallion. Value = 1.
+     */
+    public static final int STALLION = 1;
+    /**
+     * Indicates the horses gender is a mare. Value = 2.
+     */
+    public static final int MARE = 2;
+    /**
+     * Indicates the horses gender is a gelding. Value = 3.
+     */
+    public static final int GELDING = 3;
+
     public MyHorse(Horse horse) {
         this.horse = horse;
         setSickness(WELL);
@@ -126,7 +139,9 @@ public class MyHorse {
     public int getSickness() {
         final List<MetadataValue> mdvs = this.horse.getMetadata("SICKNESS");
         for (MetadataValue md : mdvs) {
-            return md.asInt();
+            if (md.getOwningPlugin() == EquestriCraftPlugin.plugin) {
+                return md.asInt();
+            }
         }
         return 0;
     }
@@ -183,6 +198,41 @@ public class MyHorse {
      */
     public long getLastIll() {
         return this.lastIll;
+    }
+
+    /**
+     * Set the gender of the horse in Metadata.
+     *
+     * @param gender the horses gender. Can be MyHorse.STALLION, MyHorse.MARE or
+     * MyHorse.GELDING.
+     */
+    public void setGender(int gender) {
+        horse.setMetadata("gender", new FixedMetadataValue(EquestriCraftPlugin.plugin, gender));
+    }
+
+    /**
+     * Get the gender of the horse in MetaData.
+     *
+     * @return the gender. Can be MyHorse.STALLION, MyHorse.MARE or
+     * MyHorse.GELDING.
+     */
+    public int getGender() {
+        final List<MetadataValue> values = horse.getMetadata("gender");
+        for (MetadataValue value : values) {
+            if (value.getOwningPlugin() == EquestriCraftPlugin.plugin) {
+                return value.asInt();
+            }
+        }
+        return 0;
+    }
+
+    /**
+     * Check if the horse is dead.
+     *
+     * @return true if the horse is dead, false if they are alive.
+     */
+    public boolean isDead() {
+        return this.horse.isDead();
     }
 
     /**
