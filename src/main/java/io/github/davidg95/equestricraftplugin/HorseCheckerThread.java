@@ -20,23 +20,28 @@ public class HorseCheckerThread extends Thread {
     /**
      * The length of time a horse can go without eating before getting sick.
      */
-    public static int EAT_LIMIT = 600000; //Ten minutes.
+//    public static int EAT_LIMIT = 604800000; //One week.
+    public static int EAT_LIMIT = 30000;
     /**
      * The length of time a horse can go without drinking before getting sick.
      */
-    public static int DRINK_LIMIT = 600000; //Ten minutes.
+//    public static int DRINK_LIMIT = 604800000; //One week.
+    public static int DRINK_LIMIT = 30000;
     /**
      * The length of time a horse can be sick for before dying.
      */
-    public static int SICK_LIMIT = 600000; //Ten minutes.
+//    public static int SICK_LIMIT = 604800000; //One week.
+    public static int SICK_LIMIT = 30000;
     /**
      * The length of time a horse can go after eating before it defecates.
      */
-    public static int DEFECATE_INTERVAL = 300000; //Five minutes.
+//    public static int DEFECATE_INTERVAL = 300000; //Five minutes.
+    public static int DEFECATE_INTERVAL = 10000;
     /**
      * The length of time a horse will wait before getting ill again.
      */
-    public static int ILL_WAIT = 300000; //Five minutes.
+//    public static int ILL_WAIT = 300000; //Five minutes.
+    public static int ILL_WAIT = 30000;
 
     public HorseCheckerThread() {
         container = DataContainer.getInstance();
@@ -59,15 +64,15 @@ public class HorseCheckerThread extends Thread {
                         horse.setSickness(MyHorse.WELL);
                     }
                     if (getCurrentTime() - horse.getLastDrink() > DRINK_LIMIT) { //Check if the horse is thirsty.
-                        horse.setSickness(MyHorse.SICK);
+                        horse.setSickness(MyHorse.HUNGRY);
                     }
                     if (getCurrentTime() - horse.getLastEat() > EAT_LIMIT) { //Check if the horse is hungry.
-                        horse.setSickness(MyHorse.SICK);
+                        horse.setSickness(MyHorse.HUNGRY);
                     }
-                    if ((horse.getSickness() == MyHorse.SICK || horse.getSickness() == MyHorse.ILL) && (getCurrentTime() - horse.getLastSicknessChange()) > SICK_LIMIT) { //check if the horse has been sick fo too long.
+                    if ((horse.getSickness() == MyHorse.HUNGRY || horse.getSickness() == MyHorse.ILL) && (getCurrentTime() - horse.getLastTimeWell()) > SICK_LIMIT) { //check if the horse has been sick fo too long.
                         horse.kill();
                     }
-                    if (getCurrentTime() - horse.getLastEat() > DEFECATE_INTERVAL && horse.getLastDefecate() < horse.getLastEat()) {
+                    if (getCurrentTime() - horse.getLastEat() > DEFECATE_INTERVAL && horse.getLastDefecate() > horse.getLastEat()) {
                         horse.defecate();
                     }
 
@@ -84,7 +89,7 @@ public class HorseCheckerThread extends Thread {
             }
             container.removeDeadHorses();
             try {
-                Thread.sleep(50);
+                Thread.sleep(50); //Wait 10 minutes then loop again.
             } catch (InterruptedException ex) {
                 Logger.getLogger(HorseCheckerThread.class.getName()).log(Level.SEVERE, null, ex);
             }
