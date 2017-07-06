@@ -14,6 +14,7 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Horse;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.metadata.MetadataValue;
+import org.bukkit.scheduler.BukkitRunnable;
 
 /**
  *
@@ -21,13 +22,14 @@ import org.bukkit.metadata.MetadataValue;
  */
 public class MyHorse implements Serializable {
 
-    private Horse horse;
+    private transient Horse horse;
 
     private transient long lastEat; //The time the horse last ate.
     private transient long lastDrink; //The time the horse last drank.
-    private transient long lastSicknessChange; //The time the horses sickness state changed.
+    private transient long lastTimeWell; //The time the horses sickness state changed.
     private transient long lastDefecate; //The time the horse last defecated.
     private transient long lastIll; //The time the horse was healed.
+    private transient long health;
 
     private int gender; //The horses gender.
     private UUID uuid;
@@ -37,9 +39,9 @@ public class MyHorse implements Serializable {
      */
     public static final int WELL = 1;
     /**
-     * Indicate that the horse is sick. Value = 2.
+     * Indicate that the horse is hungry. Value = 2.
      */
-    public static final int SICK = 2;
+    public static final int HUNGRY = 2;
     /**
      * Indicates that the horse is ill. Value = 3.
      */
@@ -65,6 +67,18 @@ public class MyHorse implements Serializable {
         lastEat = getCurrentTime();
         lastDrink = getCurrentTime();
         lastDefecate = getCurrentTime();
+        health = WELL;
+        gender = -1;
+        updateTag();
+    }
+
+    /**
+     * Update the status tag.
+     */
+    public final void updateTag() {
+        final String tag = toString();
+        horse.setCustomName(tag);
+        horse.setCustomNameVisible(true);
     }
 
     private long getCurrentTime() {
@@ -122,19 +136,23 @@ public class MyHorse implements Serializable {
      * @param sickness the sickness. Can be either MyHorse.WELL or MyHorse.SICK.
      */
     public final void setSickness(int sickness) {
+        if (this.health == WELL && sickness != WELL) {
+            this.lastTimeWell = getCurrentTime();
+        }
         this.horse.setMetadata("SICKNESS", new FixedMetadataValue(EquestriCraftPlugin.plugin, sickness));
-        this.lastSicknessChange = new Date().getTime();
+        this.health = sickness;
         switch (sickness) {
             case WELL:
                 horse.setJumpStrength(2);
                 break;
-            case SICK:
+            case HUNGRY:
                 horse.setJumpStrength(0);
                 break;
             default:
                 horse.setJumpStrength(1);
                 break;
         }
+        updateTag();
     }
 
     /**
@@ -157,26 +175,36 @@ public class MyHorse implements Serializable {
      *
      * @return the last change time in ms as a Long.
      */
-    public long getLastSicknessChange() {
-        return this.lastSicknessChange;
+    public long getLastTimeWell() {
+        return this.lastTimeWell;
     }
 
     /**
      * Kill the horse.
      */
     public void kill() {
-        this.horse.setHealth(0);
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                MyHorse.this.horse.setHealth(0);
+            }
+        }.runTask(EquestriCraftPlugin.plugin);
     }
 
     /**
      * Make the horse defecate.
      */
     public void defecate() {
-        final Block block = horse.getLocation().getBlock();
-        block.setType(Material.CARPET);
-        byte b = 12;
-        block.setData(b);
-        this.lastDefecate = getCurrentTime();
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                final Block block = horse.getLocation().getBlock();
+                block.setType(Material.CARPET);
+                byte b = 12;
+                block.setData(b);
+                MyHorse.this.lastDefecate = getCurrentTime();
+            }
+        }.runTask(EquestriCraftPlugin.plugin);
     }
 
     /**
@@ -215,6 +243,7 @@ public class MyHorse implements Serializable {
     public void setGender(int gender) {
         horse.setMetadata("gender", new FixedMetadataValue(EquestriCraftPlugin.plugin, gender));
         this.gender = gender;
+        updateTag();
     }
 
     /**
@@ -306,6 +335,26 @@ public class MyHorse implements Serializable {
 
     public boolean equals(Horse h) {
         return h.getEntityId() == horse.getEntityId();
+    }
+
+    /**
+     * Method to generate a random gender. Either MyHorse.STALLION or
+     * MyHorse.MARE.
+     *
+     * @return the gender.
+     */
+    public static int generateRandomGender() {
+        final double r = Math.random();
+        if (r < 0.5) {
+            return STALLION;
+        } else {
+            return MARE;
+        }
+    }
+
+    @Override
+    public String toString() {
+        return " Gender- " + (gender == STALLION ? "STALLION" : (gender == MARE ? "MARE" : "GELDING")) + " Health- " + (health == WELL ? "WELL" : (health == HUNGRY ? "HUNGRY" : "ILL"));
     }
 
 }
