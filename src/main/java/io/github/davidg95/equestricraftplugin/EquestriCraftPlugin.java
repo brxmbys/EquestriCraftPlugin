@@ -15,7 +15,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -94,7 +93,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             final long stamp = container.horseReadLock();
             try {
                 for (MyHorse h : container.getHorseList()) {
-                    if (h.getSickness() == MyHorse.SICK) {
+                    if (h.getSickness() == MyHorse.HUNGRY) {
                         sickhorses++;
                     }
                 }
@@ -120,6 +119,9 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     final Horse h = player.getWorld().spawn(player.getLocation(), Horse.class);
                     final MyHorse horse = new MyHorse(h);
                     horse.setGender(gender);
+                } else{
+                    final Horse h = player.getWorld().spawn(player.getLocation(), Horse.class);
+                    final MyHorse horse = new MyHorse(h);
                 }
             } else {
                 sender.sendMessage("This command can only be run by a player");
