@@ -278,6 +278,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     return;
                 }
                 MyHorse.setGenderInMeta(horse, MyHorse.GELDING); //Turn the horse into a gelding.
+                player.sendMessage("This horse has been gelded");
             }
         } else if (inHand.getType() == Material.STICK) { //Horse checking stick
             if (!inHand.getItemMeta().hasDisplayName()) { //Check the shears have a display name.
