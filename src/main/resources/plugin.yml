@@ -21,4 +21,14 @@ commands:
         description: Place healing medicine in your hand.
         usage: /horsemedicine
         permission: EquestriCraftPlugin.horcemedicine
-        permission-message: You dont have <permission>
+        permission-message: You don't have <permission>
+    horsewand:
+        description: Place checking wand in your hand.
+        usage: /horsecheck
+        permission: EquestriCraftPlugin.horsewand
+        permission-message: You don't have <permission>
+    vaccination:
+        description: Spawns the vaccination tool.
+        usage: /vaccination
+        permission: EquestriCraftPlugin.vaccination
+        permission-message: You don't have <permission>

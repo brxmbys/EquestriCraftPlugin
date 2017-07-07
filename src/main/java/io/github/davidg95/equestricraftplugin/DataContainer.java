@@ -67,6 +67,10 @@ public class DataContainer {
                     return;
                 }
             }
+            final MyHorse mh = new MyHorse(h);
+            if (mh.getGender() == -1) {
+                mh.setGender(MyHorse.generateRandomGender());
+            }
             horses.add(new MyHorse(h));
         } finally {
             horseLock.unlockWrite(stamp);
@@ -128,6 +132,9 @@ public class DataContainer {
             final Iterator<MyHorse> horseIt = horses.iterator();
             while (horseIt.hasNext()) {
                 final MyHorse horse = horseIt.next();
+                if (horse.getHorse() == null) {
+                    continue;
+                }
                 if (horse.isDead()) {
                     horseIt.remove();
                 }
