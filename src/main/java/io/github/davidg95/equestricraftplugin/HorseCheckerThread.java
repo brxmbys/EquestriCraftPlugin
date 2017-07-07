@@ -6,7 +6,6 @@ package io.github.davidg95.equestricraftplugin;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Horse;
 import org.bukkit.scheduler.BukkitRunnable;
