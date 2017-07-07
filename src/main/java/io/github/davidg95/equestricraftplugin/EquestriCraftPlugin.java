@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 import java.util.logging.Level;
@@ -36,6 +37,8 @@ import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.metadata.MetadataValue;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.potion.Potion;
+import org.bukkit.potion.PotionType;
 
 /**
  *
@@ -57,7 +60,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     /**
      * The name of the medicine used to heal horses.
      */
-    public static final String POTION_NAME = "Medicine";
+    public static final String POTION_NAME = "Healer";
     /**
      * The name of the tool used to geld stallions.
      */
@@ -100,7 +103,10 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             final long stamp = container.horseReadLock();
             try {
                 for (MyHorse h : container.getHorseList()) {
-                    if (h.getSickness()) {
+                    if (h.getHorse() == null) {
+                        continue;
+                    }
+                    if (h.getSickness() || h.getHunger() || h.getThirst()) {
                         sickhorses++;
                     }
                 }
@@ -153,15 +159,17 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         } else if (cmd.getName().equalsIgnoreCase("horsemedicine")) {
             if (sender instanceof Player) {
                 final Player player = (Player) sender;
-                final PlayerInventory inventory = player.getInventory();
-                final ItemStack medicine = new ItemStack(Material.POTION, 64);
-                final ItemMeta im = medicine.getItemMeta();
-                im.setDisplayName(POTION_NAME);
-                final List<String> comments = new ArrayList<>();
-                comments.add("Used to heal an ill horse");
-                im.setLore(comments);
-                medicine.setItemMeta(im);
-                inventory.addItem(medicine);
+                if (container.isDoctor(player)) {
+                    final PlayerInventory inventory = player.getInventory();
+                    final ItemStack medicine = new ItemStack(Material.REDSTONE_TORCH_ON, 1);
+                    final ItemMeta im = medicine.getItemMeta();
+                    im.setDisplayName(POTION_NAME);
+                    final List<String> comments = new ArrayList<>();
+                    comments.add("Used to heal an ill horse");
+                    im.setLore(comments);
+                    medicine.setItemMeta(im);
+                    inventory.addItem(medicine);
+                }
             } else {
                 sender.sendMessage("Only players may use this command");
             }
@@ -185,19 +193,62 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         } else if (cmd.getName().equalsIgnoreCase("vaccination")) {
             if (sender instanceof Player) {
                 final Player player = (Player) sender;
-                final PlayerInventory inventory = player.getInventory();
-                final ItemStack vaccine = new ItemStack(Material.BLAZE_ROD, 1);
-                final ItemMeta im = vaccine.getItemMeta();
-                im.setDisplayName(VACCINE_NAME);
-                final List<String> comments = new ArrayList<>();
-                comments.add("Used to vaccinate horses.");
-                comments.add("Vaccinations last for 4 weeks");
-                im.setLore(comments);
-                vaccine.setItemMeta(im);
-                inventory.addItem(vaccine);
+                if (container.isDoctor(player)) {
+                    final PlayerInventory inventory = player.getInventory();
+                    final ItemStack vaccine = new ItemStack(Material.BLAZE_ROD, 1);
+                    final ItemMeta im = vaccine.getItemMeta();
+                    im.setDisplayName(VACCINE_NAME);
+                    final List<String> comments = new ArrayList<>();
+                    comments.add("Used to vaccinate horses.");
+                    comments.add("Vaccinations last for 4 weeks");
+                    im.setLore(comments);
+                    vaccine.setItemMeta(im);
+                    inventory.addItem(vaccine);
+                } else {
+                    sender.sendMessage("Only a doctor can use this command");
+                }
             } else {
                 sender.sendMessage("Only a player can use this command");
             }
+            return true;
+        } else if (cmd.getName().equalsIgnoreCase("adddoctor")) {
+            if (args.length == 1) {
+                if ((sender instanceof Player && ((Player) sender).isOp()) || !(sender instanceof Player)) {
+                    final Player player = Bukkit.getPlayer(args[0]);
+                    container.addDoctor(player);
+                    sender.sendMessage(args[0] + " is now a doctor");
+                    player.sendMessage("You are not a doctor!");
+                } else {
+                    sender.sendMessage("Only ops can use this command");
+                }
+            } else {
+                sender.sendMessage("Usage- /adddoctor <player>");
+            }
+            return true;
+        } else if (cmd.getName().equalsIgnoreCase("changegender")) {
+            if (args.length == 1) {
+                if (sender instanceof Player) {
+                    final Player player = (Player) sender;
+                    if (player.getVehicle() != null || player.getVehicle() instanceof Horse) {
+                        final Horse horse = (Horse) player.getVehicle();
+                        if (args[0].equalsIgnoreCase("stallion")) {
+                            MyHorse.setGenderInMeta(horse, MyHorse.STALLION);
+                        } else if (args[0].equalsIgnoreCase("mare")) {
+                            MyHorse.setGenderInMeta(horse, MyHorse.MARE);
+                        } else if (args[0].equalsIgnoreCase("gelding")) {
+                            MyHorse.setGenderInMeta(horse, MyHorse.GELDING);
+                        } else {
+                            return false;
+                        }
+                        sender.sendMessage("Gender set to " + args[0]);
+                    }
+                } else {
+                    sender.sendMessage("Only ops can use this command");
+                }
+            } else {
+                return false;
+            }
+            return true;
         }
         return false;
     }
@@ -221,12 +272,12 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             }
             if (event.getEntity() instanceof Horse) { //Check it was a horse they are hitting.
                 event.setCancelled(true);
-                final MyHorse horse = container.getHorse((Horse) event.getEntity()); //Get the MyHorse instance.
-                if (horse.getGender() != MyHorse.STALLION) { //check it was a stallion.
+                final Horse horse = (Horse) event.getEntity(); //Get the Horse instance.
+                if (MyHorse.getGenderFromMeta(horse) != MyHorse.STALLION) { //check it was a stallion.
                     player.sendMessage("This horse is not a stallion");
                     return;
                 }
-                horse.setGender(MyHorse.GELDING); //Turn the horse into a gelding.
+                MyHorse.setGenderInMeta(horse, MyHorse.GELDING); //Turn the horse into a gelding.
             }
         } else if (inHand.getType() == Material.STICK) { //Horse checking stick
             if (!inHand.getItemMeta().hasDisplayName()) { //Check the shears have a display name.
@@ -266,14 +317,23 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         thirst = md.asBoolean();
                     }
                 }
+                boolean vaccination = false;
+                final List<MetadataValue> mdvsv = horse.getMetadata(MyHorse.META_VACCINATED);
+                for (MetadataValue md : mdvsv) {
+                    if (md.getOwningPlugin() == EquestriCraftPlugin.plugin) {
+                        vaccination = md.asBoolean();
+                    }
+                }
                 final String genderStr = "GENDER: " + (gender == MyHorse.STALLION ? "STALLION" : (gender == MyHorse.MARE ? "MARE" : "GELDING"));
                 final String sickStr = "HEALTH: " + (sickness ? "ILL" : "WELL");
                 final String hungerStr = "HUNGER: " + (hunger ? "HUNGRY" : "NOT HUNGRY");
                 final String thirstStr = "THIRST: " + (thirst ? "THIRSTY" : "NOT THIRSTY");
+                final String vaccinationStr = "Vaccinated: " + (vaccination ? "YES" : "NO");
                 player.sendMessage(genderStr);
                 player.sendMessage(sickStr);
                 player.sendMessage(hungerStr);
                 player.sendMessage(thirstStr);
+                player.sendMessage(vaccinationStr);
             } else {
                 player.sendMessage("You must click on a horse");
             }
@@ -288,7 +348,21 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                 event.setCancelled(true);
                 final Horse horse = (Horse) event.getEntity();
                 horse.setMetadata(MyHorse.META_VACCINATED, new FixedMetadataValue(EquestriCraftPlugin.plugin, true));
+                horse.setMetadata(MyHorse.META_VACCINE_TIME, new FixedMetadataValue(EquestriCraftPlugin.plugin, new Date().getTime()));
                 player.sendMessage("Horse has been vaccinated");
+            }
+        } else if (inHand.getType() == Material.REDSTONE_TORCH_ON) { //Healing
+            if (!inHand.getItemMeta().hasDisplayName()) {
+                return;
+            }
+            if (!inHand.getItemMeta().getDisplayName().equals(POTION_NAME)) {
+                return;
+            }
+            if (event.getEntity() instanceof Horse) {
+                event.setCancelled(true);
+                final Horse horse = (Horse) event.getEntity();
+                horse.setMetadata(MyHorse.META_HEALTH, new FixedMetadataValue(EquestriCraftPlugin.plugin, false));
+                player.sendMessage("Horse has been cured");
             }
         }
     }

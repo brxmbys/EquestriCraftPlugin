@@ -5,30 +5,24 @@ commands:
     equestristatus:
        description: Shows a status update.
        usage: /<command>
-       permission: EquestriCraftPlugin.equestristatus
-       permission-message: You don't have <permission>
     createhorse:
         description: Creates a new horse.
         usage: /createhorse <stallion|mare|gelding>
-        permission: EquestriCraftPlugin.createhorse
-        permission-message: You don't have <permission>
     geldingtool:
         description: Place a gelding tool in your hand.
         usage: /geldingtool
-        permission: EquestriCraftPlugin.geldingtool
-        permission-message: You don't have <permission>
     horsemedicine:
         description: Place healing medicine in your hand.
         usage: /horsemedicine
-        permission: EquestriCraftPlugin.horcemedicine
-        permission-message: You don't have <permission>
     horsewand:
         description: Place checking wand in your hand.
         usage: /horsecheck
-        permission: EquestriCraftPlugin.horsewand
-        permission-message: You don't have <permission>
     vaccination:
         description: Spawns the vaccination tool.
         usage: /vaccination
-        permission: EquestriCraftPlugin.vaccination
-        permission-message: You don't have <permission>
+    adddoctor:
+        description: Make a player a doctor.
+        usage: /adddoctor <playername>
+    changegender:
+        description: Change the gender of a horse.
+        usage: /changegender <stallion|mare|gelding>

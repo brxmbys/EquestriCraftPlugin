@@ -15,9 +15,11 @@ import java.io.OutputStream;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.locks.StampedLock;
 import java.util.logging.Level;
 import org.bukkit.entity.Horse;
+import org.bukkit.entity.Player;
 
 /**
  *
@@ -28,13 +30,17 @@ public class DataContainer {
     private static final DataContainer CONTAINER;
 
     private List<MyHorse> horses;
+    private List<UUID> doctors;
     private final StampedLock horseLock;
+    private final StampedLock doctorLock;
 
     public static final String HORSES_FILE = "horses.config";
 
     private DataContainer() {
         horses = new LinkedList<>();
+        doctors = new LinkedList<>();
         horseLock = new StampedLock();
+        doctorLock = new StampedLock();
         loadHorses();
     }
 
@@ -64,6 +70,7 @@ public class DataContainer {
                 final MyHorse horse = iter.next();
                 if (horse.getUuid() == h.getUniqueId()) {
                     horse.setHorse(h);
+                    horse.persist();
                     return;
                 }
             }
@@ -96,6 +103,41 @@ public class DataContainer {
             horseLock.unlockWrite(stamp);
         }
         return null;
+    }
+    
+    /**
+     * Add a new horse.
+     *
+     * @param p the Doctor to add.
+     */
+    public void addDoctor(Player p) {
+        final long stamp = doctorLock.writeLock();
+        try {
+            doctors.add(p.getUniqueId());
+        } finally {
+            doctorLock.unlockWrite(stamp);
+        }
+    }
+
+    /**
+     * Get the MyHorse object which contains the given Horse object.
+     *
+     * @param h the horse to contain.
+     * @return the yHorse object which contains the horse. Null if it doesn't
+     * exists.
+     */
+    public boolean isDoctor(Player p) {
+        final long stamp = doctorLock.readLock();
+        try {
+            for (UUID u : doctors) {
+                if (u.equals(p.getUniqueId())) {
+                    return true;
+                }
+            }
+        } finally {
+            doctorLock.unlockRead(stamp);
+        }
+        return false;
     }
 
     /**
@@ -159,6 +201,7 @@ public class DataContainer {
         try (OutputStream os = new FileOutputStream(HORSES_FILE)) {
             final ObjectOutputStream oo = new ObjectOutputStream(os);
             oo.writeObject(horses);
+            oo.writeObject(doctors);
         } catch (FileNotFoundException ex) {
             EquestriCraftPlugin.plugin.getLogger().log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
@@ -173,6 +216,7 @@ public class DataContainer {
         try (InputStream is = new FileInputStream(HORSES_FILE)) {
             final ObjectInputStream oi = new ObjectInputStream(is);
             horses = (List<MyHorse>) oi.readObject();
+            doctors = (List<UUID>) oi.readObject();
         } catch (FileNotFoundException ex) {
             saveHorses();
         } catch (IOException | ClassNotFoundException ex) {
