@@ -136,7 +136,7 @@ public class HorseCheckerThread extends Thread {
                         }
                     }
 
-                    if (horse.durationSinceVaccinated() > getCurrentTime()) {
+                    if (horse.durationSinceVaccinated() > VACCINATION_DURATION) {
                         horse.removeVaccination();
                     }
 
