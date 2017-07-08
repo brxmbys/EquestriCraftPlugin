@@ -227,7 +227,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             return true;
         } else if (cmd.getName().equalsIgnoreCase("changegender")) {
             if (args.length == 1) {
-                if (sender instanceof Player) {
+                if ((sender instanceof Player && ((Player) sender).isOp())) {
                     final Player player = (Player) sender;
                     if (player.getVehicle() != null || player.getVehicle() instanceof Horse) {
                         final Horse horse = (Horse) player.getVehicle();
