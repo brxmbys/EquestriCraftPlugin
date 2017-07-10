@@ -81,7 +81,7 @@ public class MyHorse implements Serializable {
         this.uuid = uuid;
     }
 
-    private static long getCurrentTime() {
+    public static long getCurrentTime() {
         return new Date().getTime();
     }
 

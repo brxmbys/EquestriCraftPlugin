@@ -6,7 +6,6 @@ package io.github.davidg95.equestricraftplugin;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.locks.StampedLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.bukkit.Bukkit;
@@ -159,7 +158,7 @@ public class HorseCheckerThread extends Thread {
 //                                        @Override
 //                                        public void run() {
                                     final long timeSinceLast = MyHorse.getDurationSinceLastBreed(horse);
-                                    if (timeSinceLast > BREED_INTERVAL || timeSinceLast == -1) {
+                                    if (timeSinceLast > BREED_INTERVAL) {
                                         if (MyHorse.nearMate(horse)) {
                                             new BukkitRunnable() {
                                                 @Override
