@@ -12,7 +12,6 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
@@ -30,9 +29,8 @@ import org.bukkit.entity.Player;
  */
 public class DataContainer {
 
-    private static final DataContainer CONTAINER;
+    private static DataContainer container;
 
-    private List<MyHorse> horses;
     private List<UUID> doctors;
     private final StampedLock horseLock;
     private final StampedLock doctorLock;
@@ -40,28 +38,36 @@ public class DataContainer {
     public static final String HORSES_FILE = "horses.config";
 
     private DataContainer() {
-        horses = new LinkedList<>();
         doctors = new LinkedList<>();
         horseLock = new StampedLock();
         doctorLock = new StampedLock();
         loadHorses();
-        pairHorses();
     }
 
-    private void pairHorses() {
-        for (MyHorse horse : horses) {
-            for (World world : Bukkit.getWorlds()) {
-                for (Entity entity : world.getEntities()) {
-                    if (entity.getUniqueId().equals(horse.getUuid())) {
-                        horse.setHorse((Horse) entity);
+    private void pairHorses(List<MyHorse> horses) {
+        Bukkit.getLogger().log(Level.INFO, "Loading horses");
+        Bukkit.getLogger().log(Level.INFO, "Horses: " + horses.size());
+        int horsesInFile = 0;
+        int horsesFound = 0;
+        try {
+            for (MyHorse horse : horses) {
+                horsesInFile++;
+                if(horsesInFile % 500 == 0){
+                    Bukkit.getLogger().log(Level.INFO, "Scanned: " + horsesInFile);
+                }
+                for (World world : Bukkit.getWorlds()) {
+                    for (Entity entity : world.getEntities()) {
+                        if (entity.getUniqueId().equals(horse.getUuid())) {
+                            MyHorse.myHorseToHorse(horse, (Horse) entity);
+                        }
                     }
                 }
             }
+        } finally {
         }
-    }
-
-    static {
-        CONTAINER = new DataContainer();
+        Bukkit.getLogger().log(Level.INFO, "Load complete");
+        Bukkit.getLogger().log(Level.INFO, "Number of horses in file: " + horsesInFile);
+        Bukkit.getLogger().log(Level.INFO, "Number of hroses found in world: " + horsesFound);
     }
 
     /**
@@ -70,57 +76,56 @@ public class DataContainer {
      * @return the DataContainer.
      */
     public static DataContainer getInstance() {
-        return CONTAINER;
+        if (container == null) {
+            container = new DataContainer();
+        }
+        return container;
     }
 
-    /**
-     * Add a new horse.
-     *
-     * @param h the Horse to add.
-     */
-    public void addHorse(Horse h) {
-        final long stamp = horseLock.writeLock();
-        try {
-//            final Iterator<MyHorse> iter = horses.iterator();
-//            while (iter.hasNext()) {
-//                final MyHorse horse = iter.next();
-//                if (horse.getUuid() == h.getUniqueId()) {
-//                    horse.setHorse(h);
-//                    horse.persist();
-//                    return;
+//    /**
+//     * Add a new horse.
+//     *
+//     * @param h the Horse to add.
+//     */
+//    public void addHorse(Horse h) {
+//        try {
+////            final Iterator<MyHorse> iter = horses.iterator();
+////            while (iter.hasNext()) {
+////                final MyHorse horse = iter.next();
+////                if (horse.getUuid() == h.getUniqueId()) {
+////                    horse.setHorse(h);
+////                    horse.persist();
+////                    return;
+////                }
+////            }
+//            final MyHorse mh = new MyHorse(h);
+//            if (mh.getGender() == -1) {
+//                mh.setGender(MyHorse.generateRandomGender());
+//            }
+//            horses.add(new MyHorse(h));
+//        } finally {
+//        }
+//    }
+//    /**
+//     * Get the MyHorse object which contains the given Horse object.
+//     *
+//     * @param h the horse to contain.
+//     * @return the yHorse object which contains the horse. Null if it doesn't
+//     * exists.
+//     */
+//    public MyHorse getHorse(Horse h) {
+//        final long stamp = horseLock.writeLock();
+//        try {
+//            for (MyHorse mh : horses) {
+//                if (mh.equals(h)) {
+//                    return mh;
 //                }
 //            }
-            final MyHorse mh = new MyHorse(h);
-            if (mh.getGender() == -1) {
-                mh.setGender(MyHorse.generateRandomGender());
-            }
-            horses.add(new MyHorse(h));
-        } finally {
-            horseLock.unlockWrite(stamp);
-        }
-    }
-
-    /**
-     * Get the MyHorse object which contains the given Horse object.
-     *
-     * @param h the horse to contain.
-     * @return the yHorse object which contains the horse. Null if it doesn't
-     * exists.
-     */
-    public MyHorse getHorse(Horse h) {
-        final long stamp = horseLock.writeLock();
-        try {
-            for (MyHorse mh : horses) {
-                if (mh.equals(h)) {
-                    return mh;
-                }
-            }
-        } finally {
-            horseLock.unlockWrite(stamp);
-        }
-        return null;
-    }
-
+//        } finally {
+//            horseLock.unlockWrite(stamp);
+//        }
+//        return null;
+//    }
     /**
      * Add a new horse.
      *
@@ -156,50 +161,59 @@ public class DataContainer {
         return false;
     }
 
-    /**
-     * Gets the list of horses.
-     *
-     * @return List of type MyHorse.
-     */
-    public List<MyHorse> getHorseList() {
-        return horses;
-    }
+//    /**
+//     * Gets the list of horses.
+//     *
+//     * @return List of type MyHorse.
+//     */
+//    public List<MyHorse> getHorseList() {
+//        return horses;
+//    }
+//    public long horseReadLock() {
+//        return horseLock.readLock();
+//    }
+//
+//    public void horseReadUnlock(long stamp) {
+//        horseLock.unlockRead(stamp);
+//    }
+//
+//    public long horseWriteLock() {
+//        return horseLock.writeLock();
+//    }
+//
+//    public void horseWriteUnlock(long stamp) {
+//        horseLock.unlockWrite(stamp);
+//    }
 
-    public long horseReadLock() {
-        return horseLock.readLock();
-    }
-
-    public void horseReadUnlock(long stamp) {
-        horseLock.unlockRead(stamp);
-    }
-
-    public long horseWriteLock() {
-        return horseLock.writeLock();
-    }
-
-    public void horseWriteLock(long stamp) {
-        horseLock.unlockWrite(stamp);
-    }
-
-    /**
-     * Removes dead horses from the list. This is thread safe.
-     */
-    public void removeDeadHorses() {
-        final long stamp = horseLock.writeLock();
-        try {
-            final Iterator<MyHorse> horseIt = horses.iterator();
-            while (horseIt.hasNext()) {
-                final MyHorse horse = horseIt.next();
-                if (horse.getHorse() == null) {
-                    continue;
-                }
-                if (horse.isDead()) {
-                    horseIt.remove();
-                }
+//    /**
+//     * Removes dead horses from the list. This is thread safe.
+//     */
+//    public void removeDeadHorses() {
+//        final long stamp = horseLock.writeLock();
+//        try {
+//            final Iterator<MyHorse> horseIt = horses.iterator();
+//            while (horseIt.hasNext()) {
+//                final MyHorse horse = horseIt.next();
+//                if (horse.getHorse() == null) {
+//                    continue;
+//                }
+//                if (horse.isDead()) {
+//                    horseIt.remove();
+//                }
+//            }
+//        } finally {
+//            horseLock.unlockWrite(stamp);
+//        }
+//    }
+    private List<MyHorse> getHorses() {
+        final List<MyHorse> mHorses = new LinkedList<>();
+        for (World w : Bukkit.getWorlds()) {
+            for (Horse h : w.getEntitiesByClass(Horse.class)) {
+                final MyHorse mHorse = MyHorse.horseToMyHorse(h);
+                mHorses.add(mHorse);
             }
-        } finally {
-            horseLock.unlockWrite(stamp);
         }
+        return mHorses;
     }
 
     /**
@@ -215,6 +229,7 @@ public class DataContainer {
             }
         }
         try (OutputStream os = new FileOutputStream(HORSES_FILE)) {
+            final List<MyHorse> horses = getHorses();
             final ObjectOutputStream oo = new ObjectOutputStream(os);
             oo.writeObject(horses);
             oo.writeObject(doctors);
@@ -231,7 +246,8 @@ public class DataContainer {
     private void loadHorses() {
         try (InputStream is = new FileInputStream(HORSES_FILE)) {
             final ObjectInputStream oi = new ObjectInputStream(is);
-            horses = (List<MyHorse>) oi.readObject();
+            final List<MyHorse> horses = (List<MyHorse>) oi.readObject();
+            pairHorses(horses);
             doctors = (List<UUID>) oi.readObject();
         } catch (FileNotFoundException ex) {
             saveHorses();

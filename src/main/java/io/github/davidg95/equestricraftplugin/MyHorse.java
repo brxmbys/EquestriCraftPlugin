@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -29,14 +28,12 @@ public class MyHorse implements Serializable {
 
     private static final long serialVersionUID = 2573463;
 
-    private transient Horse horse;
-
     private transient long lastDefecate; //The time the horse last defecated.
-    private long vaccinationTime;
-    private boolean vaccination;
 
-    private int gender; //The horses gender.
-    private UUID uuid;
+    private final long vaccinationTime;
+    private final boolean vaccination;
+    private final int gender; //The horses gender.
+    private final UUID uuid;
 
     /**
      * Indicates the horses gender is a stallion. Value = 1.
@@ -77,32 +74,18 @@ public class MyHorse implements Serializable {
 
     public static final String META_VACCINE_TIME = "VaccineTime";
 
-    public MyHorse(Horse horse) {
-        horse.setMetadata(META_BREED, new FixedMetadataValue(EquestriCraftPlugin.plugin, 0));
-        vaccinationTime = 0L;
-        this.horse = horse;
-        this.uuid = horse.getUniqueId();
-        setSickness(false);
-        setHunger(false);
-        setThirst(false);
-        gender = -1;
-        horse.setBreed(false);
+    public MyHorse(int gender, boolean vaccination, long vaccinationTime, UUID uuid) {
+        this.gender = gender;
+        this.vaccination = vaccination;
+        this.vaccinationTime = vaccinationTime;
+        this.uuid = uuid;
     }
 
-    private long getCurrentTime() {
+    private static long getCurrentTime() {
         return new Date().getTime();
     }
 
-    /**
-     * Gets the horse instance.
-     *
-     * @return the Horse.
-     */
-    public Horse getHorse() {
-        return horse;
-    }
-
-    private void setSideEffects(boolean set) {
+    private static void setSideEffects(Horse horse, boolean set) {
         new BukkitRunnable() {
             @Override
             public void run() {
@@ -122,14 +105,13 @@ public class MyHorse implements Serializable {
      *
      * @param state true if they are now hungry, false if they have just eaten.
      */
-    public final void setHunger(boolean state) {
-        setLastEatChange(getCurrentTime());
-        boolean last = this.getHunger();
+    public static void setHunger(Horse horse, boolean state) {
+        setLastEatChange(horse, getCurrentTime());
         horse.setMetadata(META_HUNGER, new FixedMetadataValue(EquestriCraftPlugin.plugin, state));
-        if (!last) {
+        if (!state) {
             horse.setMetadata(META_HUNGERTIME, new FixedMetadataValue(EquestriCraftPlugin.plugin, getCurrentTime()));
         }
-        setSideEffects(state);
+        setSideEffects(horse, state);
     }
 
     /**
@@ -137,14 +119,13 @@ public class MyHorse implements Serializable {
      *
      * @param state true if they are now thirsty, false if they have drank.
      */
-    public final void setThirst(boolean state) {
-        setLastDrinkChange(getCurrentTime());
-        boolean last = this.getThirst();
+    public static void setThirst(Horse horse, boolean state) {
+        setLastDrinkChange(horse, getCurrentTime());
         horse.setMetadata(META_THIRST, new FixedMetadataValue(EquestriCraftPlugin.plugin, state));
-        if (!last) {
+        if (!state) {
             horse.setMetadata(META_THRISTTIME, new FixedMetadataValue(EquestriCraftPlugin.plugin, getCurrentTime()));
         }
-        setSideEffects(state);
+        setSideEffects(horse, state);
     }
 
     /**
@@ -152,8 +133,8 @@ public class MyHorse implements Serializable {
      *
      * @return true if hungry, false if not.
      */
-    public boolean getHunger() {
-        final List<MetadataValue> mdvs = this.horse.getMetadata(META_HUNGER);
+    public static boolean getHunger(Horse horse) {
+        final List<MetadataValue> mdvs = horse.getMetadata(META_HUNGER);
         for (MetadataValue md : mdvs) {
             if (md.getOwningPlugin() == EquestriCraftPlugin.plugin) {
                 return md.asBoolean();
@@ -162,8 +143,8 @@ public class MyHorse implements Serializable {
         return false;
     }
 
-    public long getHungerDuration() {
-        final List<MetadataValue> mdvs = this.horse.getMetadata(META_HUNGERTIME);
+    public static long getHungerDuration(Horse horse) {
+        final List<MetadataValue> mdvs = horse.getMetadata(META_HUNGERTIME);
         for (MetadataValue md : mdvs) {
             if (md.getOwningPlugin() == EquestriCraftPlugin.plugin) {
                 return getCurrentTime() - md.asLong();
@@ -172,29 +153,24 @@ public class MyHorse implements Serializable {
         return 0L;
     }
 
-    public long getThirstDuration() {
-        final List<MetadataValue> mdvs = this.horse.getMetadata(META_THRISTTIME);
-        for (MetadataValue md : mdvs) {
-            if (md.getOwningPlugin() == EquestriCraftPlugin.plugin) {
-                return getCurrentTime() - md.asLong();
-            }
-        }
-        return 0L;
-    }
-
-    /**
-     * Get the thirst of the horse.
-     *
-     * @return true if thirsty, false if not.
-     */
-    public boolean getThirst() {
-        final List<MetadataValue> mdvs = this.horse.getMetadata(META_THIRST);
+    public static boolean isThirsty(Horse horse) {
+        final List<MetadataValue> mdvs = horse.getMetadata(META_THIRST);
         for (MetadataValue md : mdvs) {
             if (md.getOwningPlugin() == EquestriCraftPlugin.plugin) {
                 return md.asBoolean();
             }
         }
         return false;
+    }
+
+    public static long getThirstDuration(Horse horse) {
+        final List<MetadataValue> mdvs = horse.getMetadata(META_THRISTTIME);
+        for (MetadataValue md : mdvs) {
+            if (md.getOwningPlugin() == EquestriCraftPlugin.plugin) {
+                return getCurrentTime() - md.asLong();
+            }
+        }
+        return 0L;
     }
 
     /**
@@ -202,8 +178,8 @@ public class MyHorse implements Serializable {
      *
      * @return the last eat time in ms as a Long.
      */
-    public long getDurationSinceLastEat() {
-        final List<MetadataValue> mdvs = this.horse.getMetadata(META_LASTEAT);
+    public static long getDurationSinceLastEat(Horse horse) {
+        final List<MetadataValue> mdvs = horse.getMetadata(META_LASTEAT);
         for (MetadataValue md : mdvs) {
             if (md.getOwningPlugin() == EquestriCraftPlugin.plugin) {
                 return getCurrentTime() - md.asLong();
@@ -217,7 +193,7 @@ public class MyHorse implements Serializable {
      *
      * @param lastEat the last eat time in ms as a Long.
      */
-    private void setLastEatChange(long lastEat) {
+    private static void setLastEatChange(Horse horse, long lastEat) {
         horse.setMetadata(META_LASTEAT, new FixedMetadataValue(EquestriCraftPlugin.plugin, lastEat));
     }
 
@@ -226,8 +202,8 @@ public class MyHorse implements Serializable {
      *
      * @return the last drink time in ms as a Long.
      */
-    public long getDurationSinceLastDrink() {
-        final List<MetadataValue> mdvs = this.horse.getMetadata(META_LASTDRINK);
+    public static long getDurationSinceLastDrink(Horse horse) {
+        final List<MetadataValue> mdvs = horse.getMetadata(META_LASTDRINK);
         for (MetadataValue md : mdvs) {
             if (md.getOwningPlugin() == EquestriCraftPlugin.plugin) {
                 return getCurrentTime() - md.asLong();
@@ -241,23 +217,8 @@ public class MyHorse implements Serializable {
      *
      * @param lastDrink the last drink time in ms as a Long.
      */
-    private void setLastDrinkChange(long lastDrink) {
+    private static void setLastDrinkChange(Horse horse, long lastDrink) {
         horse.setMetadata(META_LASTDRINK, new FixedMetadataValue(EquestriCraftPlugin.plugin, lastDrink));
-    }
-
-    /**
-     * Set the sickness metadata of the horse.
-     *
-     * @param state true for sick, false for well.
-     */
-    public final void setSickness(boolean state) {
-        this.horse.setMetadata(META_HEALTH, new FixedMetadataValue(EquestriCraftPlugin.plugin, state));
-        setSideEffects(state);
-        if (state) {
-            this.horse.setMetadata(META_ILLTIME, new FixedMetadataValue(EquestriCraftPlugin.plugin, getCurrentTime()));
-        } else {
-            this.horse.setMetadata(META_WELLTIME, new FixedMetadataValue(EquestriCraftPlugin.plugin, getCurrentTime()));
-        }
     }
 
     /**
@@ -265,8 +226,8 @@ public class MyHorse implements Serializable {
      *
      * @return the time the horse has been well as a long.
      */
-    public long getWellDuration() {
-        final List<MetadataValue> mdvs = this.horse.getMetadata(META_WELLTIME);
+    public static long getWellDuration(Horse horse) {
+        final List<MetadataValue> mdvs = horse.getMetadata(META_WELLTIME);
         for (MetadataValue md : mdvs) {
             if (md.getOwningPlugin() == EquestriCraftPlugin.plugin) {
                 return getCurrentTime() - md.asLong();
@@ -276,27 +237,12 @@ public class MyHorse implements Serializable {
     }
 
     /**
-     * Get the current sickness of the horse.
-     *
-     * @return true if they are sick, false if they are healthy.
-     */
-    public boolean getSickness() {
-        final List<MetadataValue> mdvs = this.horse.getMetadata(META_HEALTH);
-        for (MetadataValue md : mdvs) {
-            if (md.getOwningPlugin() == EquestriCraftPlugin.plugin) {
-                return md.asBoolean();
-            }
-        }
-        return false;
-    }
-
-    /**
      * Get the last sickness change time.
      *
      * @return the last change time in ms as a Long.
      */
-    public long getIllDuration() {
-        final List<MetadataValue> mdvs = this.horse.getMetadata(META_ILLTIME);
+    public static long getIllDuration(Horse horse) {
+        final List<MetadataValue> mdvs = horse.getMetadata(META_ILLTIME);
         for (MetadataValue md : mdvs) {
             if (md.getOwningPlugin() == EquestriCraftPlugin.plugin) {
                 return getCurrentTime() - md.asLong();
@@ -308,11 +254,11 @@ public class MyHorse implements Serializable {
     /**
      * Kill the horse.
      */
-    public void kill() {
+    public static void kill(Horse horse) {
         new BukkitRunnable() {
             @Override
             public void run() {
-                MyHorse.this.horse.setHealth(0);
+                horse.setHealth(0);
             }
         }.runTask(EquestriCraftPlugin.plugin);
     }
@@ -320,7 +266,7 @@ public class MyHorse implements Serializable {
     /**
      * Make the horse defecate.
      */
-    public void defecate() {
+    public static void defecate(Horse horse) {
         new BukkitRunnable() {
             @Override
             public void run() {
@@ -328,7 +274,6 @@ public class MyHorse implements Serializable {
                 block.setType(Material.CARPET);
                 byte b = 12;
                 block.setData(b);
-                MyHorse.this.lastDefecate = getCurrentTime();
             }
         }.runTask(EquestriCraftPlugin.plugin);
     }
@@ -342,72 +287,23 @@ public class MyHorse implements Serializable {
         return this.lastDefecate;
     }
 
-    public void vaccinate() {
+    public static void vaccinate(Horse horse) {
         horse.setMetadata(META_VACCINATED, new FixedMetadataValue(EquestriCraftPlugin.plugin, true));
         horse.setMetadata(META_VACCINE_TIME, new FixedMetadataValue(EquestriCraftPlugin.plugin, getCurrentTime()));
-        vaccinationTime = getCurrentTime();
-        vaccination = true;
     }
 
-    public void removeVaccination() {
+    public static void removeVaccination(Horse horse) {
         horse.setMetadata(META_VACCINATED, new FixedMetadataValue(EquestriCraftPlugin.plugin, false));
-        vaccination = true;
     }
 
-    public long durationSinceVaccinated() {
-        final List<MetadataValue> mdvs = this.horse.getMetadata(META_VACCINE_TIME);
+    public static long durationSinceVaccinated(Horse horse) {
+        final List<MetadataValue> mdvs = horse.getMetadata(META_VACCINE_TIME);
         for (MetadataValue md : mdvs) {
             if (md.getOwningPlugin() == EquestriCraftPlugin.plugin) {
                 return getCurrentTime() - md.asLong();
             }
         }
         return 0;
-    }
-
-    public boolean isVaccinated() {
-        final List<MetadataValue> mdvs = this.horse.getMetadata(META_VACCINATED);
-        for (MetadataValue md : mdvs) {
-            if (md.getOwningPlugin() == EquestriCraftPlugin.plugin) {
-                return md.asBoolean();
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Set the gender of the horse in Metadata.
-     *
-     * @param gender the horses gender. Can be MyHorse.STALLION, MyHorse.MARE or
-     * MyHorse.GELDING.
-     */
-    public void setGender(int gender) {
-        horse.setMetadata(META_GENDER, new FixedMetadataValue(EquestriCraftPlugin.plugin, gender));
-        this.gender = gender;
-    }
-
-    /**
-     * Get the gender of the horse in MetaData.
-     *
-     * @return the gender. Can be MyHorse.STALLION, MyHorse.MARE or
-     * MyHorse.GELDING.
-     */
-    public int getGender() {
-        final List<MetadataValue> mdvs = this.horse.getMetadata(META_GENDER);
-        for (MetadataValue md : mdvs) {
-            if (md.getOwningPlugin() == EquestriCraftPlugin.plugin) {
-                return md.asInt();
-            }
-        }
-        return -1;
-    }
-
-    /**
-     * Check if the horse is dead.
-     *
-     * @return true if the horse is dead, false if they are alive.
-     */
-    public boolean isDead() {
-        return this.horse.isDead();
     }
 
     /**
@@ -419,27 +315,17 @@ public class MyHorse implements Serializable {
         return uuid;
     }
 
-    /**
-     * Set the horse object. This also updates the UUID.
-     *
-     * @param horse the horse.
-     */
-    public void setHorse(Horse horse) {
-        this.horse = horse;
-        this.uuid = horse.getUniqueId();
-    }
-
-    public long getLastBreed() {
-        final List<MetadataValue> mdvs = this.horse.getMetadata(META_BREED);
+    public static long getDurationSinceLastBreed(Horse horse) {
+        final List<MetadataValue> mdvs = horse.getMetadata(META_BREED);
         for (MetadataValue md : mdvs) {
             if (md.getOwningPlugin() == EquestriCraftPlugin.plugin) {
-                return md.asLong();
+                return getCurrentTime() - md.asLong();
             }
         }
         return -1;
     }
 
-    public void setLastBreed(long breed) {
+    public static void setLastBreed(Horse horse, long breed) {
         horse.setMetadata(META_BREED, new FixedMetadataValue(EquestriCraftPlugin.plugin, breed));
     }
 
@@ -448,8 +334,8 @@ public class MyHorse implements Serializable {
      *
      * @return the block the cauldron is in, null if there is not one nearby.
      */
-    public Block getNearCauldron() {
-        for (Block b : getNearby()) {
+    public static Block getNearCauldron(Horse horse) {
+        for (Block b : getNearby(horse)) {
             if (b.getType() == Material.CAULDRON) {
                 return b;
             }
@@ -462,8 +348,8 @@ public class MyHorse implements Serializable {
      *
      * @return the block the hay bale is in, null if there is not one nearby.
      */
-    public Block getNearHayBale() {
-        for (Block b : getNearby()) {
+    public static Block getNearHayBale(Horse horse) {
+        for (Block b : getNearby(horse)) {
             if (b.getType() == Material.HAY_BLOCK) {
                 return b;
             }
@@ -476,7 +362,7 @@ public class MyHorse implements Serializable {
      *
      * @return the blocks as a list.
      */
-    private List<Block> getNearby() {
+    private static List<Block> getNearby(Horse horse) {
         final Location location = horse.getLocation();
 
         final List<Block> nearby = new ArrayList<>();
@@ -492,34 +378,25 @@ public class MyHorse implements Serializable {
         return nearby;
     }
 
-    public boolean nearMate() {
-        final DataContainer cont = DataContainer.getInstance();
-        if (getGender() == GELDING) {
+    public static boolean nearMate(Horse horse) {
+        if (getGenderFromMeta(horse) == GELDING) {
             return false;
         }
-        final List<Entity> nearby = horse.getNearbyEntities(1, 1, 1);
-        if (!nearby.isEmpty()) {
-            Bukkit.broadcastMessage("Found entities");
-        } else {
+        if(horse == null){
             return false;
         }
-        Bukkit.broadcastMessage("Starting loop");
+        final List<Entity> nearby = horse.getNearbyEntities(1.5, 1.5, 1.5);
         for (Entity e : nearby) {
             if (e.getType() == EntityType.HORSE) {
-                Bukkit.broadcastMessage("Found horse");
-//                final long stamp = DataContainer.getInstance().horseReadLock();
                 try {
                     final Horse h = (Horse) e;
                     if (getGenderFromMeta(h) == GELDING) {
-                        Bukkit.broadcastMessage("Found gelding");
                         return false;
                     }
-                    if (getGender() != getGenderFromMeta(h)) {
-                        Bukkit.broadcastMessage("Pair found");
+                    if (getGenderFromMeta(horse) != getGenderFromMeta(h)) {
                         return true;
                     }
                 } finally {
-//                    DataContainer.getInstance().horseReadUnlock(stamp);
                 }
             }
         }
@@ -540,10 +417,6 @@ public class MyHorse implements Serializable {
         h.setMetadata(META_GENDER, new FixedMetadataValue(EquestriCraftPlugin.plugin, gender));
     }
 
-    public boolean equals(Horse h) {
-        return h.getEntityId() == horse.getEntityId();
-    }
-
     /**
      * Method to generate a random gender. Either MyHorse.STALLION or
      * MyHorse.MARE.
@@ -559,10 +432,85 @@ public class MyHorse implements Serializable {
         }
     }
 
-    public void persist() {
-        horse.setMetadata(META_VACCINATED, new FixedMetadataValue(EquestriCraftPlugin.plugin, vaccination));
-        horse.setMetadata(META_VACCINE_TIME, new FixedMetadataValue(EquestriCraftPlugin.plugin, vaccinationTime));
+    /**
+     * Set the gender of the horse in Metadata.
+     *
+     * @param gender the horses gender. Can be MyHorse.STALLION, MyHorse.MARE or
+     * MyHorse.GELDING.
+     */
+    public static void setHorseGender(int gender, Horse horse) {
         horse.setMetadata(META_GENDER, new FixedMetadataValue(EquestriCraftPlugin.plugin, gender));
+    }
+
+    public static int getHorseGender(Horse horse) {
+        final List<MetadataValue> mdvs = horse.getMetadata(META_GENDER);
+        for (MetadataValue md : mdvs) {
+            if (md.getOwningPlugin() == EquestriCraftPlugin.plugin) {
+                return md.asInt();
+            }
+        }
+        return -1;
+    }
+
+    public static boolean getHorseVaccination(Horse horse) {
+        final List<MetadataValue> mdvs = horse.getMetadata(META_VACCINATED);
+        for (MetadataValue md : mdvs) {
+            if (md.getOwningPlugin() == EquestriCraftPlugin.plugin) {
+                return md.asBoolean();
+            }
+        }
+        return false;
+    }
+
+    public static long getHorseVaccinationTime(Horse horse) {
+        final List<MetadataValue> mdvs = horse.getMetadata(META_VACCINE_TIME);
+        for (MetadataValue md : mdvs) {
+            if (md.getOwningPlugin() == EquestriCraftPlugin.plugin) {
+                return md.asLong();
+            }
+        }
+        return -1;
+    }
+
+    public static void setHorseVaccinated(Horse horse, boolean vaccinated) {
+        horse.setMetadata(META_VACCINATED, new FixedMetadataValue(EquestriCraftPlugin.plugin, vaccinated));
+    }
+
+    public static void setHorseVaccinationTime(Horse horse, long time) {
+        horse.setMetadata(META_VACCINE_TIME, new FixedMetadataValue(EquestriCraftPlugin.plugin, time));
+    }
+
+    public static MyHorse horseToMyHorse(Horse horse) {
+        final int gender = getHorseGender(horse);
+        final boolean vaccination = getHorseVaccination(horse);
+        final long vaccinationTime = getHorseVaccinationTime(horse);
+        final UUID uuid = horse.getUniqueId();
+        final MyHorse mHorse = new MyHorse(gender, vaccination, vaccinationTime, uuid);
+        return mHorse;
+    }
+
+    public static void myHorseToHorse(MyHorse mHorse, Horse horse) {
+        MyHorse.setGenderInMeta(horse, mHorse.getGender());
+        MyHorse.setHorseVaccinated(horse, mHorse.isVaccination());
+        MyHorse.setHorseVaccinationTime(horse, mHorse.getVaccinationTime());
+    }
+
+    public int getGender() {
+        return gender;
+    }
+
+    public static boolean isHorseSick(Horse horse) {
+        final List<MetadataValue> mdvs = horse.getMetadata(META_HEALTH);
+        for (MetadataValue md : mdvs) {
+            if (md.getOwningPlugin() == EquestriCraftPlugin.plugin) {
+                return md.asBoolean();
+            }
+        }
+        return false;
+    }
+
+    public static void setHorseSick(Horse horse, boolean sick) {
+        horse.setMetadata(META_HEALTH, new FixedMetadataValue(EquestriCraftPlugin.plugin, sick));
     }
 
     public long getVaccinationTime() {

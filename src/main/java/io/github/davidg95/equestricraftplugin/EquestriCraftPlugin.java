@@ -30,7 +30,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.PotionSplashEvent;
-import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -78,14 +77,9 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         properties = new Properties();
         loadProperties();
         container = DataContainer.getInstance();
-        getServer().getPluginManager().registerEvents(this, this);
-        for (World w : worlds) {
-            for (Horse h : w.getEntitiesByClass(Horse.class)) {
-                container.addHorse(h);
-            }
-        }
         checkerThread = new HorseCheckerThread();
         checkerThread.start();
+        getServer().getPluginManager().registerEvents(this, this);
     }
 
     @Override
@@ -97,22 +91,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         if (cmd.getName().equalsIgnoreCase("equestristatus")) {
-            final int nohorses = container.getHorseList().size();
-            int sickhorses = 0;
-            final long stamp = container.horseReadLock();
-            try {
-                for (MyHorse h : container.getHorseList()) {
-                    if (h.getHorse() == null) {
-                        continue;
-                    }
-                    if (h.getSickness() || h.getHunger() || h.getThirst()) {
-                        sickhorses++;
-                    }
-                }
-            } finally {
-                container.horseReadUnlock(stamp);
-            }
-            sender.sendMessage("Horses: " + nohorses + "\nSick horses: " + sickhorses);
+
             return true;
         } else if (cmd.getName().equalsIgnoreCase("createhorse")) {
             if (sender instanceof Player) {
@@ -129,11 +108,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         return true;
                     }
                     final Horse h = player.getWorld().spawn(player.getLocation(), Horse.class);
-                    final MyHorse horse = new MyHorse(h);
-                    horse.setGender(gender);
                 } else {
                     final Horse h = player.getWorld().spawn(player.getLocation(), Horse.class);
-                    final MyHorse horse = new MyHorse(h);
                 }
             } else {
                 sender.sendMessage("This command can only be run by a player");
@@ -252,18 +228,22 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         return false;
     }
 
-    @EventHandler
-    public void onChunkLoad(ChunkLoadEvent evt) {
-        for (Entity entity : evt.getChunk().getEntities()) {
-            for (MyHorse horse : container.getHorseList()) {
-                if (entity.getUniqueId().equals(horse.getUuid())) {
-                    horse.setHorse((Horse) entity);
-                    break;
-                }
-            }
-        }
-    }
-
+//    @EventHandler
+//    public void onChunkLoad(ChunkLoadEvent evt) {
+//        final long stamp = container.horseWriteLock();
+//        try {
+//            for (Entity entity : evt.getChunk().getEntities()) {
+//                for (MyHorse horse : container.getHorseList()) {
+//                    if (entity.getUniqueId().equals(horse.getUuid())) {
+//                        horse.setHorse((Horse) entity);
+//                        break;
+//                    }
+//                }
+//            }
+//        } finally {
+//            container.horseWriteUnlock(stamp);
+//        }
+//    }
     @EventHandler
     public void onPlayerUse(EntityDamageByEntityEvent event) {
         if (!(event.getDamager() instanceof Player)) { //Check the damager is a player.
@@ -385,9 +365,11 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         if (potion.getItem().getItemMeta().hasDisplayName() && potion.getItem().getItemMeta().getDisplayName().equals(POTION_NAME)) { //Check the potion is a healing potion.
             for (Entity e : evt.getAffectedEntities()) { //Loop through all the affected entities.
                 if (e instanceof Horse) { //Check the entity is a horse.
-                    final MyHorse mh = container.getHorse((Horse) e); //Get the horse.
-                    if (mh.getSickness()) { //Check if the horse was ill.
-                        mh.setSickness(true); //Make the horse well.
+                    try {
+                        if (MyHorse.isHorseSick((Horse) e)) { //Check if the horse was ill.
+                            MyHorse.setHorseSick((Horse) e, false);
+                        }
+                    } finally {
                     }
                 }
             }
@@ -397,17 +379,17 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     @EventHandler
     public void onCreatureSpawn(CreatureSpawnEvent evt) {
         if (evt.getEntityType() == EntityType.HORSE) {
-            container.addHorse((Horse) evt.getEntity());
+            MyHorse.setHorseGender(MyHorse.generateRandomGender(), (Horse) evt.getEntity());
         }
     }
 
     private void loadProperties() {
         try (InputStream is = new FileInputStream(PROPERTIES_FILE)) {
             properties.load(is);
-            HorseCheckerThread.EAT_LIMIT = Long.parseLong(properties.getProperty("EAT_LIMIT"))*60000;
-            HorseCheckerThread.DRINK_LIMIT = Long.parseLong(properties.getProperty("DRINK_LIMIT"))*60000;
-            HorseCheckerThread.SICK_LIMIT = Long.parseLong(properties.getProperty("SICK_LIMIT"))*60000;
-            HorseCheckerThread.DEFECATE_INTERVAL = Long.parseLong(properties.getProperty("DEFECATE_INTERVAL"))*60000;
+            HorseCheckerThread.EAT_LIMIT = Long.parseLong(properties.getProperty("EAT_LIMIT")) * 60000;
+            HorseCheckerThread.DRINK_LIMIT = Long.parseLong(properties.getProperty("DRINK_LIMIT")) * 60000;
+            HorseCheckerThread.SICK_LIMIT = Long.parseLong(properties.getProperty("SICK_LIMIT")) * 60000;
+            HorseCheckerThread.DEFECATE_INTERVAL = Long.parseLong(properties.getProperty("DEFECATE_INTERVAL")) * 60000;
             HorseCheckerThread.ILL_WAIT = Long.parseLong(properties.getProperty("ILL_WAIT"));
             HorseCheckerThread.BUCK_PROBABILITY = Double.parseDouble(properties.getProperty("BUCK_PROBABILITY"));
             HorseCheckerThread.BREED_PROBABILITY = Double.parseDouble(properties.getProperty("BREED_PROBABILITY"));
@@ -428,11 +410,11 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             }
         }
         try (OutputStream os = new FileOutputStream(PROPERTIES_FILE)) {
-            properties.setProperty("EAT_LIMIT", Long.toString(HorseCheckerThread.EAT_LIMIT/60000));
-            properties.setProperty("DRINK_LIMIT", Long.toString(HorseCheckerThread.DRINK_LIMIT/60000));
-            properties.setProperty("SICK_LIMIT", Long.toString(HorseCheckerThread.SICK_LIMIT/60000));
-            properties.setProperty("DEFECATE_INTERVAL", Long.toString(HorseCheckerThread.DEFECATE_INTERVAL/60000));
-            properties.setProperty("ILL_WAIT", Long.toString(HorseCheckerThread.ILL_WAIT/60000));
+            properties.setProperty("EAT_LIMIT", Long.toString(HorseCheckerThread.EAT_LIMIT / 60000));
+            properties.setProperty("DRINK_LIMIT", Long.toString(HorseCheckerThread.DRINK_LIMIT / 60000));
+            properties.setProperty("SICK_LIMIT", Long.toString(HorseCheckerThread.SICK_LIMIT / 60000));
+            properties.setProperty("DEFECATE_INTERVAL", Long.toString(HorseCheckerThread.DEFECATE_INTERVAL / 60000));
+            properties.setProperty("ILL_WAIT", Long.toString(HorseCheckerThread.ILL_WAIT / 60000));
             properties.setProperty("BUCK_PROBABILITY", Double.toString(HorseCheckerThread.BUCK_PROBABILITY));
             properties.setProperty("BREED_PROBABILITY", Double.toString(HorseCheckerThread.BREED_PROBABILITY));
             properties.store(os, null);
