@@ -18,6 +18,9 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.locks.StampedLock;
 import java.util.logging.Level;
+import org.bukkit.Bukkit;
+import org.bukkit.World;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Horse;
 import org.bukkit.entity.Player;
 
@@ -42,6 +45,19 @@ public class DataContainer {
         horseLock = new StampedLock();
         doctorLock = new StampedLock();
         loadHorses();
+        pairHorses();
+    }
+
+    private void pairHorses() {
+        for (MyHorse horse : horses) {
+            for (World world : Bukkit.getWorlds()) {
+                for (Entity entity : world.getEntities()) {
+                    if (entity.getUniqueId().equals(horse.getUuid())) {
+                        horse.setHorse((Horse) entity);
+                    }
+                }
+            }
+        }
     }
 
     static {
@@ -65,15 +81,15 @@ public class DataContainer {
     public void addHorse(Horse h) {
         final long stamp = horseLock.writeLock();
         try {
-            final Iterator<MyHorse> iter = horses.iterator();
-            while (iter.hasNext()) {
-                final MyHorse horse = iter.next();
-                if (horse.getUuid() == h.getUniqueId()) {
-                    horse.setHorse(h);
-                    horse.persist();
-                    return;
-                }
-            }
+//            final Iterator<MyHorse> iter = horses.iterator();
+//            while (iter.hasNext()) {
+//                final MyHorse horse = iter.next();
+//                if (horse.getUuid() == h.getUniqueId()) {
+//                    horse.setHorse(h);
+//                    horse.persist();
+//                    return;
+//                }
+//            }
             final MyHorse mh = new MyHorse(h);
             if (mh.getGender() == -1) {
                 mh.setGender(MyHorse.generateRandomGender());
@@ -104,7 +120,7 @@ public class DataContainer {
         }
         return null;
     }
-    
+
     /**
      * Add a new horse.
      *
@@ -122,7 +138,7 @@ public class DataContainer {
     /**
      * Get the MyHorse object which contains the given Horse object.
      *
-     * @param h the horse to contain.
+     * @param p the player to check.
      * @return the yHorse object which contains the horse. Null if it doesn't
      * exists.
      */
