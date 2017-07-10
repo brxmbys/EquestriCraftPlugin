@@ -30,6 +30,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.PotionSplashEvent;
+import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -37,8 +38,6 @@ import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.metadata.MetadataValue;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.potion.Potion;
-import org.bukkit.potion.PotionType;
 
 /**
  *
@@ -254,6 +253,18 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     }
 
     @EventHandler
+    public void onChunkLoad(ChunkLoadEvent evt) {
+        for (Entity entity : evt.getChunk().getEntities()) {
+            for (MyHorse horse : container.getHorseList()) {
+                if (entity.getUniqueId().equals(horse.getUuid())) {
+                    horse.setHorse((Horse) entity);
+                    break;
+                }
+            }
+        }
+    }
+
+    @EventHandler
     public void onPlayerUse(EntityDamageByEntityEvent event) {
         if (!(event.getDamager() instanceof Player)) { //Check the damager is a player.
             return;
@@ -393,11 +404,13 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     private void loadProperties() {
         try (InputStream is = new FileInputStream(PROPERTIES_FILE)) {
             properties.load(is);
-            HorseCheckerThread.EAT_LIMIT = Integer.parseInt(properties.getProperty("EAT_LIMIT"));
-            HorseCheckerThread.DRINK_LIMIT = Integer.parseInt(properties.getProperty("DRINK_LIMIT"));
-            HorseCheckerThread.SICK_LIMIT = Integer.parseInt(properties.getProperty("SICK_LIMIT"));
-            HorseCheckerThread.DEFECATE_INTERVAL = Integer.parseInt(properties.getProperty("DEFECATE_INTERVAL"));
-            HorseCheckerThread.ILL_WAIT = Integer.parseInt(properties.getProperty("ILL_WAIT"));
+            HorseCheckerThread.EAT_LIMIT = Long.parseLong(properties.getProperty("EAT_LIMIT"))*60000;
+            HorseCheckerThread.DRINK_LIMIT = Long.parseLong(properties.getProperty("DRINK_LIMIT"))*60000;
+            HorseCheckerThread.SICK_LIMIT = Long.parseLong(properties.getProperty("SICK_LIMIT"))*60000;
+            HorseCheckerThread.DEFECATE_INTERVAL = Long.parseLong(properties.getProperty("DEFECATE_INTERVAL"))*60000;
+            HorseCheckerThread.ILL_WAIT = Long.parseLong(properties.getProperty("ILL_WAIT"));
+            HorseCheckerThread.BUCK_PROBABILITY = Double.parseDouble(properties.getProperty("BUCK_PROBABILITY"));
+            HorseCheckerThread.BREED_PROBABILITY = Double.parseDouble(properties.getProperty("BREED_PROBABILITY"));
         } catch (FileNotFoundException ex) {
             saveProperties();
         } catch (IOException ex) {
@@ -415,11 +428,13 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             }
         }
         try (OutputStream os = new FileOutputStream(PROPERTIES_FILE)) {
-            properties.setProperty("EAT_LIMIT", Long.toString(HorseCheckerThread.EAT_LIMIT));
-            properties.setProperty("DRINK_LIMIT", Long.toString(HorseCheckerThread.DRINK_LIMIT));
-            properties.setProperty("SICK_LIMIT", Long.toString(HorseCheckerThread.SICK_LIMIT));
-            properties.setProperty("DEFECATE_INTERVAL", Long.toString(HorseCheckerThread.DEFECATE_INTERVAL));
-            properties.setProperty("ILL_WAIT", Long.toString(HorseCheckerThread.ILL_WAIT));
+            properties.setProperty("EAT_LIMIT", Long.toString(HorseCheckerThread.EAT_LIMIT/60000));
+            properties.setProperty("DRINK_LIMIT", Long.toString(HorseCheckerThread.DRINK_LIMIT/60000));
+            properties.setProperty("SICK_LIMIT", Long.toString(HorseCheckerThread.SICK_LIMIT/60000));
+            properties.setProperty("DEFECATE_INTERVAL", Long.toString(HorseCheckerThread.DEFECATE_INTERVAL/60000));
+            properties.setProperty("ILL_WAIT", Long.toString(HorseCheckerThread.ILL_WAIT/60000));
+            properties.setProperty("BUCK_PROBABILITY", Double.toString(HorseCheckerThread.BUCK_PROBABILITY));
+            properties.setProperty("BREED_PROBABILITY", Double.toString(HorseCheckerThread.BREED_PROBABILITY));
             properties.store(os, null);
         } catch (FileNotFoundException ex) {
             getLogger().log(Level.SEVERE, null, ex);
