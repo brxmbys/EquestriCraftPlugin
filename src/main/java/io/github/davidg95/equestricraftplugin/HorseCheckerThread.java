@@ -40,7 +40,7 @@ public class HorseCheckerThread extends Thread {
     /**
      * The length of time a horse can go after eating before it defecates.
      */
-    public static long DEFECATE_INTERVAL = 18000000L; //Five Hours.
+    public static long DEFECATE_INTERVAL = 7200000L; //Two Hours.
     /**
      * The length of time a horse will wait before getting ill again.
      */
@@ -48,9 +48,9 @@ public class HorseCheckerThread extends Thread {
 
     public static long VACCINATION_DURATION = 2419200000L; //Four weeks.
 
-    public static final double BUCK_PROBABILITY = 0.005;
+    public static double BUCK_PROBABILITY = 0.05;
 
-    public static final double BREED_PROBABILITY = 0.2;
+    public static double BREED_PROBABILITY = 0.2;
     public static final long BREED_INTERVAL = 86400000L;
 
     public static final double SICK_PROBABILITY = 0.002;
@@ -76,27 +76,39 @@ public class HorseCheckerThread extends Thread {
                     if (horse.getHorse() == null) {
                         continue;
                     }
-                    final Block cauldron = horse.getNearCauldron(); //Get the nearby cauldron if there is one.
-                    if (cauldron != null) { //Check if they are next to a cauldron.
-                        if (this.getFirstEat(cauldron) == -1) {
-                            this.setFirstEat(cauldron);
-                            cauldrons.add(cauldron);
-                        }
-                        horse.setThirst(false);
-                    }
-                    final Block bale = horse.getNearHayBale(); //Get the nearby hay bale if there is one.
-                    if (bale != null) { //Check if they are next to a hay bale.
-                        if (this.getFirstEat(bale) == -1) {
-                            this.setFirstEat(bale);
-                            final long bStamp = baleLock.writeLock();
-                            try {
-                                bales.add(bale);
-                            } finally {
-                                baleLock.unlockWrite(bStamp);
+                    new BukkitRunnable() {
+                        @Override
+                        public void run() {
+                            final Block cauldron = horse.getNearCauldron(); //Get the nearby cauldron if there is one.
+                            if (cauldron != null) { //Check if they are next to a cauldron.
+                                if (HorseCheckerThread.this.getFirstEat(cauldron) == -1) {
+                                    HorseCheckerThread.this.setFirstEat(cauldron);
+                                    cauldrons.add(cauldron);
+                                }
+                                horse.setThirst(false);
                             }
                         }
-                        horse.setHunger(false);
-                    }
+                    }.runTask(EquestriCraftPlugin.plugin);
+
+                    new BukkitRunnable() {
+                        @Override
+                        public void run() {
+                            final Block bale = horse.getNearHayBale(); //Get the nearby hay bale if there is one.
+                            if (bale != null) { //Check if they are next to a hay bale.
+                                if (HorseCheckerThread.this.getFirstEat(bale) == -1) {
+                                    HorseCheckerThread.this.setFirstEat(bale);
+                                    final long bStamp = baleLock.writeLock();
+                                    try {
+                                        bales.add(bale);
+                                    } finally {
+                                        baleLock.unlockWrite(bStamp);
+                                    }
+                                }
+                                horse.setHunger(false);
+                            }
+                        }
+                    }.runTask(EquestriCraftPlugin.plugin);
+
                     if (horse.getDurationSinceLastDrink() > DRINK_LIMIT) { //Check if the horse is thirsty.
                         horse.setThirst(true);
                     }
