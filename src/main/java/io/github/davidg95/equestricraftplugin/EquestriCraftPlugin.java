@@ -224,7 +224,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         }
         return false;
     }
-    
+
     @EventHandler
     public void onPlayerUse(EntityDamageByEntityEvent event) {
         if (!(event.getDamager() instanceof Player)) { //Check the damager is a player.
@@ -235,107 +235,120 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         if (inHand == null) {
             return;
         }
-        if (inHand.getType() == Material.SHEARS) { //Check they have shears in their hand.
-            if (!inHand.getItemMeta().hasDisplayName()) { //Check the shears have a display name.
-                return;
-            }
-            if (!inHand.getItemMeta().getDisplayName().equals(SHEARS_NAME)) { //Check the shears are the Gelding Shears.
-                return;
-            }
-            if (event.getEntity() instanceof Horse) { //Check it was a horse they are hitting.
-                event.setCancelled(true);
-                final Horse horse = (Horse) event.getEntity(); //Get the Horse instance.
-                if (MyHorse.getGenderFromMeta(horse) != MyHorse.STALLION) { //check it was a stallion.
-                    player.sendMessage("This horse is not a stallion");
-                    return;
-                }
-                MyHorse.setGenderInMeta(horse, MyHorse.GELDING); //Turn the horse into a gelding.
-                player.sendMessage("This horse has been gelded");
-            }
-        } else if (inHand.getType() == Material.STICK) { //Horse checking stick
-            if (!inHand.getItemMeta().hasDisplayName()) { //Check the shears have a display name.
-                return;
-            }
-            if (!inHand.getItemMeta().getDisplayName().equals(STICK_NAME)) { //Check the shears are the Gelding Shears.
-                return;
-            }
-            if (event.getEntity() instanceof Horse) {
-                event.setCancelled(true);
-                final Horse horse = (Horse) event.getEntity();
-                boolean sickness = false;
-                final List<MetadataValue> mdvss = horse.getMetadata(MyHorse.META_HEALTH);
-                for (MetadataValue md : mdvss) {
-                    if (md.getOwningPlugin() == EquestriCraftPlugin.plugin) {
-                        sickness = md.asBoolean();
+        if (null != inHand.getType()) {
+            switch (inHand.getType()) {
+                case SHEARS:
+                    //Check they have shears in their hand.
+                    if (!inHand.getItemMeta().hasDisplayName()) { //Check the shears have a display name.
+                        return;
                     }
-                }
-                int gender = -1;
-                final List<MetadataValue> mdvsg = horse.getMetadata(MyHorse.META_GENDER);
-                for (MetadataValue md : mdvsg) {
-                    if (md.getOwningPlugin() == EquestriCraftPlugin.plugin) {
-                        gender = md.asInt();
+                    if (!inHand.getItemMeta().getDisplayName().equals(SHEARS_NAME)) { //Check the shears are the Gelding Shears.
+                        return;
                     }
-                }
-                boolean hunger = false;
-                final List<MetadataValue> mdvsh = horse.getMetadata(MyHorse.META_HUNGER);
-                for (MetadataValue md : mdvsh) {
-                    if (md.getOwningPlugin() == EquestriCraftPlugin.plugin) {
-                        hunger = md.asBoolean();
+                    if (event.getEntity() instanceof Horse) { //Check it was a horse they are hitting.
+                        event.setCancelled(true);
+                        final Horse horse = (Horse) event.getEntity(); //Get the Horse instance.
+                        if (MyHorse.getGenderFromMeta(horse) != MyHorse.STALLION) { //check it was a stallion.
+                            player.sendMessage("This horse is not a stallion");
+                            return;
+                        }
+                        MyHorse.setGenderInMeta(horse, MyHorse.GELDING); //Turn the horse into a gelding.
+                        player.sendMessage("This horse has been gelded");
                     }
-                }
-                boolean thirst = false;
-                final List<MetadataValue> mdvst = horse.getMetadata(MyHorse.META_THIRST);
-                for (MetadataValue md : mdvst) {
-                    if (md.getOwningPlugin() == EquestriCraftPlugin.plugin) {
-                        thirst = md.asBoolean();
+                    break;
+                case STICK:
+                    //Horse checking stick
+                    if (!inHand.getItemMeta().hasDisplayName()) { //Check the shears have a display name.
+                        return;
                     }
-                }
-                boolean vaccination = false;
-                final List<MetadataValue> mdvsv = horse.getMetadata(MyHorse.META_VACCINATED);
-                for (MetadataValue md : mdvsv) {
-                    if (md.getOwningPlugin() == EquestriCraftPlugin.plugin) {
-                        vaccination = md.asBoolean();
+                    if (!inHand.getItemMeta().getDisplayName().equals(STICK_NAME)) { //Check the shears are the Gelding Shears.
+                        return;
                     }
-                }
-                final String genderStr = "GENDER: " + (gender == MyHorse.STALLION ? "STALLION" : (gender == MyHorse.MARE ? "MARE" : "GELDING"));
-                final String sickStr = "HEALTH: " + (sickness ? "ILL" : "WELL");
-                final String hungerStr = "HUNGER: " + (hunger ? "HUNGRY" : "NOT HUNGRY");
-                final String thirstStr = "THIRST: " + (thirst ? "THIRSTY" : "NOT THIRSTY");
-                final String vaccinationStr = "Vaccinated: " + (vaccination ? "YES" : "NO");
-                player.sendMessage(genderStr);
-                player.sendMessage(sickStr);
-                player.sendMessage(hungerStr);
-                player.sendMessage(thirstStr);
-                player.sendMessage(vaccinationStr);
-            } else {
-                player.sendMessage("You must click on a horse");
-            }
-        } else if (inHand.getType() == Material.BLAZE_ROD) { //Vaccination
-            if (!inHand.getItemMeta().hasDisplayName()) {
-                return;
-            }
-            if (!inHand.getItemMeta().getDisplayName().equals(VACCINE_NAME)) {
-                return;
-            }
-            if (event.getEntity() instanceof Horse) {
-                event.setCancelled(true);
-                final Horse horse = (Horse) event.getEntity();
-                horse.setMetadata(MyHorse.META_VACCINATED, new FixedMetadataValue(EquestriCraftPlugin.plugin, true));
-                horse.setMetadata(MyHorse.META_VACCINE_TIME, new FixedMetadataValue(EquestriCraftPlugin.plugin, new Date().getTime()));
-                player.sendMessage("Horse has been vaccinated");
-            }
-        } else if (inHand.getType() == Material.REDSTONE_TORCH_ON) { //Healing
-            if (!inHand.getItemMeta().hasDisplayName()) {
-                return;
-            }
-            if (!inHand.getItemMeta().getDisplayName().equals(POTION_NAME)) {
-                return;
-            }
-            if (event.getEntity() instanceof Horse) {
-                event.setCancelled(true);
-                final Horse horse = (Horse) event.getEntity();
-                horse.setMetadata(MyHorse.META_HEALTH, new FixedMetadataValue(EquestriCraftPlugin.plugin, false));
-                player.sendMessage("Horse has been cured");
+                    if (event.getEntity() instanceof Horse) {
+                        event.setCancelled(true);
+                        final Horse horse = (Horse) event.getEntity();
+                        boolean sickness = false;
+                        final List<MetadataValue> mdvss = horse.getMetadata(MyHorse.META_HEALTH);
+                        for (MetadataValue md : mdvss) {
+                            if (md.getOwningPlugin() == EquestriCraftPlugin.plugin) {
+                                sickness = md.asBoolean();
+                            }
+                        }
+                        int gender = -1;
+                        final List<MetadataValue> mdvsg = horse.getMetadata(MyHorse.META_GENDER);
+                        for (MetadataValue md : mdvsg) {
+                            if (md.getOwningPlugin() == EquestriCraftPlugin.plugin) {
+                                gender = md.asInt();
+                            }
+                        }
+                        boolean hunger = false;
+                        final List<MetadataValue> mdvsh = horse.getMetadata(MyHorse.META_HUNGER);
+                        for (MetadataValue md : mdvsh) {
+                            if (md.getOwningPlugin() == EquestriCraftPlugin.plugin) {
+                                hunger = md.asBoolean();
+                            }
+                        }
+                        boolean thirst = false;
+                        final List<MetadataValue> mdvst = horse.getMetadata(MyHorse.META_THIRST);
+                        for (MetadataValue md : mdvst) {
+                            if (md.getOwningPlugin() == EquestriCraftPlugin.plugin) {
+                                thirst = md.asBoolean();
+                            }
+                        }
+                        boolean vaccination = false;
+                        final List<MetadataValue> mdvsv = horse.getMetadata(MyHorse.META_VACCINATED);
+                        for (MetadataValue md : mdvsv) {
+                            if (md.getOwningPlugin() == EquestriCraftPlugin.plugin) {
+                                vaccination = md.asBoolean();
+                            }
+                        }
+                        final String genderStr = "GENDER: " + (gender == MyHorse.STALLION ? "STALLION" : (gender == MyHorse.MARE ? "MARE" : "GELDING"));
+                        final String sickStr = "HEALTH: " + (sickness ? "ILL" : "WELL");
+                        final String hungerStr = "HUNGER: " + (hunger ? "HUNGRY" : "NOT HUNGRY");
+                        final String thirstStr = "THIRST: " + (thirst ? "THIRSTY" : "NOT THIRSTY");
+                        final String vaccinationStr = "Vaccinated: " + (vaccination ? "YES" : "NO");
+                        player.sendMessage(genderStr);
+                        player.sendMessage(sickStr);
+                        player.sendMessage(hungerStr);
+                        player.sendMessage(thirstStr);
+                        player.sendMessage(vaccinationStr);
+                    } else {
+                        player.sendMessage("You must click on a horse");
+                    }
+                    break;
+                case BLAZE_ROD:
+                    //Vaccination
+                    if (!inHand.getItemMeta().hasDisplayName()) {
+                        return;
+                    }
+                    if (!inHand.getItemMeta().getDisplayName().equals(VACCINE_NAME)) {
+                        return;
+                    }
+                    if (event.getEntity() instanceof Horse) {
+                        event.setCancelled(true);
+                        final Horse horse = (Horse) event.getEntity();
+                        horse.setMetadata(MyHorse.META_VACCINATED, new FixedMetadataValue(EquestriCraftPlugin.plugin, true));
+                        horse.setMetadata(MyHorse.META_VACCINE_TIME, new FixedMetadataValue(EquestriCraftPlugin.plugin, new Date().getTime()));
+                        player.sendMessage("Horse has been vaccinated");
+                    }
+                    break;
+                case REDSTONE_TORCH_ON:
+                    //Healing
+                    if (!inHand.getItemMeta().hasDisplayName()) {
+                        return;
+                    }
+                    if (!inHand.getItemMeta().getDisplayName().equals(POTION_NAME)) {
+                        return;
+                    }
+                    if (event.getEntity() instanceof Horse) {
+                        event.setCancelled(true);
+                        final Horse horse = (Horse) event.getEntity();
+                        horse.setMetadata(MyHorse.META_HEALTH, new FixedMetadataValue(EquestriCraftPlugin.plugin, false));
+                        player.sendMessage("Horse has been cured");
+                    }
+                    break;
+                default:
+                    break;
             }
         }
     }

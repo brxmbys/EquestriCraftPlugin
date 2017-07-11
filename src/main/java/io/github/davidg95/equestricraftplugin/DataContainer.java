@@ -32,14 +32,12 @@ public class DataContainer {
     private static DataContainer container;
 
     private List<UUID> doctors;
-    private final StampedLock horseLock;
     private final StampedLock doctorLock;
 
     public static final String HORSES_FILE = "horses.config";
 
     private DataContainer() {
         doctors = new LinkedList<>();
-        horseLock = new StampedLock();
         doctorLock = new StampedLock();
         loadHorses();
     }
@@ -52,7 +50,7 @@ public class DataContainer {
         try {
             for (MyHorse horse : horses) {
                 horsesInFile++;
-                if(horsesInFile % 500 == 0){
+                if (horsesInFile % 500 == 0) {
                     Bukkit.getLogger().log(Level.INFO, "Scanned: " + horsesInFile);
                 }
                 for (World world : Bukkit.getWorlds()) {
@@ -82,50 +80,6 @@ public class DataContainer {
         return container;
     }
 
-//    /**
-//     * Add a new horse.
-//     *
-//     * @param h the Horse to add.
-//     */
-//    public void addHorse(Horse h) {
-//        try {
-////            final Iterator<MyHorse> iter = horses.iterator();
-////            while (iter.hasNext()) {
-////                final MyHorse horse = iter.next();
-////                if (horse.getUuid() == h.getUniqueId()) {
-////                    horse.setHorse(h);
-////                    horse.persist();
-////                    return;
-////                }
-////            }
-//            final MyHorse mh = new MyHorse(h);
-//            if (mh.getGender() == -1) {
-//                mh.setGender(MyHorse.generateRandomGender());
-//            }
-//            horses.add(new MyHorse(h));
-//        } finally {
-//        }
-//    }
-//    /**
-//     * Get the MyHorse object which contains the given Horse object.
-//     *
-//     * @param h the horse to contain.
-//     * @return the yHorse object which contains the horse. Null if it doesn't
-//     * exists.
-//     */
-//    public MyHorse getHorse(Horse h) {
-//        final long stamp = horseLock.writeLock();
-//        try {
-//            for (MyHorse mh : horses) {
-//                if (mh.equals(h)) {
-//                    return mh;
-//                }
-//            }
-//        } finally {
-//            horseLock.unlockWrite(stamp);
-//        }
-//        return null;
-//    }
     /**
      * Add a new horse.
      *
@@ -161,50 +115,6 @@ public class DataContainer {
         return false;
     }
 
-//    /**
-//     * Gets the list of horses.
-//     *
-//     * @return List of type MyHorse.
-//     */
-//    public List<MyHorse> getHorseList() {
-//        return horses;
-//    }
-//    public long horseReadLock() {
-//        return horseLock.readLock();
-//    }
-//
-//    public void horseReadUnlock(long stamp) {
-//        horseLock.unlockRead(stamp);
-//    }
-//
-//    public long horseWriteLock() {
-//        return horseLock.writeLock();
-//    }
-//
-//    public void horseWriteUnlock(long stamp) {
-//        horseLock.unlockWrite(stamp);
-//    }
-
-//    /**
-//     * Removes dead horses from the list. This is thread safe.
-//     */
-//    public void removeDeadHorses() {
-//        final long stamp = horseLock.writeLock();
-//        try {
-//            final Iterator<MyHorse> horseIt = horses.iterator();
-//            while (horseIt.hasNext()) {
-//                final MyHorse horse = horseIt.next();
-//                if (horse.getHorse() == null) {
-//                    continue;
-//                }
-//                if (horse.isDead()) {
-//                    horseIt.remove();
-//                }
-//            }
-//        } finally {
-//            horseLock.unlockWrite(stamp);
-//        }
-//    }
     private List<MyHorse> getHorses() {
         final List<MyHorse> mHorses = new LinkedList<>();
         for (World w : Bukkit.getWorlds()) {

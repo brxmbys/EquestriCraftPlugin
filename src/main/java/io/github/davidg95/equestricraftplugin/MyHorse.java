@@ -90,10 +90,10 @@ public class MyHorse implements Serializable {
             @Override
             public void run() {
                 if (set) {
-                    horse.setJumpStrength(1);
+                    horse.setJumpStrength(0.2);
                     horse.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, (int) (HorseCheckerThread.SICK_LIMIT * 20), 1));
                 } else {
-                    horse.setJumpStrength(2);
+                    horse.setJumpStrength(0.7);
                     horse.removePotionEffect(PotionEffectType.SLOW);
                 }
             }
@@ -103,6 +103,7 @@ public class MyHorse implements Serializable {
     /**
      * Set the hunger of the horse.
      *
+     * @param horse the horse to apply to.
      * @param state true if they are now hungry, false if they have just eaten.
      */
     public static void setHunger(Horse horse, boolean state) {
@@ -117,6 +118,7 @@ public class MyHorse implements Serializable {
     /**
      * Set the thirst of the horse.
      *
+     * @param horse the horse to apply to.
      * @param state true if they are now thirsty, false if they have drank.
      */
     public static void setThirst(Horse horse, boolean state) {
@@ -131,6 +133,7 @@ public class MyHorse implements Serializable {
     /**
      * Get the hunger of the horse.
      *
+     * @param horse the horse to apply to.
      * @return true if hungry, false if not.
      */
     public static boolean getHunger(Horse horse) {
@@ -176,6 +179,7 @@ public class MyHorse implements Serializable {
     /**
      * Get the last eat time.
      *
+     * @param horse the horse to apply to.
      * @return the last eat time in ms as a Long.
      */
     public static long getDurationSinceLastEat(Horse horse) {
@@ -200,6 +204,7 @@ public class MyHorse implements Serializable {
     /**
      * Get the last drink time.
      *
+     * @param horse the horse to apply to.
      * @return the last drink time in ms as a Long.
      */
     public static long getDurationSinceLastDrink(Horse horse) {
@@ -224,6 +229,7 @@ public class MyHorse implements Serializable {
     /**
      * Get the total time the horse has been well.
      *
+     * @param horse the horse to apply to.
      * @return the time the horse has been well as a long.
      */
     public static long getWellDuration(Horse horse) {
@@ -239,6 +245,7 @@ public class MyHorse implements Serializable {
     /**
      * Get the last sickness change time.
      *
+     * @param horse the horse to apply to.
      * @return the last change time in ms as a Long.
      */
     public static long getIllDuration(Horse horse) {
@@ -253,6 +260,8 @@ public class MyHorse implements Serializable {
 
     /**
      * Kill the horse.
+     *
+     * @param horse the horse to apply to.
      */
     public static void kill(Horse horse) {
         new BukkitRunnable() {
@@ -265,6 +274,8 @@ public class MyHorse implements Serializable {
 
     /**
      * Make the horse defecate.
+     *
+     * @param horse the horse to apply to.
      */
     public static void defecate(Horse horse) {
         new BukkitRunnable() {
@@ -332,6 +343,7 @@ public class MyHorse implements Serializable {
     /**
      * Checks if the horse is next to a cauldron or not.
      *
+     * @param horse the horse to apply to.
      * @return the block the cauldron is in, null if there is not one nearby.
      */
     public static Block getNearCauldron(Horse horse) {
@@ -346,6 +358,7 @@ public class MyHorse implements Serializable {
     /**
      * Checks if the horse is next to a hay bale.
      *
+     * @param horse the horse to apply to.
      * @return the block the hay bale is in, null if there is not one nearby.
      */
     public static Block getNearHayBale(Horse horse) {
@@ -382,7 +395,7 @@ public class MyHorse implements Serializable {
         if (getGenderFromMeta(horse) == GELDING) {
             return false;
         }
-        if(horse == null){
+        if (horse == null) {
             return false;
         }
         final List<Entity> nearby = horse.getNearbyEntities(1.5, 1.5, 1.5);
@@ -437,6 +450,7 @@ public class MyHorse implements Serializable {
      *
      * @param gender the horses gender. Can be MyHorse.STALLION, MyHorse.MARE or
      * MyHorse.GELDING.
+     * @param horse the horse to apply to.
      */
     public static void setHorseGender(int gender, Horse horse) {
         horse.setMetadata(META_GENDER, new FixedMetadataValue(EquestriCraftPlugin.plugin, gender));
