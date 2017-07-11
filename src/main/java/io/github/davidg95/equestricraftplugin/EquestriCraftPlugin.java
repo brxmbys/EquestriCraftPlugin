@@ -17,7 +17,6 @@ import java.util.Properties;
 import java.util.logging.Level;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
@@ -50,7 +49,6 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     public static Plugin plugin;
 
     private DataContainer container;
-    private List<World> worlds;
     private HorseCheckerThread checkerThread;
     private Properties properties;
     private static final String PROPERTIES_FILE = "equestricraftplugin.properties";
@@ -73,7 +71,6 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     @Override
     public void onEnable() {
         plugin = this;
-        worlds = Bukkit.getWorlds();
         properties = new Properties();
         loadProperties();
         container = DataContainer.getInstance();
@@ -227,23 +224,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         }
         return false;
     }
-
-//    @EventHandler
-//    public void onChunkLoad(ChunkLoadEvent evt) {
-//        final long stamp = container.horseWriteLock();
-//        try {
-//            for (Entity entity : evt.getChunk().getEntities()) {
-//                for (MyHorse horse : container.getHorseList()) {
-//                    if (entity.getUniqueId().equals(horse.getUuid())) {
-//                        horse.setHorse((Horse) entity);
-//                        break;
-//                    }
-//                }
-//            }
-//        } finally {
-//            container.horseWriteUnlock(stamp);
-//        }
-//    }
+    
     @EventHandler
     public void onPlayerUse(EntityDamageByEntityEvent event) {
         if (!(event.getDamager() instanceof Player)) { //Check the damager is a player.
@@ -394,6 +375,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             HorseCheckerThread.ILL_WAIT = Long.parseLong(properties.getProperty("ILL_WAIT"));
             HorseCheckerThread.BUCK_PROBABILITY = Double.parseDouble(properties.getProperty("BUCK_PROBABILITY"));
             HorseCheckerThread.BREED_PROBABILITY = Double.parseDouble(properties.getProperty("BREED_PROBABILITY"));
+            HorseCheckerThread.SICK_PROBABILITY = Double.parseDouble(properties.getProperty("SICK_PROBABILITY"));
+            HorseCheckerThread.VACCINATED_PROBABILITY = Double.parseDouble(properties.getProperty("VACCINATED_SICK_PROBABILITY"));
         } catch (FileNotFoundException ex) {
             saveProperties();
         } catch (IOException ex) {
@@ -418,6 +401,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             properties.setProperty("ILL_WAIT", Long.toString(HorseCheckerThread.ILL_WAIT / 60000));
             properties.setProperty("BUCK_PROBABILITY", Double.toString(HorseCheckerThread.BUCK_PROBABILITY));
             properties.setProperty("BREED_PROBABILITY", Double.toString(HorseCheckerThread.BREED_PROBABILITY));
+            properties.setProperty("SICK_PROBABILITY", Double.toString(HorseCheckerThread.SICK_PROBABILITY));
+            properties.setProperty("VACCINATED_SICK_PROBABILITY", Double.toString(HorseCheckerThread.VACCINATED_PROBABILITY));
             properties.store(os, null);
         } catch (FileNotFoundException ex) {
             getLogger().log(Level.SEVERE, null, ex);
