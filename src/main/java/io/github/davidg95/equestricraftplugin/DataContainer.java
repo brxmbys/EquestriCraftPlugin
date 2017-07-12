@@ -53,16 +53,20 @@ public class DataContainer {
         final Runnable run = new Runnable() {
             @Override
             public void run() {
-                try {
-                    Thread.sleep(600000); //Ten Minutes
-                } catch (InterruptedException ex) {
-                    Logger.getLogger(DataContainer.class.getName()).log(Level.SEVERE, null, ex);
+                Bukkit.getLogger().log(Level.INFO, "horses.config will be saved every 10 minutes");
+                while (true) {
+                    try {
+                        Thread.sleep(600000); //Ten Minutes
+                    } catch (InterruptedException ex) {
+                        Logger.getLogger(DataContainer.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    saveHorses();
                 }
-                saveHorses();
             }
 
         };
         saveThread = new Thread(run, "Horse_Save_Thread");
+        saveThread.setDaemon(true);
         saveThread.start();
     }
 
