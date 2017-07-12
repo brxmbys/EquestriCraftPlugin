@@ -81,6 +81,10 @@ public class HorseCheckerThread extends Thread {
     private final List<Block> cauldrons;
 
     private final StampedLock horseLock;
+    
+    public static long BREED_THREAD_INTERVAL = 500;
+    
+    public static long MAIN_TRHEAD_INTERVAL = 100;
 
     public HorseCheckerThread() {
         super("Horse_Checker_Thread");
@@ -199,7 +203,7 @@ public class HorseCheckerThread extends Thread {
                 }
             }
             try {
-                Thread.sleep(100); //Wait 0.1s.
+                Thread.sleep(MAIN_TRHEAD_INTERVAL); //Wait
             } catch (InterruptedException ex) {
                 Logger.getLogger(HorseCheckerThread.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -274,7 +278,7 @@ public class HorseCheckerThread extends Thread {
                     }
                 }
                 try {
-                    Thread.sleep(100); //Wait 0.1s.
+                    Thread.sleep(BREED_THREAD_INTERVAL); //Wait
                 } catch (InterruptedException ex) {
                     Logger.getLogger(HorseCheckerThread.class.getName()).log(Level.SEVERE, null, ex);
                 }
