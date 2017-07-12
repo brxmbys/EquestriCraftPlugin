@@ -391,6 +391,12 @@ public class MyHorse implements Serializable {
         return nearby;
     }
 
+    /**
+     * Check if a horse is near a mate.
+     *
+     * @param horse the horse.
+     * @return
+     */
     public static boolean nearMate(Horse horse) {
         if (getGenderFromMeta(horse) == GELDING) {
             return false;
