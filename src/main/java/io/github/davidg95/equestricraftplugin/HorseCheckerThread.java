@@ -146,7 +146,9 @@ public class HorseCheckerThread extends Thread {
                             MyHorse.kill(horse);
                         }
                         if (MyHorse.getDurationSinceLastEat(horse) > DEFECATE_INTERVAL) { //Check if the horse needs to defecate.
-                            MyHorse.defecate(horse);
+                            if (!MyHorse.hasDefecateSinceEat(horse)) {
+                                MyHorse.defecate(horse);
+                            }
                         }
                         for (Block ba : bales) { //Check if any bales need removed.
                             if ((getCurrentTime() - this.getFirstEat(ba)) > 10800000L) {

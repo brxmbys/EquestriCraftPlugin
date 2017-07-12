@@ -74,6 +74,8 @@ public class MyHorse implements Serializable {
 
     public static final String META_VACCINE_TIME = "VaccineTime";
 
+    public static final String META_DEFECATE_SINCE_EAT = "DefecateSinceEat";
+
     public MyHorse(int gender, boolean vaccination, long vaccinationTime, UUID uuid) {
         this.gender = gender;
         this.vaccination = vaccination;
@@ -111,6 +113,7 @@ public class MyHorse implements Serializable {
         horse.setMetadata(META_HUNGER, new FixedMetadataValue(EquestriCraftPlugin.plugin, state));
         if (!state) {
             horse.setMetadata(META_HUNGERTIME, new FixedMetadataValue(EquestriCraftPlugin.plugin, getCurrentTime()));
+            horse.setMetadata(META_DEFECATE_SINCE_EAT, new FixedMetadataValue(EquestriCraftPlugin.plugin, false));
         }
         setSideEffects(horse, state);
     }
@@ -287,15 +290,17 @@ public class MyHorse implements Serializable {
                 block.setData(b);
             }
         }.runTask(EquestriCraftPlugin.plugin);
+        horse.setMetadata(META_DEFECATE_SINCE_EAT, new FixedMetadataValue(EquestriCraftPlugin.plugin, true));
     }
 
-    /**
-     * Get the last time the horse defecated.
-     *
-     * @return the last time the horse defecated in ms as a Long.
-     */
-    public long getLastDefecate() {
-        return this.lastDefecate;
+    public static boolean hasDefecateSinceEat(Horse horse) {
+        final List<MetadataValue> mdvs = horse.getMetadata(META_DEFECATE_SINCE_EAT);
+        for (MetadataValue md : mdvs) {
+            if (md.getOwningPlugin() == EquestriCraftPlugin.plugin) {
+                return md.asBoolean();
+            }
+        }
+        return true;
     }
 
     public static void vaccinate(Horse horse) {
