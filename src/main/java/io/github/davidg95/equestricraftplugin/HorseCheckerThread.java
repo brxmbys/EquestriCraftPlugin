@@ -251,16 +251,16 @@ public class HorseCheckerThread extends Thread {
                     try {
                         for (Horse horse : w.getEntitiesByClass(Horse.class)) {
                             final double r = Math.random();
-                            if (r <= BREED_PROBABILITY) {
-                                final long timeSinceLast = MyHorse.getDurationSinceLastBreed(horse);
-                                if (timeSinceLast > BREED_INTERVAL) {
-                                    if (MyHorse.nearMate(horse)) {
+                            if (r <= BREED_PROBABILITY) { //If the breed probability is met.
+                                final long timeSinceLast = MyHorse.getDurationSinceLastBreed(horse); //Get the time since the horse last bred.
+                                if (timeSinceLast > BREED_INTERVAL) { //Check if it is greater then the breed inverval.
+                                    if (MyHorse.nearMate(horse)) { //Check if the horse is near a valid mate.
                                         new BukkitRunnable() {
                                             @Override
                                             public void run() {
-                                                final Horse h = horse.getWorld().spawn(horse.getLocation(), Horse.class);
-                                                h.setStyle(horse.getStyle());
-                                                MyHorse.setLastBreed(horse, getCurrentTime());
+                                                final Horse h = horse.getWorld().spawn(horse.getLocation(), Horse.class); //Spawn a new horse.
+                                                h.setStyle(horse.getStyle()); //Copy the parent style.
+                                                MyHorse.setLastBreed(horse, getCurrentTime()); //Set the horses new last breed time.
                                             }
                                         }.runTask(EquestriCraftPlugin.plugin);
                                     }
@@ -279,7 +279,6 @@ public class HorseCheckerThread extends Thread {
                     Logger.getLogger(HorseCheckerThread.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-
         }
     }
 }
