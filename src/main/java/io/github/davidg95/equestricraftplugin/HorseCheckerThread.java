@@ -74,45 +74,53 @@ public class HorseCheckerThread extends Thread {
      */
     public static double VACCINATED_PROBABILITY = 0.0001;
 
+    private final BreedCheckerThread breedThread;
+
     private final List<Block> bales;
     private final List<Block> cauldrons;
 
     public HorseCheckerThread() {
         bales = new LinkedList<>();
         cauldrons = new LinkedList<>();
+        breedThread = new BreedCheckerThread();
+    }
+
+    private void init() {
+        breedThread.start();
     }
 
     @Override
     public void run() {
+        init();
         while (true) {
             for (World w : Bukkit.getWorlds()) {
                 for (Horse horse : w.getEntitiesByClass(Horse.class)) {
                     try {
+                        final Block cauldron = MyHorse.getNearCauldron(horse); //Get the nearby cauldron if there is one.
                         new BukkitRunnable() {
                             @Override
                             public void run() {
-                        final Block cauldron = MyHorse.getNearCauldron(horse); //Get the nearby cauldron if there is one.
-                        if (cauldron != null) { //Check if they are next to a cauldron.
-                            if (getFirstEat(cauldron) == -1) {
-                                getFirstEat(cauldron);
-                                cauldrons.add(cauldron);
-                            }
-                            MyHorse.setThirst(horse, false);
-                        }
+                                if (cauldron != null) { //Check if they are next to a cauldron.
+                                    if (getFirstEat(cauldron) == -1) {
+                                        getFirstEat(cauldron);
+                                        cauldrons.add(cauldron);
+                                    }
+                                    MyHorse.setThirst(horse, false);
+                                }
                             }
                         }.runTask(EquestriCraftPlugin.plugin);
 
+                        final Block bale = MyHorse.getNearHayBale(horse); //Get the nearby hay bale if there is one.
                         new BukkitRunnable() {
                             @Override
                             public void run() {
-                        final Block bale = MyHorse.getNearHayBale(horse); //Get the nearby hay bale if there is one.
-                        if (bale != null) { //Check if they are next to a hay bale.
-                            if (getFirstEat(bale) == -1) {
-                                setFirstEat(bale);
-                                bales.add(bale);
-                            }
-                            MyHorse.setHunger(horse, false);
-                        }
+                                if (bale != null) { //Check if they are next to a hay bale.
+                                    if (getFirstEat(bale) == -1) {
+                                        setFirstEat(bale);
+                                        bales.add(bale);
+                                    }
+                                    MyHorse.setHunger(horse, false);
+                                }
                             }
                         }.runTask(EquestriCraftPlugin.plugin);
 
@@ -157,31 +165,6 @@ public class HorseCheckerThread extends Thread {
 
                         if (MyHorse.durationSinceVaccinated(horse) > VACCINATION_DURATION) { //Check if any vaccinations have expired.
                             MyHorse.removeVaccination(horse);
-                        }
-
-                        {
-                            final double r = Math.random();
-
-                            if (r <= BREED_PROBABILITY) { //Check if any horses can breed.
-                                new Thread() {
-                                    @Override
-                                    public void run() {
-                                        final long timeSinceLast = MyHorse.getDurationSinceLastBreed(horse);
-                                        if (timeSinceLast > BREED_INTERVAL) {
-                                            if (MyHorse.nearMate(horse)) {
-                                                new BukkitRunnable() {
-                                                    @Override
-                                                    public void run() {
-                                                        final Horse h = horse.getWorld().spawn(horse.getLocation(), Horse.class);
-                                                        h.setStyle(horse.getStyle());
-                                                        MyHorse.setLastBreed(horse, getCurrentTime());
-                                                    }
-                                                }.runTask(EquestriCraftPlugin.plugin);
-                                            }
-                                        }
-                                    }
-                                }.start();
-                            }
                         }
 
                         if (MyHorse.getWellDuration(horse) > ILL_WAIT) { //Check the horse as not been ill too recently.
@@ -244,4 +227,47 @@ public class HorseCheckerThread extends Thread {
         return cauldrons.size();
     }
 
+    public class BreedCheckerThread extends Thread {
+
+        public BreedCheckerThread() {
+
+        }
+
+        @Override
+        public void run() {
+            while (true) {
+                for (World w : Bukkit.getWorlds()) {
+                    for (Horse horse : w.getEntitiesByClass(Horse.class)) {
+                        try {
+                            final double r = Math.random();
+
+                            if (r <= BREED_PROBABILITY) {
+                                final long timeSinceLast = MyHorse.getDurationSinceLastBreed(horse);
+                                if (timeSinceLast > BREED_INTERVAL) {
+                                    if (MyHorse.nearMate(horse)) {
+                                        new BukkitRunnable() {
+                                            @Override
+                                            public void run() {
+                                                final Horse h = horse.getWorld().spawn(horse.getLocation(), Horse.class);
+                                                h.setStyle(horse.getStyle());
+                                                MyHorse.setLastBreed(horse, getCurrentTime());
+                                            }
+                                        }.runTask(EquestriCraftPlugin.plugin);
+                                    }
+                                }
+                            }
+                        } catch (Exception e) {
+
+                        }
+                    }
+                }
+                try {
+                    Thread.sleep(100); //Wait 0.1s.
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(HorseCheckerThread.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+
+        }
+    }
 }
