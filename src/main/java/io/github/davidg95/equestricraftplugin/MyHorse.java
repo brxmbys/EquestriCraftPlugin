@@ -285,9 +285,11 @@ public class MyHorse implements Serializable {
             @Override
             public void run() {
                 final Block block = horse.getLocation().getBlock();
-                block.setType(Material.CARPET);
-                byte b = 12;
-                block.setData(b);
+                if (block.getType() == Material.AIR) {
+                    block.setType(Material.CARPET);
+                    byte b = 12;
+                    block.setData(b);
+                }
             }
         }.runTask(EquestriCraftPlugin.plugin);
         horse.setMetadata(META_DEFECATE_SINCE_EAT, new FixedMetadataValue(EquestriCraftPlugin.plugin, true));
