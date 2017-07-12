@@ -34,20 +34,23 @@ public class DataContainer {
 
     private List<UUID> doctors;
     private final StampedLock doctorLock;
-    
+
     private Thread saveThread;
 
     public static final String HORSES_FILE = "horses.config";
 
+    private final StampedLock fileLock;
+
     private DataContainer() {
         doctors = new LinkedList<>();
         doctorLock = new StampedLock();
+        fileLock = new StampedLock();
         loadHorses();
         initThread();
     }
-    
+
     private void initThread() {
-        final Runnable run = new Runnable(){
+        final Runnable run = new Runnable() {
             @Override
             public void run() {
                 try {
@@ -57,7 +60,7 @@ public class DataContainer {
                 }
                 saveHorses();
             }
-            
+
         };
         saveThread = new Thread(run, "Horse_Save_Thread");
         saveThread.start();
@@ -151,30 +154,38 @@ public class DataContainer {
      * Persist horses to file.
      */
     public void saveHorses() {
-        final File file = new File(HORSES_FILE);
-        if (!file.exists()) {
-            try {
-                file.createNewFile();
+        final long stamp = fileLock.writeLock();
+        try {
+            Bukkit.getLogger().log(Level.INFO, "Saving horses...");
+            final File file = new File(HORSES_FILE);
+            if (!file.exists()) {
+                try {
+                    file.createNewFile();
+                } catch (IOException ex) {
+                    EquestriCraftPlugin.plugin.getLogger().log(Level.SEVERE, null, ex);
+                }
+            }
+            try (OutputStream os = new FileOutputStream(HORSES_FILE)) {
+                final List<MyHorse> horses = getHorses();
+                final ObjectOutputStream oo = new ObjectOutputStream(os);
+                oo.writeObject(horses);
+                oo.writeObject(doctors);
+            } catch (FileNotFoundException ex) {
+                EquestriCraftPlugin.plugin.getLogger().log(Level.SEVERE, null, ex);
             } catch (IOException ex) {
                 EquestriCraftPlugin.plugin.getLogger().log(Level.SEVERE, null, ex);
             }
+        } finally {
+            fileLock.unlockWrite(stamp);
         }
-        try (OutputStream os = new FileOutputStream(HORSES_FILE)) {
-            final List<MyHorse> horses = getHorses();
-            final ObjectOutputStream oo = new ObjectOutputStream(os);
-            oo.writeObject(horses);
-            oo.writeObject(doctors);
-        } catch (FileNotFoundException ex) {
-            EquestriCraftPlugin.plugin.getLogger().log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            EquestriCraftPlugin.plugin.getLogger().log(Level.SEVERE, null, ex);
-        }
+        Bukkit.getLogger().log(Level.INFO, "Saving complete...");
     }
 
     /**
      * Load horses from file
      */
     private void loadHorses() {
+        final long stamp = fileLock.readLock();
         try (InputStream is = new FileInputStream(HORSES_FILE)) {
             final ObjectInputStream oi = new ObjectInputStream(is);
             final List<MyHorse> horses = (List<MyHorse>) oi.readObject();
@@ -184,6 +195,8 @@ public class DataContainer {
             saveHorses();
         } catch (IOException | ClassNotFoundException ex) {
             EquestriCraftPlugin.plugin.getLogger().log(Level.SEVERE, null, ex);
+        } finally {
+            fileLock.unlockRead(stamp);
         }
     }
 }

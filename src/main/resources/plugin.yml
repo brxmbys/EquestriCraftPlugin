@@ -26,3 +26,6 @@ commands:
     changegender:
         description: Change the gender of a horse.
         usage: /changegender <stallion|mare|gelding>
+    savehorses:
+        description: Saves the horses to file.
+        usage: /savehorses

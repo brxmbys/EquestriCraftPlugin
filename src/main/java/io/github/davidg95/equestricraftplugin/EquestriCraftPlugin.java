@@ -213,7 +213,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                             return false;
                         }
                         sender.sendMessage("Gender set to " + args[0]);
-                    } else{
+                    } else {
                         sender.sendMessage("You must be on a horse!");
                     }
                 } else {
@@ -222,6 +222,9 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             } else {
                 return false;
             }
+            return true;
+        } else if (cmd.getName().equalsIgnoreCase("savehorses")) {
+            container.saveHorses();
             return true;
         }
         return false;
