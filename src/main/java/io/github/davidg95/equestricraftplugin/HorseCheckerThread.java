@@ -106,38 +106,53 @@ public class HorseCheckerThread extends Thread {
         final Runnable run = new Runnable() {
             @Override
             public void run() {
-                final long bstamp = baleLock.readLock();
-                try {
-                    for (final Block ba : bales) { //Check if any bales need removed.
-                        if ((getCurrentTime() - HorseCheckerThread.this.getFirstEat(ba)) > 10800000L) {
-                            new BukkitRunnable() {
-                                @Override
-                                public void run() {
-                                    ba.setType(Material.AIR);
-                                }
-                            }.runTask(EquestriCraftPlugin.plugin);
+                while (true) {
+                    final long bstamp = baleLock.readLock();
+                    try {
+                        for (Block ba : bales) { //Check if any bales need removed.
+                            if ((getCurrentTime() - HorseCheckerThread.this.getFirstEat(ba)) > 10800000L) {
+                                new BukkitRunnable() {
+                                    @Override
+                                    public void run() {
+                                        ba.setType(Material.AIR);
+                                    }
+                                }.runTask(EquestriCraftPlugin.plugin);
+                            }
                         }
+                    } catch (Exception e) {
+
+                    } finally {
+                        baleLock.unlockRead(bstamp);
                     }
-                } finally {
-                    baleLock.unlockRead(bstamp);
-                }
-                final long cstamp = cauldronLock.readLock();
-                try {
-                    for (final Block ba : cauldrons) { //Check if any cauldrons need emptied.
-                        if ((getCurrentTime() - HorseCheckerThread.this.getFirstEat(ba)) > 10800000L) {
-                            new BukkitRunnable() {
-                                @Override
-                                public void run() {
-                                    ba.setData((byte) 0);
-                                }
-                            }.runTask(EquestriCraftPlugin.plugin);
+                    try {
+                        Thread.sleep(5000);
+                    } catch (InterruptedException ex) {
+                        Logger.getLogger(HorseCheckerThread.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    final long cstamp = cauldronLock.readLock();
+                    try {
+                        for (Block ba : cauldrons) { //Check if any cauldrons need emptied.
+                            if ((getCurrentTime() - HorseCheckerThread.this.getFirstEat(ba)) > 10800000L) {
+                                new BukkitRunnable() {
+                                    @Override
+                                    public void run() {
+                                        ba.setData((byte) 0);
+                                    }
+                                }.runTask(EquestriCraftPlugin.plugin);
+                            }
                         }
+                    } catch (Exception e) {
+
+                    } finally {
+                        cauldronLock.unlockRead(cstamp);
                     }
-                } finally {
-                    cauldronLock.unlockRead(cstamp);
+                    try {
+                        Thread.sleep(5000);
+                    } catch (InterruptedException ex) {
+                        Logger.getLogger(HorseCheckerThread.class.getName()).log(Level.SEVERE, null, ex);
+                    }
                 }
             }
-
         };
         bAndCThread = new Thread(run, "Bale_Cauldron_Checker");
         bAndCThread.setDaemon(true);
