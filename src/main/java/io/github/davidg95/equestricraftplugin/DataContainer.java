@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.locks.StampedLock;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
@@ -33,6 +34,8 @@ public class DataContainer {
 
     private List<UUID> doctors;
     private final StampedLock doctorLock;
+    
+    private Thread saveThread;
 
     public static final String HORSES_FILE = "horses.config";
 
@@ -40,6 +43,24 @@ public class DataContainer {
         doctors = new LinkedList<>();
         doctorLock = new StampedLock();
         loadHorses();
+        initThread();
+    }
+    
+    private void initThread() {
+        final Runnable run = new Runnable(){
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(600000); //Ten Minutes
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(DataContainer.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                saveHorses();
+            }
+            
+        };
+        saveThread = new Thread(run, "Horse_Save_Thread");
+        saveThread.start();
     }
 
     private void pairHorses(List<MyHorse> horses) {
