@@ -400,27 +400,24 @@ public class MyHorse implements Serializable {
      * Check if a horse is near a mate.
      *
      * @param horse the horse.
-     * @return
+     * @return true if they are near a mate, false if they are not.
      */
     public static boolean nearMate(Horse horse) {
-        if (getGenderFromMeta(horse) == GELDING) {
+        if (getGenderFromMeta(horse) == GELDING) { //If it is a gelding, return false.
             return false;
         }
         if (horse == null) {
             return false;
         }
-        final List<Entity> nearby = horse.getNearbyEntities(1.5, 1.5, 1.5);
+        final List<Entity> nearby = horse.getNearbyEntities(1.5, 1.5, 1.5); //Get entires withing a 1.5 block radius.
         for (Entity e : nearby) {
-            if (e.getType() == EntityType.HORSE) {
-                try {
-                    final Horse h = (Horse) e;
-                    if (getGenderFromMeta(h) == GELDING) {
-                        return false;
-                    }
-                    if (getGenderFromMeta(horse) != getGenderFromMeta(h)) {
-                        return true;
-                    }
-                } finally {
+            if (e.getType() == EntityType.HORSE) { //Check if the entity is a horse.
+                final Horse h = (Horse) e;
+                if (getGenderFromMeta(h) == GELDING) { //If it is a gelding, return false.
+                    return false;
+                }
+                if (getGenderFromMeta(horse) != getGenderFromMeta(h)) { //If it is the opposite gender, return true.
+                    return true;
                 }
             }
         }
