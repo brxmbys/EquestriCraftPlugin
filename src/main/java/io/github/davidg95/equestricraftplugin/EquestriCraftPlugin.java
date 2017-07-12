@@ -213,6 +213,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                             return false;
                         }
                         sender.sendMessage("Gender set to " + args[0]);
+                    } else{
+                        sender.sendMessage("You must be on a horse!");
                     }
                 } else {
                     sender.sendMessage("Only ops can use this command");
