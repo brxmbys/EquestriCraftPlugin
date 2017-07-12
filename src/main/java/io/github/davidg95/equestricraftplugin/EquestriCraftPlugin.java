@@ -224,7 +224,11 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             }
             return true;
         } else if (cmd.getName().equalsIgnoreCase("savehorses")) {
-            container.saveHorses();
+            if ((sender instanceof Player && ((Player) sender).isOp()) || !(sender instanceof Player)) {
+                container.saveHorses();
+            } else{
+                sender.sendMessage("Only ops can use this command");
+            }
             return true;
         }
         return false;
