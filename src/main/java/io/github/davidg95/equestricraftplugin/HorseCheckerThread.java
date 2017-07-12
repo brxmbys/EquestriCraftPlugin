@@ -77,13 +77,18 @@ public class HorseCheckerThread extends Thread {
 
     private final BreedCheckerThread breedThread;
 
+    private Thread bAndCThread;
+
     private final List<Block> bales;
     private final List<Block> cauldrons;
 
     private final StampedLock horseLock;
-    
+
+    private final StampedLock baleLock;
+    private final StampedLock cauldronLock;
+
     public static long BREED_THREAD_INTERVAL = 500;
-    
+
     public static long MAIN_TRHEAD_INTERVAL = 100;
 
     public HorseCheckerThread() {
@@ -92,15 +97,56 @@ public class HorseCheckerThread extends Thread {
         cauldrons = new LinkedList<>();
         breedThread = new BreedCheckerThread();
         horseLock = new StampedLock();
+        baleLock = new StampedLock();
+        cauldronLock = new StampedLock();
     }
 
     private void init() {
         breedThread.start();
+        final Runnable run = new Runnable() {
+            @Override
+            public void run() {
+                final long bstamp = baleLock.readLock();
+                try {
+                    for (final Block ba : bales) { //Check if any bales need removed.
+                        if ((getCurrentTime() - HorseCheckerThread.this.getFirstEat(ba)) > 10800000L) {
+                            new BukkitRunnable() {
+                                @Override
+                                public void run() {
+                                    ba.setType(Material.AIR);
+                                }
+                            }.runTask(EquestriCraftPlugin.plugin);
+                        }
+                    }
+                } finally {
+                    baleLock.unlockRead(bstamp);
+                }
+                final long cstamp = cauldronLock.readLock();
+                try {
+                    for (final Block ba : cauldrons) { //Check if any cauldrons need emptied.
+                        if ((getCurrentTime() - HorseCheckerThread.this.getFirstEat(ba)) > 10800000L) {
+                            new BukkitRunnable() {
+                                @Override
+                                public void run() {
+                                    ba.setData((byte) 0);
+                                }
+                            }.runTask(EquestriCraftPlugin.plugin);
+                        }
+                    }
+                } finally {
+                    cauldronLock.unlockRead(cstamp);
+                }
+            }
+
+        };
+        bAndCThread = new Thread(run, "Bale_Cauldron_Checker");
+        bAndCThread.setDaemon(true);
+        bAndCThread.start();
     }
 
     @Override
     public void run() {
-        init();
+        init(); //Start the secondary threads.
         while (true) {
             for (World w : Bukkit.getWorlds()) {
                 final long stamp = horseLock.writeLock();
@@ -113,12 +159,17 @@ public class HorseCheckerThread extends Thread {
                                 if (cauldron != null) { //Check if they are next to a cauldron.
                                     if (getFirstEat(cauldron) == -1) {
                                         getFirstEat(cauldron);
-                                        cauldrons.add(cauldron);
                                     }
                                     MyHorse.setThirst(horse, false);
                                 }
                             }
                         }.runTask(EquestriCraftPlugin.plugin);
+                        final long cstamp = cauldronLock.writeLock();
+                        try {
+                            cauldrons.add(cauldron);
+                        } finally {
+                            cauldronLock.unlockWrite(cstamp);
+                        }
 
                         final Block bale = MyHorse.getNearHayBale(horse); //Get the nearby hay bale if there is one.
                         new BukkitRunnable() {
@@ -127,12 +178,17 @@ public class HorseCheckerThread extends Thread {
                                 if (bale != null) { //Check if they are next to a hay bale.
                                     if (getFirstEat(bale) == -1) {
                                         setFirstEat(bale);
-                                        bales.add(bale);
                                     }
                                     MyHorse.setHunger(horse, false);
                                 }
                             }
                         }.runTask(EquestriCraftPlugin.plugin);
+                        final long bstamp = baleLock.writeLock();
+                        try {
+                            bales.add(bale);
+                        } finally {
+                            baleLock.unlockWrite(bstamp);
+                        }
 
                         if (MyHorse.getDurationSinceLastDrink(horse) > DRINK_LIMIT) { //Check if the horse is thirsty.
                             MyHorse.setThirst(horse, true);
@@ -152,26 +208,6 @@ public class HorseCheckerThread extends Thread {
                         if (MyHorse.getDurationSinceLastEat(horse) > DEFECATE_INTERVAL) { //Check if the horse needs to defecate.
                             if (!MyHorse.hasDefecateSinceEat(horse)) {
                                 MyHorse.defecate(horse);
-                            }
-                        }
-                        for (Block ba : bales) { //Check if any bales need removed.
-                            if ((getCurrentTime() - this.getFirstEat(ba)) > 10800000L) {
-                                new BukkitRunnable() {
-                                    @Override
-                                    public void run() {
-                                        ba.setType(Material.AIR);
-                                    }
-                                }.runTask(EquestriCraftPlugin.plugin);
-                            }
-                        }
-                        for (Block ba : cauldrons) { //Check if any cauldrons need emptied.
-                            if ((getCurrentTime() - this.getFirstEat(ba)) > 10800000L) {
-                                new BukkitRunnable() {
-                                    @Override
-                                    public void run() {
-                                        ba.setData((byte) 0);
-                                    }
-                                }.runTask(EquestriCraftPlugin.plugin);
                             }
                         }
 
