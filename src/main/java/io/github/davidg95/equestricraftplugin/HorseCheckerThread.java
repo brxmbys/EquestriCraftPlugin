@@ -6,6 +6,7 @@ package io.github.davidg95.equestricraftplugin;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.locks.StampedLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.bukkit.Bukkit;
@@ -79,10 +80,14 @@ public class HorseCheckerThread extends Thread {
     private final List<Block> bales;
     private final List<Block> cauldrons;
 
+    private final StampedLock horseLock;
+
     public HorseCheckerThread() {
+        super("Horse_Checker_Thread");
         bales = new LinkedList<>();
         cauldrons = new LinkedList<>();
         breedThread = new BreedCheckerThread();
+        horseLock = new StampedLock();
     }
 
     private void init() {
@@ -94,8 +99,9 @@ public class HorseCheckerThread extends Thread {
         init();
         while (true) {
             for (World w : Bukkit.getWorlds()) {
-                for (Horse horse : w.getEntitiesByClass(Horse.class)) {
-                    try {
+                final long stamp = horseLock.writeLock();
+                try {
+                    for (Horse horse : w.getEntitiesByClass(Horse.class)) {
                         final Block cauldron = MyHorse.getNearCauldron(horse); //Get the nearby cauldron if there is one.
                         new BukkitRunnable() {
                             @Override
@@ -184,8 +190,10 @@ public class HorseCheckerThread extends Thread {
                         if (r <= BUCK_PROBABILITY) { //Check if a horse can buck.
                             horse.eject();
                         }
-                    } catch (Exception e) {
                     }
+                } catch (Exception e) {
+                } finally {
+                    horseLock.unlockWrite(stamp);
                 }
             }
             try {
@@ -230,17 +238,17 @@ public class HorseCheckerThread extends Thread {
     public class BreedCheckerThread extends Thread {
 
         public BreedCheckerThread() {
-
+            super("Breed_Checker_Thread");
         }
 
         @Override
         public void run() {
             while (true) {
                 for (World w : Bukkit.getWorlds()) {
-                    for (Horse horse : w.getEntitiesByClass(Horse.class)) {
-                        try {
+                    final long stamp = horseLock.writeLock();
+                    try {
+                        for (Horse horse : w.getEntitiesByClass(Horse.class)) {
                             final double r = Math.random();
-
                             if (r <= BREED_PROBABILITY) {
                                 final long timeSinceLast = MyHorse.getDurationSinceLastBreed(horse);
                                 if (timeSinceLast > BREED_INTERVAL) {
@@ -256,9 +264,11 @@ public class HorseCheckerThread extends Thread {
                                     }
                                 }
                             }
-                        } catch (Exception e) {
-
                         }
+                    } catch (Exception e) {
+
+                    } finally {
+                        horseLock.unlockWrite(stamp);
                     }
                 }
                 try {
