@@ -17,6 +17,7 @@ import java.util.Properties;
 import java.util.logging.Level;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
@@ -88,7 +89,17 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         if (cmd.getName().equalsIgnoreCase("equestristatus")) {
-
+            int count = 0;
+            for (World w : Bukkit.getWorlds()) {
+                final long stamp = HorseCheckerThread.horseLock.readLock();
+                try {
+                    count = w.getEntitiesByClass(Horse.class).size();
+                } catch (Exception e) {
+                } finally {
+                    HorseCheckerThread.horseLock.unlockRead(stamp);
+                }
+            }
+            sender.sendMessage("Horses: " + count);
             return true;
         } else if (cmd.getName().equalsIgnoreCase("createhorse")) {
             if (sender instanceof Player) {
@@ -225,8 +236,10 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             return true;
         } else if (cmd.getName().equalsIgnoreCase("savehorses")) {
             if ((sender instanceof Player && ((Player) sender).isOp()) || !(sender instanceof Player)) {
+                sender.sendMessage("Saving horses...");
                 container.saveHorses();
-            } else{
+                sender.sendMessage("Save complete...");
+            } else {
                 sender.sendMessage("Only ops can use this command");
             }
             return true;
