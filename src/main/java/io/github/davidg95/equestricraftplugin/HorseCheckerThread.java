@@ -78,11 +78,12 @@ public class HorseCheckerThread extends Thread {
     private final BreedCheckerThread breedThread;
 
     private Thread bAndCThread;
+    private Thread vacThread;
 
     private final List<Block> bales;
     private final List<Block> cauldrons;
 
-    private final StampedLock horseLock;
+    public static StampedLock horseLock;
 
     private final StampedLock baleLock;
     private final StampedLock cauldronLock;
@@ -154,9 +155,37 @@ public class HorseCheckerThread extends Thread {
                 }
             }
         };
+        final Runnable vacRun = new Runnable() {
+            @Override
+            public void run() {
+                while (true) {
+                    for (World w : Bukkit.getWorlds()) {
+                        final long stamp = horseLock.writeLock();
+                        try {
+                            for (Horse horse : w.getEntitiesByClass(Horse.class)) {
+                                if (MyHorse.durationSinceVaccinated(horse) > VACCINATION_DURATION) { //Check if any vaccinations have expired.
+                                    MyHorse.removeVaccination(horse);
+                                }
+                            }
+                        } catch (Exception e) {
+                        } finally {
+                            horseLock.unlockWrite(stamp);
+                        }
+                    }
+                    try {
+                        Thread.sleep(10000);
+                    } catch (InterruptedException ex) {
+                        Logger.getLogger(HorseCheckerThread.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+            }
+        };
         bAndCThread = new Thread(run, "Bale_Cauldron_Checker");
         bAndCThread.setDaemon(true);
         bAndCThread.start();
+        vacThread = new Thread(vacRun, "Vaccination_Checker");
+        vacThread.setDaemon(true);
+        vacThread.start();
     }
 
     @Override
@@ -167,6 +196,7 @@ public class HorseCheckerThread extends Thread {
                 final long stamp = horseLock.writeLock();
                 try {
                     for (Horse horse : w.getEntitiesByClass(Horse.class)) {
+
                         final Block cauldron = MyHorse.getNearCauldron(horse); //Get the nearby cauldron if there is one.
                         new BukkitRunnable() {
                             @Override
@@ -224,10 +254,6 @@ public class HorseCheckerThread extends Thread {
                             if (!MyHorse.hasDefecateSinceEat(horse)) {
                                 MyHorse.defecate(horse);
                             }
-                        }
-
-                        if (MyHorse.durationSinceVaccinated(horse) > VACCINATION_DURATION) { //Check if any vaccinations have expired.
-                            MyHorse.removeVaccination(horse);
                         }
 
                         if (MyHorse.getWellDuration(horse) > ILL_WAIT) { //Check the horse as not been ill too recently.
