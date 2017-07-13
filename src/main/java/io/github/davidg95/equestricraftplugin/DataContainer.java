@@ -146,9 +146,14 @@ public class DataContainer {
     private List<MyHorse> getHorses() {
         final List<MyHorse> mHorses = new LinkedList<>();
         for (World w : Bukkit.getWorlds()) {
-            for (Horse h : w.getEntitiesByClass(Horse.class)) {
-                final MyHorse mHorse = MyHorse.horseToMyHorse(h);
-                mHorses.add(mHorse);
+            final long stamp = HorseCheckerThread.horseLock.readLock();
+            try {
+                for (Horse h : w.getEntitiesByClass(Horse.class)) {
+                    final MyHorse mHorse = MyHorse.horseToMyHorse(h);
+                    mHorses.add(mHorse);
+                }
+            } finally {
+                HorseCheckerThread.horseLock.unlockRead(stamp);
             }
         }
         return mHorses;
@@ -182,7 +187,7 @@ public class DataContainer {
         } finally {
             fileLock.unlockWrite(stamp);
         }
-        Bukkit.getLogger().log(Level.INFO, "Saving complete...");
+        Bukkit.getLogger().log(Level.INFO, "Save complete...");
     }
 
     /**
