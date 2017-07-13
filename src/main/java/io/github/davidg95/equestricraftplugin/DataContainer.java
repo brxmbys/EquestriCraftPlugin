@@ -85,6 +85,7 @@ public class DataContainer {
                     for (Entity entity : world.getEntities()) {
                         if (entity.getUniqueId().equals(horse.getUuid())) {
                             MyHorse.myHorseToHorse(horse, (Horse) entity);
+                            horsesFound++;
                         }
                     }
                 }
@@ -93,7 +94,7 @@ public class DataContainer {
         }
         Bukkit.getLogger().log(Level.INFO, "Load complete");
         Bukkit.getLogger().log(Level.INFO, "Number of horses in file: " + horsesInFile);
-        Bukkit.getLogger().log(Level.INFO, "Number of hroses found in world: " + horsesFound);
+        Bukkit.getLogger().log(Level.INFO, "Number of horses found in world: " + horsesFound);
     }
 
     /**
@@ -198,6 +199,7 @@ public class DataContainer {
         try (InputStream is = new FileInputStream(HORSES_FILE)) {
             final ObjectInputStream oi = new ObjectInputStream(is);
             final List<MyHorse> horses = (List<MyHorse>) oi.readObject();
+            Bukkit.getLogger().log(Level.INFO, "Horses loaded: " + horses.size());
             pairHorses(horses);
             doctors = (List<UUID>) oi.readObject();
         } catch (FileNotFoundException ex) {
