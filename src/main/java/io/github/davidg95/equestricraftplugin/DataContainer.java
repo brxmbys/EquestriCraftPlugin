@@ -86,6 +86,7 @@ public class DataContainer {
                         if (entity.getUniqueId().equals(horse.getUuid())) {
                             MyHorse.myHorseToHorse(horse, (Horse) entity);
                             horsesFound++;
+                            break;
                         }
                     }
                 }
