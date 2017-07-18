@@ -34,6 +34,11 @@ public class MyHorse implements Serializable {
     private final boolean vaccination;
     private final int gender; //The horses gender.
     private final UUID uuid;
+    private long lastEat;
+    private long lastDrink;
+    private long illSince;
+    private long wellSince;
+    private long lastBreed;
 
     /**
      * Indicates the horses gender is a stallion. Value = 1.
@@ -76,11 +81,17 @@ public class MyHorse implements Serializable {
 
     public static final String META_DEFECATE_SINCE_EAT = "DefecateSinceEat";
 
-    public MyHorse(int gender, boolean vaccination, long vaccinationTime, UUID uuid) {
+    public MyHorse(int gender, boolean vaccination, long vaccinationTime, UUID uuid, long lastEat, long lastDrink, long illSince, long wellSince, long lastBreed) {
         this.gender = gender;
         this.vaccination = vaccination;
         this.vaccinationTime = vaccinationTime;
         this.uuid = uuid;
+        this.lastEat = lastEat;
+        this.lastDrink = lastDrink;
+        this.illSince = illSince;
+        this.wellSince = wellSince;
+        this.lastBreed = lastBreed;
+
     }
 
     public static long getCurrentTime() {
@@ -196,6 +207,32 @@ public class MyHorse implements Serializable {
     }
 
     /**
+     * Get the last eat time.
+     *
+     * @param horse the horse to apply to.
+     * @return the last eat time in ms as a Long.
+     */
+    private static long getLastEatTime(Horse horse) {
+        final List<MetadataValue> mdvs = horse.getMetadata(META_LASTEAT);
+        for (MetadataValue md : mdvs) {
+            if (md.getOwningPlugin() == EquestriCraftPlugin.plugin) {
+                return md.asLong();
+            }
+        }
+        return 0;
+    }
+
+    private static long getLastThirstTime(Horse horse) {
+        final List<MetadataValue> mdvs = horse.getMetadata(META_THRISTTIME);
+        for (MetadataValue md : mdvs) {
+            if (md.getOwningPlugin() == EquestriCraftPlugin.plugin) {
+                return md.asLong();
+            }
+        }
+        return 0L;
+    }
+
+    /**
      * Set the last eat time.
      *
      * @param lastEat the last eat time in ms as a Long.
@@ -256,6 +293,38 @@ public class MyHorse implements Serializable {
         for (MetadataValue md : mdvs) {
             if (md.getOwningPlugin() == EquestriCraftPlugin.plugin) {
                 return getCurrentTime() - md.asLong();
+            }
+        }
+        return 0L;
+    }
+
+    /**
+     * Get the last sickness change time.
+     *
+     * @param horse the horse to apply to.
+     * @return the last change time in ms as a Long.
+     */
+    private static long getIllTime(Horse horse) {
+        final List<MetadataValue> mdvs = horse.getMetadata(META_ILLTIME);
+        for (MetadataValue md : mdvs) {
+            if (md.getOwningPlugin() == EquestriCraftPlugin.plugin) {
+                return md.asLong();
+            }
+        }
+        return 0L;
+    }
+
+    /**
+     * Get the total time the horse has been well.
+     *
+     * @param horse the horse to apply to.
+     * @return the time the horse has been well as a long.
+     */
+    public static long getWellTime(Horse horse) {
+        final List<MetadataValue> mdvs = horse.getMetadata(META_WELLTIME);
+        for (MetadataValue md : mdvs) {
+            if (md.getOwningPlugin() == EquestriCraftPlugin.plugin) {
+                return md.asLong();
             }
         }
         return 0L;
@@ -338,6 +407,16 @@ public class MyHorse implements Serializable {
         for (MetadataValue md : mdvs) {
             if (md.getOwningPlugin() == EquestriCraftPlugin.plugin) {
                 return getCurrentTime() - md.asLong();
+            }
+        }
+        return -1;
+    }
+
+    public static long getLastBreed(Horse horse) {
+        final List<MetadataValue> mdvs = horse.getMetadata(META_BREED);
+        for (MetadataValue md : mdvs) {
+            if (md.getOwningPlugin() == EquestriCraftPlugin.plugin) {
+                return md.asLong();
             }
         }
         return -1;
@@ -476,6 +555,28 @@ public class MyHorse implements Serializable {
         return -1;
     }
 
+    /**
+     * Set the gender of the horse in Metadata.
+     *
+     * @param ill the horses gender. Can be MyHorse.STALLION, MyHorse.MARE or
+     * MyHorse.GELDING.
+     * @param horse the horse to apply to.
+     */
+    public static void setLastIllTime(Horse horse, long ill) {
+        horse.setMetadata(META_ILLTIME, new FixedMetadataValue(EquestriCraftPlugin.plugin, ill));
+    }
+
+    /**
+     * Set the gender of the horse in Metadata.
+     *
+     * @param well the horses gender. Can be MyHorse.STALLION, MyHorse.MARE or
+     * MyHorse.GELDING.
+     * @param horse the horse to apply to.
+     */
+    public static void setLastWellTime(Horse horse, long well) {
+        horse.setMetadata(META_WELLTIME, new FixedMetadataValue(EquestriCraftPlugin.plugin, well));
+    }
+
     public static boolean getHorseVaccination(Horse horse) {
         final List<MetadataValue> mdvs = horse.getMetadata(META_VACCINATED);
         for (MetadataValue md : mdvs) {
@@ -509,7 +610,12 @@ public class MyHorse implements Serializable {
         final boolean vaccination = getHorseVaccination(horse);
         final long vaccinationTime = getHorseVaccinationTime(horse);
         final UUID uuid = horse.getUniqueId();
-        final MyHorse mHorse = new MyHorse(gender, vaccination, vaccinationTime, uuid);
+        final long lastEat = getLastEatTime(horse);
+        final long lastDrink = getLastThirstTime(horse);
+        final long illSince = getIllTime(horse);
+        final long wellSince = getWellTime(horse);
+        final long lastBreed = getLastBreed(horse);
+        final MyHorse mHorse = new MyHorse(gender, vaccination, vaccinationTime, uuid, lastEat, lastDrink, illSince, wellSince, lastBreed);
         return mHorse;
     }
 
@@ -517,6 +623,11 @@ public class MyHorse implements Serializable {
         MyHorse.setGenderInMeta(horse, mHorse.getGender());
         MyHorse.setHorseVaccinated(horse, mHorse.isVaccination());
         MyHorse.setHorseVaccinationTime(horse, mHorse.getVaccinationTime());
+        MyHorse.setLastEatChange(horse, mHorse.getLastEat());
+        MyHorse.setLastDrinkChange(horse, mHorse.getLastDrink());
+        MyHorse.setLastIllTime(horse, mHorse.getIllSince());
+        MyHorse.setLastWellTime(horse, mHorse.getWellSince());
+        MyHorse.setLastBreed(horse, mHorse.getLastBreed());
     }
 
     public int getGender() {
@@ -543,6 +654,46 @@ public class MyHorse implements Serializable {
 
     public boolean isVaccination() {
         return vaccination;
+    }
+
+    public long getLastEat() {
+        return lastEat;
+    }
+
+    public void setLastEat(long lastEat) {
+        this.lastEat = lastEat;
+    }
+
+    public long getLastDrink() {
+        return lastDrink;
+    }
+
+    public void setLastDrink(long lastDrink) {
+        this.lastDrink = lastDrink;
+    }
+
+    public long getIllSince() {
+        return illSince;
+    }
+
+    public void setIllSince(long illSince) {
+        this.illSince = illSince;
+    }
+
+    public long getWellSince() {
+        return wellSince;
+    }
+
+    public void setWellSince(long wellSince) {
+        this.wellSince = wellSince;
+    }
+
+    public long getLastBreed() {
+        return lastBreed;
+    }
+
+    public void setLastBreed(long lastBreed) {
+        this.lastBreed = lastBreed;
     }
 
     @Override

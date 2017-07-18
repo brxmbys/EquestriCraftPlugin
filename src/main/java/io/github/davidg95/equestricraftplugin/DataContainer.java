@@ -75,8 +75,27 @@ public class DataContainer {
         Bukkit.getLogger().log(Level.INFO, "Horses: " + horses.size());
         int horsesInFile = 0;
         int horsesFound = 0;
+
+        int geld = 0;
+        int stal = 0;
+        int mare = 0;
+        int none = 0;
         try {
             for (MyHorse horse : horses) {
+                switch (horse.getGender()) {
+                    case MyHorse.GELDING:
+                        geld++;
+                        break;
+                    case MyHorse.MARE:
+                        mare++;
+                        break;
+                    case MyHorse.STALLION:
+                        stal++;
+                        break;
+                    default:
+                        none++;
+                        break;
+                }
                 horsesInFile++;
                 if (horsesInFile % 500 == 0) {
                     Bukkit.getLogger().log(Level.INFO, "Scanned: " + horsesInFile);
@@ -96,6 +115,10 @@ public class DataContainer {
         Bukkit.getLogger().log(Level.INFO, "Load complete");
         Bukkit.getLogger().log(Level.INFO, "Number of horses in file: " + horsesInFile);
         Bukkit.getLogger().log(Level.INFO, "Number of horses found in world: " + horsesFound);
+        Bukkit.getLogger().log(Level.INFO, "Stallions: " + stal);
+        Bukkit.getLogger().log(Level.INFO, "Mares: " + mare);
+        Bukkit.getLogger().log(Level.INFO, "Geldings: " + geld);
+        Bukkit.getLogger().log(Level.INFO, "None assigned: " + none);
     }
 
     /**
@@ -147,17 +170,39 @@ public class DataContainer {
 
     private List<MyHorse> getHorses() {
         final List<MyHorse> mHorses = new LinkedList<>();
+        int geld = 0;
+        int stal = 0;
+        int mare = 0;
+        int none = 0;
         for (World w : Bukkit.getWorlds()) {
             final long stamp = HorseCheckerThread.horseLock.readLock();
             try {
                 for (Horse h : w.getEntitiesByClass(Horse.class)) {
                     final MyHorse mHorse = MyHorse.horseToMyHorse(h);
+                    switch (MyHorse.getGenderFromMeta(h)) {
+                        case MyHorse.GELDING:
+                            geld++;
+                            break;
+                        case MyHorse.MARE:
+                            mare++;
+                            break;
+                        case MyHorse.STALLION:
+                            stal++;
+                            break;
+                        default:
+                            none++;
+                            break;
+                    }
                     mHorses.add(mHorse);
                 }
             } finally {
                 HorseCheckerThread.horseLock.unlockRead(stamp);
             }
         }
+        Bukkit.getLogger().log(Level.INFO, "Stallions: " + stal);
+        Bukkit.getLogger().log(Level.INFO, "Mares: " + mare);
+        Bukkit.getLogger().log(Level.INFO, "Geldings: " + geld);
+        Bukkit.getLogger().log(Level.INFO, "None assigned: " + none);
         return mHorses;
     }
 

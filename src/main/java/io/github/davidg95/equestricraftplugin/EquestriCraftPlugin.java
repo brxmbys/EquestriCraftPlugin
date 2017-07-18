@@ -90,16 +90,40 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         if (cmd.getName().equalsIgnoreCase("equestristatus")) {
             int count = 0;
+            int geld = 0;
+            int stal = 0;
+            int mare = 0;
+            int none = 0;
             for (World w : Bukkit.getWorlds()) {
                 final long stamp = HorseCheckerThread.horseLock.readLock();
                 try {
-                    count = w.getEntitiesByClass(Horse.class).size();
+                    for (Horse h : w.getEntitiesByClass(Horse.class)) {
+                        count++;
+                        switch (MyHorse.getGenderFromMeta(h)) {
+                            case MyHorse.GELDING:
+                                geld++;
+                                break;
+                            case MyHorse.MARE:
+                                mare++;
+                                break;
+                            case MyHorse.STALLION:
+                                stal++;
+                                break;
+                            default:
+                                none++;
+                                break;
+                        }
+                    }
                 } catch (Exception e) {
                 } finally {
                     HorseCheckerThread.horseLock.unlockRead(stamp);
                 }
             }
             sender.sendMessage("Horses: " + count);
+            sender.sendMessage("Stallions: " + stal);
+            sender.sendMessage("Mares: " + mare);
+            sender.sendMessage("Geldings: " + geld);
+            sender.sendMessage("None assigned: " + none);
             return true;
         } else if (cmd.getName().equalsIgnoreCase("createhorse")) {
             if (sender instanceof Player) {
