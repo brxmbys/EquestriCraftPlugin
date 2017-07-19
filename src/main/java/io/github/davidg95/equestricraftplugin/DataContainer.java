@@ -32,6 +32,9 @@ public class DataContainer {
 
     private static DataContainer container;
 
+    private final List<MyHorse> horses;
+    private final StampedLock horseLock;
+
     private List<UUID> doctors;
     private final StampedLock doctorLock;
 
@@ -42,11 +45,66 @@ public class DataContainer {
     private final StampedLock fileLock;
 
     private DataContainer() {
+        horses = new LinkedList<>();
         doctors = new LinkedList<>();
+        horseLock = new StampedLock();
         doctorLock = new StampedLock();
         fileLock = new StampedLock();
         loadHorses();
         initThread();
+    }
+
+    /**
+     * Cache a horse when its chunk is getting unloaded.
+     *
+     * @param horse the MyHorse to cache.
+     */
+    public void cacheHorse(MyHorse horse) {
+        final long stamp = horseLock.writeLock();
+        try {
+            horses.add(horse);
+        } finally {
+            horseLock.unlockWrite(stamp);
+        }
+    }
+
+    /**
+     * Check if a horse is in the cache by its UUID.
+     *
+     * @param uuid the UUID to check.
+     * @return the true if it is in the cache, false if it is not.
+     */
+    public boolean isHorseInCache(UUID uuid) {
+        final long stamp = horseLock.readLock();
+        try {
+            for (MyHorse mh : horses) {
+                if (mh.getUuid().equals(uuid)) {
+                    return true;
+                }
+            }
+        } finally {
+            horseLock.unlockRead(stamp);
+        }
+        return false;
+    }
+
+    /**
+     * Remove a horse from the cache by its UUID.
+     *
+     * @param uuid the UUID of the horse to remove.
+     */
+    public void removeHorseFromCache(UUID uuid) {
+        final long stamp = horseLock.writeLock();
+        try {
+            for (int i = 0; i < horses.size(); i++) {
+                if (horses.get(i).getUuid().equals(uuid)) {
+                    horses.remove(i);
+                    return;
+                }
+            }
+        } finally {
+            horseLock.unlockWrite(stamp);
+        }
     }
 
     private void initThread() {
@@ -199,6 +257,7 @@ public class DataContainer {
                 HorseCheckerThread.horseLock.unlockRead(stamp);
             }
         }
+        mHorses.addAll(horses);
         Bukkit.getLogger().log(Level.INFO, "Stallions: " + stal);
         Bukkit.getLogger().log(Level.INFO, "Mares: " + mare);
         Bukkit.getLogger().log(Level.INFO, "Geldings: " + geld);
@@ -222,10 +281,15 @@ public class DataContainer {
                 }
             }
             try (OutputStream os = new FileOutputStream(HORSES_FILE)) {
-                final List<MyHorse> horses = getHorses();
-                final ObjectOutputStream oo = new ObjectOutputStream(os);
-                oo.writeObject(horses);
-                oo.writeObject(doctors);
+                final long hStamp = horseLock.readLock();
+                try {
+                    final List<MyHorse> horses = getHorses();
+                    final ObjectOutputStream oo = new ObjectOutputStream(os);
+                    oo.writeObject(horses);
+                    oo.writeObject(doctors);
+                } finally {
+                    horseLock.unlockRead(hStamp);
+                }
             } catch (FileNotFoundException ex) {
                 EquestriCraftPlugin.plugin.getLogger().log(Level.SEVERE, null, ex);
             } catch (IOException ex) {
@@ -255,5 +319,26 @@ public class DataContainer {
         } finally {
             fileLock.unlockRead(stamp);
         }
+    }
+
+    public MyHorse getHorseFromFile(Horse horse) {
+        final long stamp = fileLock.readLock();
+        try (InputStream is = new FileInputStream(HORSES_FILE)) {
+            final ObjectInputStream oi = new ObjectInputStream(is);
+            final List<MyHorse> horses = (List<MyHorse>) oi.readObject();
+            Bukkit.getLogger().log(Level.INFO, "Horses loaded: " + horses.size());
+            for (MyHorse mh : horses) {
+                if (mh.getUuid().equals(horse.getEntityId())) {
+                    return mh;
+                }
+            }
+        } catch (FileNotFoundException ex) {
+            saveHorses();
+        } catch (IOException | ClassNotFoundException ex) {
+            EquestriCraftPlugin.plugin.getLogger().log(Level.SEVERE, null, ex);
+        } finally {
+            fileLock.unlockRead(stamp);
+        }
+        return null;
     }
 }

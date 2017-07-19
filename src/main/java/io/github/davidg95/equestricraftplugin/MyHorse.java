@@ -292,6 +292,9 @@ public class MyHorse implements Serializable {
         final List<MetadataValue> mdvs = horse.getMetadata(META_ILLTIME);
         for (MetadataValue md : mdvs) {
             if (md.getOwningPlugin() == EquestriCraftPlugin.plugin) {
+                if (md.asLong() == 0) {
+                    return 0;
+                }
                 return getCurrentTime() - md.asLong();
             }
         }
