@@ -28,8 +28,6 @@ public class MyHorse implements Serializable {
 
     private static final long serialVersionUID = 2573463;
 
-    private transient long lastDefecate; //The time the horse last defecated.
-
     private final long vaccinationTime;
     private final boolean vaccination;
     private final int gender; //The horses gender.
@@ -103,10 +101,10 @@ public class MyHorse implements Serializable {
             @Override
             public void run() {
                 if (set) {
-                    horse.setJumpStrength(0.2);
+//                    horse.setJumpStrength(0.2);
                     horse.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, (int) (HorseCheckerThread.SICK_LIMIT * 20), 1));
                 } else {
-                    horse.setJumpStrength(0.7);
+//                    horse.setJumpStrength(0.7);
                     horse.removePotionEffect(PotionEffectType.SLOW);
                 }
             }
