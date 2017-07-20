@@ -342,6 +342,8 @@ public class HorseCheckerThread extends Thread {
                                                 final Horse h = horse.getWorld().spawn(horse.getLocation(), Horse.class); //Spawn a new horse.
                                                 h.setStyle(horse.getStyle()); //Copy the parent style.
                                                 MyHorse.setLastBreed(horse, getCurrentTime()); //Set the horses new last breed time.
+                                                MyHorse.setLastBreed(h, getCurrentTime());
+                                                MyHorse.initHorse(h);
                                             }
                                         }.runTask(EquestriCraftPlugin.plugin);
                                     }

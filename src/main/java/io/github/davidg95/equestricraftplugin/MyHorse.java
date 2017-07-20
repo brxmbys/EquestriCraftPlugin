@@ -651,6 +651,18 @@ public class MyHorse implements Serializable {
         horse.setMetadata(META_HEALTH, new FixedMetadataValue(EquestriCraftPlugin.plugin, sick));
     }
 
+    public static MyHorse initHorse(Horse h) {
+        MyHorse.setGenderInMeta(h, MyHorse.generateRandomGender());
+        MyHorse.setHunger(h, false);
+        MyHorse.setLastEatChange(h, getCurrentTime());
+        MyHorse.setThirst(h, false);
+        MyHorse.setLastDrinkChange(h, getCurrentTime());
+        MyHorse.setHorseSick(h, false);
+        MyHorse.setLastIllTime(h, getCurrentTime());
+        MyHorse.setLastWellTime(h, getCurrentTime());
+        return MyHorse.horseToMyHorse(h);
+    }
+
     public long getVaccinationTime() {
         return vaccinationTime;
     }
