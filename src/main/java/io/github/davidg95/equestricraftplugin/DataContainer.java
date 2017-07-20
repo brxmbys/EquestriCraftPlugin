@@ -142,6 +142,9 @@ public class DataContainer {
         for (World world : Bukkit.getWorlds()) {
             search:
             for (Entity entity : world.getEntities()) {
+                if (entity.getType() != EntityType.HORSE) {
+                    continue;
+                }
                 horsesInFile++;
                 if (horsesInFile % 500 == 0) {
                     Bukkit.getLogger().log(Level.INFO, "Scanned: " + horsesInFile);
