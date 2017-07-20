@@ -160,6 +160,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     return true;
                 }
                 final Horse h = pl.getWorld().spawn(pl.getLocation(), Horse.class);
+                MyHorse.setGenderInMeta(h, gender);
+                sender.sendMessage("Created " + genderarg + " for " + pl.getName());
             } else {
             }
             return true;
