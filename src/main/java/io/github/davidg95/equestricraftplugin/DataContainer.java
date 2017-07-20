@@ -233,7 +233,7 @@ public class DataContainer {
         int mare = 0;
         int none = 0;
         for (World w : Bukkit.getWorlds()) {
-            final long stamp = HorseCheckerThread.horseLock.readLock();
+            final long stamp = EquestriCraftPlugin.horseLock.readLock();
             try {
                 for (Horse h : w.getEntitiesByClass(Horse.class)) {
                     final MyHorse mHorse = MyHorse.horseToMyHorse(h);
@@ -254,7 +254,7 @@ public class DataContainer {
                     mHorses.add(mHorse);
                 }
             } finally {
-                HorseCheckerThread.horseLock.unlockRead(stamp);
+                EquestriCraftPlugin.horseLock.unlockRead(stamp);
             }
         }
         mHorses.addAll(horses);
@@ -306,6 +306,7 @@ public class DataContainer {
      */
     private void loadHorses() {
         final long stamp = fileLock.readLock();
+        boolean fileExists = true;
         try (InputStream is = new FileInputStream(HORSES_FILE)) {
             final ObjectInputStream oi = new ObjectInputStream(is);
             final List<MyHorse> horses = (List<MyHorse>) oi.readObject();
@@ -313,11 +314,15 @@ public class DataContainer {
             pairHorses(horses);
             doctors = (List<UUID>) oi.readObject();
         } catch (FileNotFoundException ex) {
+            fileExists = false;
+            fileLock.unlockRead(stamp);
             saveHorses();
         } catch (IOException | ClassNotFoundException ex) {
             EquestriCraftPlugin.plugin.getLogger().log(Level.SEVERE, null, ex);
         } finally {
-            fileLock.unlockRead(stamp);
+            if (fileExists) {
+                fileLock.unlockRead(stamp);
+            }
         }
     }
 

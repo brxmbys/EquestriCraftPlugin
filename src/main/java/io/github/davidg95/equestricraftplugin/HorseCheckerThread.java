@@ -83,8 +83,6 @@ public class HorseCheckerThread extends Thread {
     private final List<Block> bales;
     private final List<Block> cauldrons;
 
-    public static StampedLock horseLock;
-
     private final StampedLock baleLock;
     private final StampedLock cauldronLock;
 
@@ -97,7 +95,6 @@ public class HorseCheckerThread extends Thread {
         bales = new LinkedList<>();
         cauldrons = new LinkedList<>();
         breedThread = new BreedCheckerThread();
-        horseLock = new StampedLock();
         baleLock = new StampedLock();
         cauldronLock = new StampedLock();
     }
@@ -160,7 +157,7 @@ public class HorseCheckerThread extends Thread {
             public void run() {
                 while (true) {
                     for (World w : Bukkit.getWorlds()) {
-                        final long stamp = horseLock.writeLock();
+                        final long stamp = EquestriCraftPlugin.horseLock.writeLock();
                         try {
                             for (Horse horse : w.getEntitiesByClass(Horse.class)) {
                                 if (MyHorse.durationSinceVaccinated(horse) > VACCINATION_DURATION) { //Check if any vaccinations have expired.
@@ -169,7 +166,7 @@ public class HorseCheckerThread extends Thread {
                             }
                         } catch (Exception e) {
                         } finally {
-                            horseLock.unlockWrite(stamp);
+                            EquestriCraftPlugin.horseLock.unlockWrite(stamp);
                         }
                     }
                     try {
@@ -193,7 +190,7 @@ public class HorseCheckerThread extends Thread {
         init(); //Start the secondary threads.
         while (true) {
             for (World w : Bukkit.getWorlds()) {
-                final long stamp = horseLock.writeLock();
+                final long stamp = EquestriCraftPlugin.horseLock.writeLock();
                 try {
                     for (Horse horse : w.getEntitiesByClass(Horse.class)) {
 
@@ -279,7 +276,7 @@ public class HorseCheckerThread extends Thread {
                     }
                 } catch (Exception e) {
                 } finally {
-                    horseLock.unlockWrite(stamp);
+                    EquestriCraftPlugin.horseLock.unlockWrite(stamp);
                 }
             }
             try {
@@ -331,7 +328,7 @@ public class HorseCheckerThread extends Thread {
         public void run() {
             while (true) {
                 for (World w : Bukkit.getWorlds()) {
-                    final long stamp = horseLock.writeLock();
+                    final long stamp = EquestriCraftPlugin.horseLock.writeLock();
                     try {
                         for (Horse horse : w.getEntitiesByClass(Horse.class)) {
                             final double r = Math.random();
@@ -354,7 +351,7 @@ public class HorseCheckerThread extends Thread {
                     } catch (Exception e) {
 
                     } finally {
-                        horseLock.unlockWrite(stamp);
+                        EquestriCraftPlugin.horseLock.unlockWrite(stamp);
                     }
                 }
                 try {

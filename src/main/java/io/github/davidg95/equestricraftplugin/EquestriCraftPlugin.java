@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.locks.StampedLock;
 import java.util.logging.Level;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -68,10 +69,13 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
 
     public static final String VACCINE_NAME = "Vaccination";
 
+    public static StampedLock horseLock;
+
     @Override
     public void onEnable() {
         plugin = this;
         properties = new Properties();
+        horseLock = new StampedLock();
         loadProperties();
         container = DataContainer.getInstance();
         checkerThread = new HorseCheckerThread();
@@ -94,7 +98,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             int mare = 0;
             int none = 0;
             for (World w : Bukkit.getWorlds()) {
-                final long stamp = HorseCheckerThread.horseLock.readLock();
+                final long stamp = horseLock.readLock();
                 try {
                     for (Horse h : w.getEntitiesByClass(Horse.class)) {
                         count++;
@@ -115,7 +119,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     }
                 } catch (Exception e) {
                 } finally {
-                    HorseCheckerThread.horseLock.unlockRead(stamp);
+                    horseLock.unlockRead(stamp);
                 }
             }
             sender.sendMessage("Horses: " + count);
