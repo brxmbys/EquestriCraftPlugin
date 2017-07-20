@@ -21,6 +21,7 @@ import java.util.logging.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Horse;
 import org.bukkit.entity.Player;
 
@@ -138,37 +139,38 @@ public class DataContainer {
         int stal = 0;
         int mare = 0;
         int none = 0;
-        try {
-            for (MyHorse horse : horses) {
-                switch (horse.getGender()) {
-                    case MyHorse.GELDING:
-                        geld++;
-                        break;
-                    case MyHorse.MARE:
-                        mare++;
-                        break;
-                    case MyHorse.STALLION:
-                        stal++;
-                        break;
-                    default:
-                        none++;
-                        break;
-                }
+        for (World world : Bukkit.getWorlds()) {
+            search:
+            for (Entity entity : world.getEntities()) {
                 horsesInFile++;
                 if (horsesInFile % 500 == 0) {
                     Bukkit.getLogger().log(Level.INFO, "Scanned: " + horsesInFile);
                 }
-                for (World world : Bukkit.getWorlds()) {
-                    for (Entity entity : world.getEntities()) {
-                        if (entity.getUniqueId().equals(horse.getUuid())) {
-                            MyHorse.myHorseToHorse(horse, (Horse) entity);
-                            horsesFound++;
+                for (MyHorse horse : horses) {
+                    switch (horse.getGender()) {
+                        case MyHorse.GELDING:
+                            geld++;
                             break;
-                        }
+                        case MyHorse.MARE:
+                            mare++;
+                            break;
+                        case MyHorse.STALLION:
+                            stal++;
+                            break;
+                        default:
+                            none++;
+                            break;
+                    }
+                    if (entity.getUniqueId().equals(horse.getUuid())) {
+                        MyHorse.myHorseToHorse(horse, (Horse) entity);
+                        horsesFound++;
+                        continue search;
                     }
                 }
+                if (entity.getType() == EntityType.HORSE) {
+                    MyHorse.initHorse((Horse) entity); //Initialise the horse
+                }
             }
-        } finally {
         }
         Bukkit.getLogger().log(Level.INFO, "Load complete");
         Bukkit.getLogger().log(Level.INFO, "Number of horses in file: " + horsesInFile);
