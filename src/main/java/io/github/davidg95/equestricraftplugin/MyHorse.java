@@ -28,10 +28,10 @@ public class MyHorse implements Serializable {
 
     private static final long serialVersionUID = 2573463;
 
-    private final long vaccinationTime;
-    private final boolean vaccination;
-    private final int gender; //The horses gender.
-    private final UUID uuid;
+    private long vaccinationTime;
+    private boolean vaccination;
+    private int gender; //The horses gender.
+    private UUID uuid;
     private long lastEat;
     private long lastDrink;
     private long illSince;

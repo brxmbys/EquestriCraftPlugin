@@ -130,10 +130,10 @@ public class DataContainer {
     }
 
     private void pairHorses(List<MyHorse> horses) {
-        Bukkit.getLogger().log(Level.INFO, "Loading horses");
+        Bukkit.getLogger().log(Level.INFO, "Pairing horses");
         Bukkit.getLogger().log(Level.INFO, "Horses: " + horses.size());
-        int horsesInFile = 0;
-        int horsesFound = 0;
+        int horsesInWorld = 0;
+        int horsesPaired = 0;
 
         int geld = 0;
         int stal = 0;
@@ -145,39 +145,40 @@ public class DataContainer {
                 if (entity.getType() != EntityType.HORSE) {
                     continue;
                 }
-                horsesInFile++;
-                if (horsesInFile % 500 == 0) {
-                    Bukkit.getLogger().log(Level.INFO, "Scanned: " + horsesInFile);
+                final Horse h = (Horse) entity;
+                horsesInWorld++;
+                if (horsesInWorld % 500 == 0) {
+                    Bukkit.getLogger().log(Level.INFO, "Scanned: " + horsesInWorld);
                 }
                 for (MyHorse horse : horses) {
-                    switch (horse.getGender()) {
-                        case MyHorse.GELDING:
-                            geld++;
-                            break;
-                        case MyHorse.MARE:
-                            mare++;
-                            break;
-                        case MyHorse.STALLION:
-                            stal++;
-                            break;
-                        default:
-                            none++;
-                            break;
-                    }
-                    if (entity.getUniqueId().equals(horse.getUuid())) {
-                        MyHorse.myHorseToHorse(horse, (Horse) entity);
-                        horsesFound++;
+                    if (h.getUniqueId().equals(horse.getUuid())) {
+                        MyHorse.myHorseToHorse(horse, h);
+                        horsesPaired++;
+                        Bukkit.getLogger().log(Level.INFO, "MyHorse gender in file is " + horse.getGender());
+                        switch (horse.getGender()) {
+                            case MyHorse.GELDING:
+                                geld++;
+                                break;
+                            case MyHorse.MARE:
+                                mare++;
+                                break;
+                            case MyHorse.STALLION:
+                                stal++;
+                                break;
+                            default:
+                                none++;
+                                break;
+                        }
                         continue search;
                     }
                 }
-                if (entity.getType() == EntityType.HORSE) {
-                    MyHorse.initHorse((Horse) entity); //Initialise the horse
-                }
+                Bukkit.getLogger().log(Level.INFO, "Assigning horse a gender");
+                MyHorse.initHorse(h); //Initialise the horse
             }
         }
         Bukkit.getLogger().log(Level.INFO, "Load complete");
-        Bukkit.getLogger().log(Level.INFO, "Number of horses in file: " + horsesInFile);
-        Bukkit.getLogger().log(Level.INFO, "Number of horses found in world: " + horsesFound);
+        Bukkit.getLogger().log(Level.INFO, "Number of horses in world: " + horsesInWorld);
+        Bukkit.getLogger().log(Level.INFO, "Number of horses paired: " + horsesPaired);
         Bukkit.getLogger().log(Level.INFO, "Stallions: " + stal);
         Bukkit.getLogger().log(Level.INFO, "Mares: " + mare);
         Bukkit.getLogger().log(Level.INFO, "Geldings: " + geld);
@@ -278,12 +279,13 @@ public class DataContainer {
         try {
             Bukkit.getLogger().log(Level.INFO, "Saving horses...");
             final File file = new File(HORSES_FILE);
-            if (!file.exists()) {
-                try {
-                    file.createNewFile();
-                } catch (IOException ex) {
-                    EquestriCraftPlugin.plugin.getLogger().log(Level.SEVERE, null, ex);
-                }
+            if (file.exists()) {
+                file.delete();
+            }
+            try {
+                file.createNewFile();
+            } catch (IOException ex) {
+                EquestriCraftPlugin.plugin.getLogger().log(Level.SEVERE, null, ex);
             }
             try (OutputStream os = new FileOutputStream(HORSES_FILE)) {
                 final long hStamp = horseLock.readLock();
@@ -315,7 +317,6 @@ public class DataContainer {
         try (InputStream is = new FileInputStream(HORSES_FILE)) {
             final ObjectInputStream oi = new ObjectInputStream(is);
             final List<MyHorse> horses = (List<MyHorse>) oi.readObject();
-            Bukkit.getLogger().log(Level.INFO, "Horses loaded: " + horses.size());
             pairHorses(horses);
             doctors = (List<UUID>) oi.readObject();
         } catch (FileNotFoundException ex) {

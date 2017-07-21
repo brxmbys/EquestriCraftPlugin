@@ -291,16 +291,18 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     }
 
     public void onChunkLoad(ChunkLoadEvent event) {
-        for (Entity e : event.getChunk().getEntities()) {
+        for (final Entity e : event.getChunk().getEntities()) {
             if (e.getType() == EntityType.HORSE) {
                 final Runnable run = new Runnable() {
                     @Override
                     public void run() {
                         final Horse h = (Horse) e;
                         final MyHorse mh = container.getHorseFromFile(h);
-                        MyHorse.myHorseToHorse(mh, h);
-                        if (container.isHorseInCache(h.getUniqueId())) {
-                            container.removeHorseFromCache(h.getUniqueId());
+                        if (mh != null) {
+                            MyHorse.myHorseToHorse(mh, h);
+                            if (container.isHorseInCache(h.getUniqueId())) {
+                                container.removeHorseFromCache(h.getUniqueId());
+                            }
                         }
                     }
                 };
@@ -340,7 +342,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         }
         if (null != inHand.getType()) {
             switch (inHand.getType()) {
-                case SHEARS:
+                case SHEARS: //Gelding Tool
                     //Check they have shears in their hand.
                     if (!inHand.getItemMeta().hasDisplayName()) { //Check the shears have a display name.
                         return;
@@ -359,7 +361,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         player.sendMessage("This horse has been gelded");
                     }
                     break;
-                case STICK:
+                case STICK: //Horse wand
                     //Horse checking stick
                     if (!inHand.getItemMeta().hasDisplayName()) { //Check the shears have a display name.
                         return;
@@ -377,13 +379,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                                 sickness = md.asBoolean();
                             }
                         }
-                        int gender = -1;
-                        final List<MetadataValue> mdvsg = horse.getMetadata(MyHorse.META_GENDER);
-                        for (MetadataValue md : mdvsg) {
-                            if (md.getOwningPlugin() == EquestriCraftPlugin.plugin) {
-                                gender = md.asInt();
-                            }
-                        }
+                        int gender = MyHorse.getGenderFromMeta(horse);
                         boolean hunger = false;
                         final List<MetadataValue> mdvsh = horse.getMetadata(MyHorse.META_HUNGER);
                         for (MetadataValue md : mdvsh) {
@@ -405,7 +401,21 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                                 vaccination = md.asBoolean();
                             }
                         }
-                        final String genderStr = "GENDER: " + (gender == MyHorse.STALLION ? "STALLION" : (gender == MyHorse.MARE ? "MARE" : "GELDING"));
+                        String genderStr;
+                        switch (gender) {
+                            case MyHorse.STALLION:
+                                genderStr = "STALLION";
+                                break;
+                            case MyHorse.MARE:
+                                genderStr = "Mare";
+                                break;
+                            case MyHorse.GELDING:
+                                genderStr = "GELDING";
+                                break;
+                            default:
+                                genderStr = "NONE";
+                                break;
+                        }
                         final String sickStr = "HEALTH: " + (sickness ? "ILL" : "WELL");
                         final String hungerStr = "HUNGER: " + (hunger ? "HUNGRY" : "NOT HUNGRY");
                         final String thirstStr = "THIRST: " + (thirst ? "THIRSTY" : "NOT THIRSTY");
@@ -419,7 +429,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         player.sendMessage("You must click on a horse");
                     }
                     break;
-                case BLAZE_ROD:
+                case BLAZE_ROD: //Vaccination
                     //Vaccination
                     if (!inHand.getItemMeta().hasDisplayName()) {
                         return;
@@ -435,7 +445,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         player.sendMessage("Horse has been vaccinated");
                     }
                     break;
-                case REDSTONE_TORCH_ON:
+                case REDSTONE_TORCH_ON: //Healing
                     //Healing
                     if (!inHand.getItemMeta().hasDisplayName()) {
                         return;
