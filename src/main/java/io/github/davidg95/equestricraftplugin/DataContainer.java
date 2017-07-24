@@ -54,12 +54,6 @@ public class DataContainer {
         try {
             loadHorses();
         } catch (FileNotFoundException ex) {
-            File file = new File(HORSES_FILE);
-            try {
-                file.createNewFile();
-            } catch (IOException ex1) {
-                Logger.getLogger(DataContainer.class.getName()).log(Level.SEVERE, null, ex1);
-            }
             initHorses();
             saveHorses();
         }
