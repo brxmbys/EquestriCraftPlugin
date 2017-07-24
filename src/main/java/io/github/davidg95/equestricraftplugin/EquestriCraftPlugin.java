@@ -3,6 +3,7 @@
  */
 package io.github.davidg95.equestricraftplugin;
 
+import static io.github.davidg95.equestricraftplugin.MyHorse.META_GENDER;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -290,26 +291,38 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         return false;
     }
 
+    @EventHandler
     public void onChunkLoad(ChunkLoadEvent event) {
-        for (final Entity e : event.getChunk().getEntities()) {
-            if (e.getType() == EntityType.HORSE) {
-                final Runnable run = new Runnable() {
-                    @Override
-                    public void run() {
+        final Runnable run = new Runnable() {
+            @Override
+            public void run() {
+                for (final Entity e : event.getChunk().getEntities()) {
+                    if (e.getType() == EntityType.HORSE) {
                         final Horse h = (Horse) e;
-                        final MyHorse mh = container.getHorseFromFile(h);
+                        MyHorse mh;
+                        Bukkit.getLogger().log(Level.INFO, "UUID: " + h.getUniqueId());
+                        if (container.isHorseInCache(h.getUniqueId())) {
+                            Bukkit.getLogger().log(Level.INFO, "Horse found in cache");
+                            mh = container.getHorseFromCache(h.getUniqueId());
+                        } else {
+                            Bukkit.getLogger().log(Level.INFO, "Horse not found in cache");
+                            mh = container.getHorseFromFile(h);
+                        }
                         if (mh != null) {
                             MyHorse.myHorseToHorse(mh, h);
                             if (container.isHorseInCache(h.getUniqueId())) {
                                 container.removeHorseFromCache(h.getUniqueId());
                             }
+                        } else {
+                            Bukkit.getLogger().log(Level.INFO, "Horse was not found, initialising it");
+                            MyHorse.initHorse(h);
                         }
                     }
-                };
-                final Thread thread = new Thread(run, "ChunkLoad");
-                thread.start();
+                }
             }
-        }
+        };
+        final Thread thread = new Thread(run, "ChunkLoad");
+        thread.start();
     }
 
     @EventHandler
@@ -371,7 +384,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     }
                     if (event.getEntity() instanceof Horse) {
                         event.setCancelled(true);
-                        final Horse horse = (Horse) event.getEntity();
+                        final Horse horse = (Horse) event.getEntity(); //Get the horse that was clicked on.
                         boolean sickness = false;
                         final List<MetadataValue> mdvss = horse.getMetadata(MyHorse.META_HEALTH);
                         for (MetadataValue md : mdvss) {
@@ -420,11 +433,13 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         final String hungerStr = "HUNGER: " + (hunger ? "HUNGRY" : "NOT HUNGRY");
                         final String thirstStr = "THIRST: " + (thirst ? "THIRSTY" : "NOT THIRSTY");
                         final String vaccinationStr = "Vaccinated: " + (vaccination ? "YES" : "NO");
+                        player.sendMessage("Horse gender value: " + gender);
                         player.sendMessage(genderStr);
                         player.sendMessage(sickStr);
                         player.sendMessage(hungerStr);
                         player.sendMessage(thirstStr);
                         player.sendMessage(vaccinationStr);
+                        player.sendMessage("Horse UUID: " + horse.getUniqueId());
                     } else {
                         player.sendMessage("You must click on a horse");
                     }

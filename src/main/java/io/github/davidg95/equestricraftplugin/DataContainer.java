@@ -51,8 +51,36 @@ public class DataContainer {
         horseLock = new StampedLock();
         doctorLock = new StampedLock();
         fileLock = new StampedLock();
-        loadHorses();
+        try {
+            loadHorses();
+        } catch (FileNotFoundException ex) {
+            File file = new File(HORSES_FILE);
+            try {
+                file.createNewFile();
+            } catch (IOException ex1) {
+                Logger.getLogger(DataContainer.class.getName()).log(Level.SEVERE, null, ex1);
+            }
+            initHorses();
+            saveHorses();
+        }
         initThread();
+    }
+
+    private void initHorses() {
+        Bukkit.getLogger().log(Level.INFO, "Assigning horses");
+        int count = 0;
+        for (World w : Bukkit.getWorlds()) {
+            final long stamp = horseLock.writeLock();
+            try {
+                for (Horse h : w.getEntitiesByClass(Horse.class)) {
+                    MyHorse.initHorse(h);
+                    count++;
+                }
+            } finally {
+                horseLock.unlockWrite(stamp);
+            }
+        }
+        Bukkit.getLogger().log(Level.INFO, "Assigned " + count + " horses");
     }
 
     /**
@@ -67,6 +95,20 @@ public class DataContainer {
         } finally {
             horseLock.unlockWrite(stamp);
         }
+    }
+
+    public MyHorse getHorseFromCache(UUID uuid) {
+        final long stamp = horseLock.readLock();
+        try {
+            for (MyHorse h : horses) {
+                if (h.getUuid().equals(uuid)) {
+                    return h;
+                }
+            }
+        } finally {
+            horseLock.unlockRead(stamp);
+        }
+        return null;
     }
 
     /**
@@ -130,6 +172,9 @@ public class DataContainer {
     }
 
     private void pairHorses(List<MyHorse> horses) {
+        for (MyHorse horse : horses) {
+            Bukkit.getLogger().log(Level.INFO, "UUID: " + horse.getUuid());
+        }
         Bukkit.getLogger().log(Level.INFO, "Pairing horses");
         Bukkit.getLogger().log(Level.INFO, "Horses: " + horses.size());
         int horsesInWorld = 0;
@@ -150,7 +195,10 @@ public class DataContainer {
                 if (horsesInWorld % 500 == 0) {
                     Bukkit.getLogger().log(Level.INFO, "Scanned: " + horsesInWorld);
                 }
+                MyHorse current = null;
+                Bukkit.getLogger().log(Level.INFO, "UUID: " + h.getUniqueId());
                 for (MyHorse horse : horses) {
+                    current = horse;
                     if (h.getUniqueId().equals(horse.getUuid())) {
                         MyHorse.myHorseToHorse(horse, h);
                         horsesPaired++;
@@ -171,6 +219,9 @@ public class DataContainer {
                         }
                         continue search;
                     }
+                }
+                if (current != null) {
+                    this.cacheHorse(current);
                 }
                 Bukkit.getLogger().log(Level.INFO, "Assigning horse a gender");
                 MyHorse.initHorse(h); //Initialise the horse
@@ -242,7 +293,12 @@ public class DataContainer {
             final long stamp = EquestriCraftPlugin.horseLock.readLock();
             try {
                 for (Horse h : w.getEntitiesByClass(Horse.class)) {
+                    Bukkit.getLogger().log(Level.INFO, h.getUniqueId() + " saving");
+                    if(this.isHorseInCache(h.getUniqueId())){
+                        this.removeHorseFromCache(h.getUniqueId());
+                    }
                     final MyHorse mHorse = MyHorse.horseToMyHorse(h);
+                    Bukkit.getLogger().log(Level.INFO, "Gender: " + mHorse.getGender());
                     switch (MyHorse.getGenderFromMeta(h)) {
                         case MyHorse.GELDING:
                             geld++;
@@ -311,24 +367,19 @@ public class DataContainer {
     /**
      * Load horses from file
      */
-    private void loadHorses() {
+    private void loadHorses() throws FileNotFoundException {
         final long stamp = fileLock.readLock();
-        boolean fileExists = true;
         try (InputStream is = new FileInputStream(HORSES_FILE)) {
             final ObjectInputStream oi = new ObjectInputStream(is);
             final List<MyHorse> horses = (List<MyHorse>) oi.readObject();
             pairHorses(horses);
             doctors = (List<UUID>) oi.readObject();
         } catch (FileNotFoundException ex) {
-            fileExists = false;
-            fileLock.unlockRead(stamp);
-            saveHorses();
+            throw ex;
         } catch (IOException | ClassNotFoundException ex) {
             EquestriCraftPlugin.plugin.getLogger().log(Level.SEVERE, null, ex);
         } finally {
-            if (fileExists) {
-                fileLock.unlockRead(stamp);
-            }
+            fileLock.unlockRead(stamp);
         }
     }
 
@@ -336,9 +387,9 @@ public class DataContainer {
         final long stamp = fileLock.readLock();
         try (InputStream is = new FileInputStream(HORSES_FILE)) {
             final ObjectInputStream oi = new ObjectInputStream(is);
-            final List<MyHorse> horses = (List<MyHorse>) oi.readObject();
-            Bukkit.getLogger().log(Level.INFO, "Horses loaded: " + horses.size());
-            for (MyHorse mh : horses) {
+            final List<MyHorse> tHorses = (List<MyHorse>) oi.readObject();
+            Bukkit.getLogger().log(Level.INFO, "Horses loaded: " + tHorses.size());
+            for (MyHorse mh : tHorses) {
                 if (mh.getUuid().equals(horse.getEntityId())) {
                     return mh;
                 }
