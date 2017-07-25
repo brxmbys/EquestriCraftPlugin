@@ -3,7 +3,6 @@
  */
 package io.github.davidg95.equestricraftplugin;
 
-import static io.github.davidg95.equestricraftplugin.MyHorse.META_GENDER;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -12,7 +11,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.locks.StampedLock;
@@ -301,30 +299,30 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         final Horse h = (Horse) e;
                         MyHorse mh;
                         Bukkit.getLogger().log(Level.INFO, "UUID: " + h.getUniqueId());
-                        if (container.isHorseInCache(h.getUniqueId())) {
+                        if (container.isHorseInCache(h.getUniqueId())) { //Check for and get the horse fram cache.
                             Bukkit.getLogger().log(Level.INFO, "Horse found in cache");
                             mh = container.getHorseFromCache(h.getUniqueId());
-                        } else {
+                        } else { //If it was not in cache, get it from file.
                             Bukkit.getLogger().log(Level.INFO, "Horse not found in cache");
                             mh = container.getHorseFromFile(h);
                         }
-                        if (mh != null) {
-                            if (mh.getGender() == -1) {
-                                MyHorse temp = container.getHorseFromFile(h);
+                        if (mh != null) { //If the horse was retreived.
+                            if (mh.getGender() == -1) { //If the horse does not have a gender.
+                                MyHorse temp = container.getHorseFromFile(h); //Try get the horse from file again.
                                 if (temp == null) {
-                                    if (mh.getGender() == -1) {
-                                        MyHorse.initHorse(h);
-                                        mh = MyHorse.horseToMyHorse(h);
+                                    if (mh.getGender() == -1) { //If it does not have a gender.
+                                        MyHorse.initHorse(h); //Initalise the horse.
+                                        mh = MyHorse.horseToMyHorse(h); //Get the MyHorse.
                                     }
                                 } else {
                                     mh = temp;
                                 }
                             }
                             MyHorse.myHorseToHorse(mh, h);
-                            if (container.isHorseInCache(h.getUniqueId())) {
+                            if (container.isHorseInCache(h.getUniqueId())) { //Remove the horse from cache.
                                 container.removeHorseFromCache(h.getUniqueId());
                             }
-                        } else {
+                        } else { //If the horse was not in file or in cache.
                             Bukkit.getLogger().log(Level.INFO, "Horse was not found, initialising it");
                             MyHorse.initHorse(h);
                         }
@@ -466,8 +464,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     if (event.getEntity() instanceof Horse) {
                         event.setCancelled(true);
                         final Horse horse = (Horse) event.getEntity();
-                        horse.setMetadata(MyHorse.META_VACCINATED, new FixedMetadataValue(EquestriCraftPlugin.plugin, true));
-                        horse.setMetadata(MyHorse.META_VACCINE_TIME, new FixedMetadataValue(EquestriCraftPlugin.plugin, new Date().getTime()));
+                        MyHorse.vaccinate(horse);
                         player.sendMessage("Horse has been vaccinated");
                     }
                     break;
