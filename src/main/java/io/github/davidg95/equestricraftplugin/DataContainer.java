@@ -288,7 +288,7 @@ public class DataContainer {
             try {
                 for (Horse h : w.getEntitiesByClass(Horse.class)) {
                     Bukkit.getLogger().log(Level.INFO, h.getUniqueId() + " saving");
-                    if(this.isHorseInCache(h.getUniqueId())){
+                    if (this.isHorseInCache(h.getUniqueId())) {
                         this.removeHorseFromCache(h.getUniqueId());
                     }
                     final MyHorse mHorse = MyHorse.horseToMyHorse(h);
@@ -338,15 +338,10 @@ public class DataContainer {
                 EquestriCraftPlugin.plugin.getLogger().log(Level.SEVERE, null, ex);
             }
             try (OutputStream os = new FileOutputStream(HORSES_FILE)) {
-                final long hStamp = horseLock.readLock();
-                try {
-                    final List<MyHorse> horses = getHorses();
-                    final ObjectOutputStream oo = new ObjectOutputStream(os);
-                    oo.writeObject(horses);
-                    oo.writeObject(doctors);
-                } finally {
-                    horseLock.unlockRead(hStamp);
-                }
+                final List<MyHorse> horses = getHorses();
+                final ObjectOutputStream oo = new ObjectOutputStream(os);
+                oo.writeObject(horses);
+                oo.writeObject(doctors);
             } catch (FileNotFoundException ex) {
                 EquestriCraftPlugin.plugin.getLogger().log(Level.SEVERE, null, ex);
             } catch (IOException ex) {

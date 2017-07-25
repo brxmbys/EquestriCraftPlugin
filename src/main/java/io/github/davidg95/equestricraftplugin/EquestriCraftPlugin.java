@@ -309,6 +309,17 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                             mh = container.getHorseFromFile(h);
                         }
                         if (mh != null) {
+                            if (mh.getGender() == -1) {
+                                MyHorse temp = container.getHorseFromFile(h);
+                                if (temp == null) {
+                                    if (mh.getGender() == -1) {
+                                        MyHorse.initHorse(h);
+                                        mh = MyHorse.horseToMyHorse(h);
+                                    }
+                                } else {
+                                    mh = temp;
+                                }
+                            }
                             MyHorse.myHorseToHorse(mh, h);
                             if (container.isHorseInCache(h.getUniqueId())) {
                                 container.removeHorseFromCache(h.getUniqueId());
