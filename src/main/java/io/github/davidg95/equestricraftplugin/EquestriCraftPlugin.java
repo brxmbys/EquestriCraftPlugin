@@ -133,10 +133,31 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             sender.sendMessage("None assigned: " + none);
             return true;
         } else if (cmd.getName().equalsIgnoreCase("createhorse")) {
-            if (args.length == 1) {
-                if (sender instanceof Player) {
-                    final Player player = (Player) sender;
+            switch (args.length) {
+                case 1:
+                    if (sender instanceof Player) {
+                        final Player player = (Player) sender;
+                        final String genderarg = args[0];
+                        int gender;
+                        if (genderarg.equalsIgnoreCase("stallion")) {
+                            gender = MyHorse.STALLION;
+                        } else if (genderarg.equalsIgnoreCase("mare")) {
+                            gender = MyHorse.MARE;
+                        } else {
+                            sender.sendMessage("Unrecognised gender. Must be STALLION or MARE");
+                            return true;
+                        }
+                        final Horse h = player.getWorld().spawn(player.getLocation(), Horse.class);
+                    } else {
+                        sender.sendMessage("This command can only be run by a player");
+                    }   break;
+                case 2:
                     final String genderarg = args[0];
+                    final String name = args[1];
+                    final Player pl = Bukkit.getPlayer(name);
+                    if(pl == null){
+                        return true;
+                    }
                     int gender;
                     if (genderarg.equalsIgnoreCase("stallion")) {
                         gender = MyHorse.STALLION;
@@ -145,29 +166,13 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     } else {
                         sender.sendMessage("Unrecognised gender. Must be STALLION or MARE");
                         return true;
-                    }
-                    final Horse h = player.getWorld().spawn(player.getLocation(), Horse.class);
-                } else {
-                    sender.sendMessage("This command can only be run by a player");
-                }
-            } else if (args.length == 2) {
-                final String genderarg = args[0];
-                final String name = args[1];
-                final Player pl = Bukkit.getPlayer(name);
-                int gender;
-                if (genderarg.equalsIgnoreCase("stallion")) {
-                    gender = MyHorse.STALLION;
-                } else if (genderarg.equalsIgnoreCase("mare")) {
-                    gender = MyHorse.MARE;
-                } else {
-                    sender.sendMessage("Unrecognised gender. Must be STALLION or MARE");
-                    return true;
-                }
-                final Horse h = pl.getWorld().spawn(pl.getLocation(), Horse.class);
-                MyHorse.initHorse(h);
-                MyHorse.setGenderInMeta(h, gender);
-                sender.sendMessage("Created " + genderarg + " for " + pl.getName());
-            } else {
+                    }   final Horse h = pl.getWorld().spawn(pl.getLocation(), Horse.class);
+                    MyHorse.initHorse(h);
+                    MyHorse.setGenderInMeta(h, gender);
+                    sender.sendMessage("Created " + genderarg + " for " + pl.getName());
+                    break;
+                default:
+                    break;
             }
             return true;
         } else if (cmd.getName().equalsIgnoreCase("geldingtool")) {
@@ -245,6 +250,9 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             if (args.length == 1) {
                 if ((sender instanceof Player && ((Player) sender).isOp()) || !(sender instanceof Player)) {
                     final Player player = Bukkit.getPlayer(args[0]);
+                    if(player == null){
+                        return true;
+                    }
                     container.addDoctor(player);
                     sender.sendMessage(args[0] + " is now a doctor");
                     player.sendMessage("You are not a doctor!");
