@@ -368,7 +368,6 @@ public class DataContainer {
         try (InputStream is = new FileInputStream(HORSES_FILE)) {
             final ObjectInputStream oi = new ObjectInputStream(is);
             final List<MyHorse> tHorses = (List<MyHorse>) oi.readObject();
-            EquestriCraftPlugin.LOG.log(Level.INFO, "Horses loaded: " + tHorses.size());
             for (MyHorse mh : tHorses) {
                 if (mh.getUuid().equals(horse.getEntityId())) {
                     return mh;
