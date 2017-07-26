@@ -11,10 +11,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.locks.StampedLock;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -42,6 +44,8 @@ import org.bukkit.plugin.java.JavaPlugin;
  * @author David
  */
 public class EquestriCraftPlugin extends JavaPlugin implements Listener {
+
+    public static Logger LOG;
 
     /**
      * A reference to the plugin object.
@@ -73,6 +77,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     @Override
     public void onEnable() {
         plugin = this;
+        LOG = plugin.getLogger();
         properties = new Properties();
         horseLock = new StampedLock();
         loadProperties();
@@ -84,7 +89,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
 
     @Override
     public void onDisable() {
-        getLogger().log(Level.INFO, "Saving horses to file");
+        LOG.log(Level.INFO, "Saving horses to file");
         container.saveHorses();
     }
 
@@ -291,41 +296,40 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onChunkLoad(ChunkLoadEvent event) {
+        final List<Horse> horses = new LinkedList<>();
+        for (final Entity e : event.getChunk().getEntities()) {
+            if (e.getType() == EntityType.HORSE) {
+                horses.add((Horse) e);
+            }
+        }
         final Runnable run = new Runnable() {
             @Override
             public void run() {
-                for (final Entity e : event.getChunk().getEntities()) {
-                    if (e.getType() == EntityType.HORSE) {
-                        final Horse h = (Horse) e;
-                        MyHorse mh;
-                        Bukkit.getLogger().log(Level.INFO, "UUID: " + h.getUniqueId());
-                        if (container.isHorseInCache(h.getUniqueId())) { //Check for and get the horse fram cache.
-                            Bukkit.getLogger().log(Level.INFO, "Horse found in cache");
-                            mh = container.getHorseFromCache(h.getUniqueId());
-                        } else { //If it was not in cache, get it from file.
-                            Bukkit.getLogger().log(Level.INFO, "Horse not found in cache");
-                            mh = container.getHorseFromFile(h);
-                        }
-                        if (mh != null) { //If the horse was retreived.
-                            if (mh.getGender() == -1) { //If the horse does not have a gender.
-                                MyHorse temp = container.getHorseFromFile(h); //Try get the horse from file again.
-                                if (temp == null) {
-                                    if (mh.getGender() == -1) { //If it does not have a gender.
-                                        MyHorse.initHorse(h); //Initalise the horse.
-                                        mh = MyHorse.horseToMyHorse(h); //Get the MyHorse.
-                                    }
-                                } else {
-                                    mh = temp;
+                for (final Horse h : horses) {
+                    MyHorse mh;
+                    if (container.isHorseInCache(h.getUniqueId())) { //Check for and get the horse fram cache.
+                        mh = container.getHorseFromCache(h.getUniqueId());
+                    } else { //If it was not in cache, get it from file.
+                        mh = container.getHorseFromFile(h);
+                    }
+                    if (mh != null) { //If the horse was retreived.
+                        if (mh.getGender() == -1) { //If the horse does not have a gender.
+                            MyHorse temp = container.getHorseFromFile(h); //Try get the horse from file again.
+                            if (temp == null) {
+                                if (mh.getGender() == -1) { //If it does not have a gender.
+                                    MyHorse.initHorse(h); //Initalise the horse.
+                                    mh = MyHorse.horseToMyHorse(h); //Get the MyHorse.
                                 }
+                            } else {
+                                mh = temp;
                             }
-                            MyHorse.myHorseToHorse(mh, h);
-                            if (container.isHorseInCache(h.getUniqueId())) { //Remove the horse from cache.
-                                container.removeHorseFromCache(h.getUniqueId());
-                            }
-                        } else { //If the horse was not in file or in cache.
-                            Bukkit.getLogger().log(Level.INFO, "Horse was not found, initialising it");
-                            MyHorse.initHorse(h);
                         }
+                        MyHorse.myHorseToHorse(mh, h);
+                        if (container.isHorseInCache(h.getUniqueId())) { //Remove the horse from cache.
+                            container.removeHorseFromCache(h.getUniqueId());
+                        }
+                    } else { //If the horse was not in file or in cache.
+                        MyHorse.initHorse(h);
                     }
                 }
             }
@@ -336,19 +340,22 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onChunkUnload(ChunkLoadEvent event) {
-        for (Entity e : event.getChunk().getEntities()) {
+        final List<Horse> horses = new LinkedList<>();
+        for (final Entity e : event.getChunk().getEntities()) {
             if (e.getType() == EntityType.HORSE) {
-                final Runnable run = new Runnable() {
-                    @Override
-                    public void run() {
-                        final Horse h = (Horse) e;
-                        final MyHorse mh = MyHorse.horseToMyHorse(h);
-                        container.cacheHorse(mh);
-                    }
-                };
-                final Thread thread = new Thread(run, "ChunkUnload");
-                thread.start();
+                horses.add((Horse) e);
             }
+        }
+        for (Horse h : horses) {
+            final Runnable run = new Runnable() {
+                @Override
+                public void run() {
+                    final MyHorse mh = MyHorse.horseToMyHorse(h);
+                    container.cacheHorse(mh);
+                }
+            };
+            final Thread thread = new Thread(run, "ChunkUnload");
+            thread.start();
         }
     }
 
@@ -512,7 +519,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         } catch (FileNotFoundException ex) {
             saveProperties();
         } catch (IOException ex) {
-            getLogger().log(Level.SEVERE, null, ex);
+            LOG.log(Level.SEVERE, null, ex);
         }
     }
 
@@ -522,7 +529,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             try {
                 f.createNewFile();
             } catch (IOException ex) {
-                getLogger().log(Level.SEVERE, null, ex);
+                LOG.log(Level.SEVERE, null, ex);
             }
         }
         try (OutputStream os = new FileOutputStream(PROPERTIES_FILE)) {
@@ -537,9 +544,9 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             properties.setProperty("VACCINATED_SICK_PROBABILITY", Double.toString(HorseCheckerThread.VACCINATED_PROBABILITY));
             properties.store(os, null);
         } catch (FileNotFoundException ex) {
-            getLogger().log(Level.SEVERE, null, ex);
+            LOG.log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
-            getLogger().log(Level.SEVERE, null, ex);
+            LOG.log(Level.SEVERE, null, ex);
         }
     }
 }

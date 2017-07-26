@@ -61,7 +61,7 @@ public class DataContainer {
     }
 
     private void initHorses() {
-        Bukkit.getLogger().log(Level.INFO, "Assigning horses");
+        EquestriCraftPlugin.LOG.log(Level.INFO, "Assigning horses");
         int count = 0;
         for (World w : Bukkit.getWorlds()) {
             final long stamp = horseLock.writeLock();
@@ -74,7 +74,7 @@ public class DataContainer {
                 horseLock.unlockWrite(stamp);
             }
         }
-        Bukkit.getLogger().log(Level.INFO, "Assigned " + count + " horses");
+        EquestriCraftPlugin.LOG.log(Level.INFO, "Assigned " + count + " horses");
     }
 
     /**
@@ -148,7 +148,7 @@ public class DataContainer {
         final Runnable run = new Runnable() {
             @Override
             public void run() {
-                Bukkit.getLogger().log(Level.INFO, "horses.config will be saved every 10 minutes");
+                EquestriCraftPlugin.LOG.log(Level.INFO, "horses.config will be saved every 10 minutes");
                 while (true) {
                     try {
                         Thread.sleep(600000); //Ten Minutes
@@ -166,11 +166,7 @@ public class DataContainer {
     }
 
     private void pairHorses(List<MyHorse> horses) {
-        for (MyHorse horse : horses) {
-            Bukkit.getLogger().log(Level.INFO, "UUID: " + horse.getUuid());
-        }
-        Bukkit.getLogger().log(Level.INFO, "Pairing horses");
-        Bukkit.getLogger().log(Level.INFO, "Horses: " + horses.size());
+        EquestriCraftPlugin.LOG.log(Level.INFO, "Pairing horses");
         int horsesInWorld = 0;
         int horsesPaired = 0;
 
@@ -187,16 +183,14 @@ public class DataContainer {
                 final Horse h = (Horse) entity;
                 horsesInWorld++;
                 if (horsesInWorld % 500 == 0) {
-                    Bukkit.getLogger().log(Level.INFO, "Scanned: " + horsesInWorld);
+                    EquestriCraftPlugin.LOG.log(Level.INFO, "Scanned: " + horsesInWorld);
                 }
                 MyHorse current = null;
-                Bukkit.getLogger().log(Level.INFO, "UUID: " + h.getUniqueId());
                 for (MyHorse horse : horses) {
                     current = horse;
                     if (h.getUniqueId().equals(horse.getUuid())) {
                         MyHorse.myHorseToHorse(horse, h);
                         horsesPaired++;
-                        Bukkit.getLogger().log(Level.INFO, "MyHorse gender in file is " + horse.getGender());
                         switch (horse.getGender()) {
                             case MyHorse.GELDING:
                                 geld++;
@@ -217,17 +211,16 @@ public class DataContainer {
                 if (current != null) {
                     this.cacheHorse(current);
                 }
-                Bukkit.getLogger().log(Level.INFO, "Assigning horse a gender");
                 MyHorse.initHorse(h); //Initialise the horse
             }
         }
-        Bukkit.getLogger().log(Level.INFO, "Load complete");
-        Bukkit.getLogger().log(Level.INFO, "Number of horses in world: " + horsesInWorld);
-        Bukkit.getLogger().log(Level.INFO, "Number of horses paired: " + horsesPaired);
-        Bukkit.getLogger().log(Level.INFO, "Stallions: " + stal);
-        Bukkit.getLogger().log(Level.INFO, "Mares: " + mare);
-        Bukkit.getLogger().log(Level.INFO, "Geldings: " + geld);
-        Bukkit.getLogger().log(Level.INFO, "None assigned: " + none);
+        EquestriCraftPlugin.LOG.log(Level.INFO, "Load complete");
+        EquestriCraftPlugin.LOG.log(Level.INFO, "Number of horses in world: " + horsesInWorld);
+        EquestriCraftPlugin.LOG.log(Level.INFO, "Number of horses paired: " + horsesPaired);
+        EquestriCraftPlugin.LOG.log(Level.INFO, "Stallions: " + stal);
+        EquestriCraftPlugin.LOG.log(Level.INFO, "Mares: " + mare);
+        EquestriCraftPlugin.LOG.log(Level.INFO, "Geldings: " + geld);
+        EquestriCraftPlugin.LOG.log(Level.INFO, "None assigned: " + none);
     }
 
     /**
@@ -287,12 +280,10 @@ public class DataContainer {
             final long stamp = EquestriCraftPlugin.horseLock.readLock();
             try {
                 for (Horse h : w.getEntitiesByClass(Horse.class)) {
-                    Bukkit.getLogger().log(Level.INFO, h.getUniqueId() + " saving");
                     if (this.isHorseInCache(h.getUniqueId())) {
                         this.removeHorseFromCache(h.getUniqueId());
                     }
                     final MyHorse mHorse = MyHorse.horseToMyHorse(h);
-                    Bukkit.getLogger().log(Level.INFO, "Gender: " + mHorse.getGender());
                     switch (MyHorse.getGenderFromMeta(h)) {
                         case MyHorse.GELDING:
                             geld++;
@@ -314,10 +305,10 @@ public class DataContainer {
             }
         }
         mHorses.addAll(horses);
-        Bukkit.getLogger().log(Level.INFO, "Stallions: " + stal);
-        Bukkit.getLogger().log(Level.INFO, "Mares: " + mare);
-        Bukkit.getLogger().log(Level.INFO, "Geldings: " + geld);
-        Bukkit.getLogger().log(Level.INFO, "None assigned: " + none);
+        EquestriCraftPlugin.LOG.log(Level.INFO, "Stallions: " + stal);
+        EquestriCraftPlugin.LOG.log(Level.INFO, "Mares: " + mare);
+        EquestriCraftPlugin.LOG.log(Level.INFO, "Geldings: " + geld);
+        EquestriCraftPlugin.LOG.log(Level.INFO, "None assigned: " + none);
         return mHorses;
     }
 
@@ -327,7 +318,7 @@ public class DataContainer {
     public void saveHorses() {
         final long stamp = fileLock.writeLock();
         try {
-            Bukkit.getLogger().log(Level.INFO, "Saving horses...");
+            EquestriCraftPlugin.LOG.log(Level.INFO, "Saving horses...");
             final File file = new File(HORSES_FILE);
             if (file.exists()) {
                 file.delete();
@@ -350,7 +341,7 @@ public class DataContainer {
         } finally {
             fileLock.unlockWrite(stamp);
         }
-        Bukkit.getLogger().log(Level.INFO, "Save complete...");
+        EquestriCraftPlugin.LOG.log(Level.INFO, "Save complete...");
     }
 
     /**
@@ -377,7 +368,7 @@ public class DataContainer {
         try (InputStream is = new FileInputStream(HORSES_FILE)) {
             final ObjectInputStream oi = new ObjectInputStream(is);
             final List<MyHorse> tHorses = (List<MyHorse>) oi.readObject();
-            Bukkit.getLogger().log(Level.INFO, "Horses loaded: " + tHorses.size());
+            EquestriCraftPlugin.LOG.log(Level.INFO, "Horses loaded: " + tHorses.size());
             for (MyHorse mh : tHorses) {
                 if (mh.getUuid().equals(horse.getEntityId())) {
                     return mh;

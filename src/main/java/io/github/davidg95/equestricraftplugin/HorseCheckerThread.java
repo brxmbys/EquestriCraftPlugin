@@ -239,15 +239,15 @@ public class HorseCheckerThread extends Thread {
                             MyHorse.setHunger(horse, true);
                         }
                         if (MyHorse.isHorseSick(horse) && MyHorse.getIllDuration(horse) > SICK_LIMIT) { //Check if the horse has been sick fo too long.
-                            Bukkit.getLogger().log(Level.INFO, "A horse died of illness");
+                            EquestriCraftPlugin.LOG.log(Level.INFO, "A horse died of illness");
                             MyHorse.kill(horse);
                         }
                         if (MyHorse.getHunger(horse) && MyHorse.getHungerDuration(horse) > SICK_LIMIT) { //Kill the horse if it has been hungry longer than the limit.
-                            Bukkit.getLogger().log(Level.INFO, "A horse died of hunger");
+                            EquestriCraftPlugin.LOG.log(Level.INFO, "A horse died of hunger");
                             MyHorse.kill(horse);
                         }
                         if (MyHorse.isThirsty(horse) && MyHorse.getThirstDuration(horse) > SICK_LIMIT) { //Kill the horse if it has been thirsty longer than the limit.
-                            Bukkit.getLogger().log(Level.INFO, "A horse died of thirst");
+                            EquestriCraftPlugin.LOG.log(Level.INFO, "A horse died of thirst");
                             MyHorse.kill(horse);
                         }
                         if (MyHorse.getDurationSinceLastEat(horse) > DEFECATE_INTERVAL) { //Check if the horse needs to defecate.
