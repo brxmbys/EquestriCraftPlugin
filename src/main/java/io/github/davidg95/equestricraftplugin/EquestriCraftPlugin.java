@@ -38,6 +38,7 @@ import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.metadata.MetadataValue;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 /**
  *
@@ -150,12 +151,13 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         final Horse h = player.getWorld().spawn(player.getLocation(), Horse.class);
                     } else {
                         sender.sendMessage("This command can only be run by a player");
-                    }   break;
+                    }
+                    break;
                 case 2:
                     final String genderarg = args[0];
                     final String name = args[1];
                     final Player pl = Bukkit.getPlayer(name);
-                    if(pl == null){
+                    if (pl == null) {
                         return true;
                     }
                     int gender;
@@ -166,7 +168,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     } else {
                         sender.sendMessage("Unrecognised gender. Must be STALLION or MARE");
                         return true;
-                    }   final Horse h = pl.getWorld().spawn(pl.getLocation(), Horse.class);
+                    }
+                    final Horse h = pl.getWorld().spawn(pl.getLocation(), Horse.class);
                     MyHorse.initHorse(h);
                     MyHorse.setGenderInMeta(h, gender);
                     sender.sendMessage("Created " + genderarg + " for " + pl.getName());
@@ -250,7 +253,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             if (args.length == 1) {
                 if ((sender instanceof Player && ((Player) sender).isOp()) || !(sender instanceof Player)) {
                     final Player player = Bukkit.getPlayer(args[0]);
-                    if(player == null){
+                    if (player == null) {
                         return true;
                     }
                     container.addDoctor(player);
@@ -304,67 +307,77 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onChunkLoad(ChunkLoadEvent event) {
-        final List<Horse> horses = new LinkedList<>();
-        for (final Entity e : event.getChunk().getEntities()) {
-            if (e.getType() == EntityType.HORSE) {
-                horses.add((Horse) e);
-            }
-        }
-        final Runnable run = new Runnable() {
+        new BukkitRunnable() {
             @Override
             public void run() {
-                for (final Horse h : horses) {
-                    MyHorse mh;
-                    if (container.isHorseInCache(h.getUniqueId())) { //Check for and get the horse fram cache.
-                        mh = container.getHorseFromCache(h.getUniqueId());
-                    } else { //If it was not in cache, get it from file.
-                        mh = container.getHorseFromFile(h);
-                    }
-                    if (mh != null) { //If the horse was retreived.
-                        if (mh.getGender() == -1) { //If the horse does not have a gender.
-                            MyHorse temp = container.getHorseFromFile(h); //Try get the horse from file again.
-                            if (temp == null) {
-                                if (mh.getGender() == -1) { //If it does not have a gender.
-                                    MyHorse.initHorse(h); //Initalise the horse.
-                                    mh = MyHorse.horseToMyHorse(h); //Get the MyHorse.
-                                }
-                            } else {
-                                mh = temp;
-                            }
-                        }
-                        MyHorse.myHorseToHorse(mh, h);
-                        if (container.isHorseInCache(h.getUniqueId())) { //Remove the horse from cache.
-                            container.removeHorseFromCache(h.getUniqueId());
-                        }
-                    } else { //If the horse was not in file or in cache.
-                        MyHorse.initHorse(h);
+                final List<Horse> horses = new LinkedList<>();
+                for (final Entity e : event.getChunk().getEntities()) {
+                    if (e.getType() == EntityType.HORSE) {
+                        horses.add((Horse) e);
                     }
                 }
+                final Runnable run = new Runnable() {
+                    @Override
+                    public void run() {
+                        for (final Horse h : horses) {
+                            MyHorse mh;
+                            if (container.isHorseInCache(h.getUniqueId())) { //Check for and get the horse fram cache.
+                                mh = container.getHorseFromCache(h.getUniqueId());
+                            } else { //If it was not in cache, get it from file.
+                                mh = container.getHorseFromFile(h);
+                            }
+                            if (mh != null) { //If the horse was retreived.
+                                if (mh.getGender() == -1) { //If the horse does not have a gender.
+                                    MyHorse temp = container.getHorseFromFile(h); //Try get the horse from file again.
+                                    if (temp == null) {
+                                        if (mh.getGender() == -1) { //If it does not have a gender.
+                                            MyHorse.initHorse(h); //Initalise the horse.
+                                            mh = MyHorse.horseToMyHorse(h); //Get the MyHorse.
+                                        }
+                                    } else {
+                                        mh = temp;
+                                    }
+                                }
+                                MyHorse.myHorseToHorse(mh, h);
+                                if (container.isHorseInCache(h.getUniqueId())) { //Remove the horse from cache.
+                                    container.removeHorseFromCache(h.getUniqueId());
+                                }
+                            } else { //If the horse was not in file or in cache.
+                                MyHorse.initHorse(h);
+                            }
+                        }
+                    }
+                };
+                final Thread thread = new Thread(run, "ChunkLoad");
+                thread.start();
             }
-        };
-        final Thread thread = new Thread(run, "ChunkLoad");
-        thread.start();
+        }.runTask(plugin);
     }
 
     @EventHandler
     public void onChunkUnload(ChunkLoadEvent event) {
-        final List<Horse> horses = new LinkedList<>();
-        for (final Entity e : event.getChunk().getEntities()) {
-            if (e.getType() == EntityType.HORSE) {
-                horses.add((Horse) e);
-            }
-        }
-        for (Horse h : horses) {
-            final Runnable run = new Runnable() {
-                @Override
-                public void run() {
-                    final MyHorse mh = MyHorse.horseToMyHorse(h);
-                    container.cacheHorse(mh);
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                final List<Horse> horses = new LinkedList<>();
+                for (final Entity e : event.getChunk().getEntities()) {
+                    if (e.getType() == EntityType.HORSE) {
+                        horses.add((Horse) e);
+                    }
                 }
-            };
-            final Thread thread = new Thread(run, "ChunkUnload");
-            thread.start();
-        }
+                for (Horse h : horses) {
+                    final Runnable run = new Runnable() {
+                        @Override
+                        public void run() {
+                            final MyHorse mh = MyHorse.horseToMyHorse(h);
+                            container.cacheHorse(mh);
+                        }
+                    };
+                    final Thread thread = new Thread(run, "ChunkUnload");
+                    thread.start();
+                }
+            }
+        }.runTask(plugin);
     }
 
     @EventHandler
