@@ -310,7 +310,6 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         new BukkitRunnable() {
             @Override
             public void run() {
-                LOG.log(Level.INFO, "Chunk loaded, retrieving horses");
                 final List<Horse> horses = new LinkedList<>();
                 for (final Entity e : event.getChunk().getEntities()) {
                     if (e.getType() == EntityType.HORSE) {
@@ -351,7 +350,6 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         } catch (Exception e) {
 
                         }
-                        LOG.log(Level.INFO, "Horses have been loaded from chunk");
                     }
                 };
                 final Thread thread = new Thread(run, "ChunkLoad");
@@ -366,7 +364,6 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             @Override
             public void run() {
                 try {
-                    LOG.log(Level.INFO, "Chunk is unloading");
                     final List<Horse> horses = new LinkedList<>();
                     for (final Entity e : event.getChunk().getEntities()) {
                         if (e.getType() == EntityType.HORSE) {
@@ -379,7 +376,6 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                             for (Horse h : horses) {
                                 final MyHorse mh = MyHorse.horseToMyHorse(h);
                                 container.cacheHorse(mh);
-                                LOG.log(Level.INFO, "Horses saved from chunk");
                             }
                         }
                     };

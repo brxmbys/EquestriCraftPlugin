@@ -61,7 +61,6 @@ public class DataContainer {
     }
 
     private void initHorses() {
-        EquestriCraftPlugin.LOG.log(Level.INFO, "Assigning horses");
         int count = 0;
         for (World w : Bukkit.getWorlds()) {
             final long stamp = horseLock.writeLock();
@@ -166,7 +165,6 @@ public class DataContainer {
     }
 
     private void pairHorses(List<MyHorse> horses) {
-        EquestriCraftPlugin.LOG.log(Level.INFO, "Pairing horses");
         int horsesInWorld = 0;
         int horsesPaired = 0;
 
