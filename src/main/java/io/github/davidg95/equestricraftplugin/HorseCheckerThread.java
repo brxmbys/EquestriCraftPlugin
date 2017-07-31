@@ -90,6 +90,8 @@ public class HorseCheckerThread extends Thread {
 
     public static long MAIN_TRHEAD_INTERVAL = 100;
 
+    private final DataContainer container;
+
     public HorseCheckerThread() {
         super("Horse_Checker_Thread");
         bales = new LinkedList<>();
@@ -97,6 +99,7 @@ public class HorseCheckerThread extends Thread {
         breedThread = new BreedCheckerThread();
         baleLock = new StampedLock();
         cauldronLock = new StampedLock();
+        container = DataContainer.getInstance();
     }
 
     private void init() {
@@ -156,18 +159,16 @@ public class HorseCheckerThread extends Thread {
             @Override
             public void run() {
                 while (true) {
-                    for (World w : Bukkit.getWorlds()) {
-                        final long stamp = EquestriCraftPlugin.horseLock.writeLock();
-                        try {
-                            for (Horse horse : w.getEntitiesByClass(Horse.class)) {
-                                if (MyHorse.durationSinceVaccinated(horse) > VACCINATION_DURATION) { //Check if any vaccinations have expired.
-                                    MyHorse.removeVaccination(horse);
-                                }
+                    final long stamp = container.horseLock.writeLock();
+                    try {
+                        for (MyHorse horse : container.getAllHorses()) {
+                            if (horse.getDurationSinceLastVaccinated() > VACCINATION_DURATION) { //Check if any vaccinations have expired.
+                                horse.setVaccinated(false);
                             }
-                        } catch (Exception e) {
-                        } finally {
-                            EquestriCraftPlugin.horseLock.unlockWrite(stamp);
                         }
+                    } catch (Exception e) {
+                    } finally {
+                        container.horseLock.unlockWrite(stamp);
                     }
                     try {
                         Thread.sleep(10000);
@@ -189,95 +190,92 @@ public class HorseCheckerThread extends Thread {
     public void run() {
         init(); //Start the secondary threads.
         while (true) {
-            for (World w : Bukkit.getWorlds()) {
-                final long stamp = EquestriCraftPlugin.horseLock.writeLock();
-                try {
-                    for (Horse horse : w.getEntitiesByClass(Horse.class)) {
-
-                        final Block cauldron = MyHorse.getNearCauldron(horse); //Get the nearby cauldron if there is one.
-                        new BukkitRunnable() {
-                            @Override
-                            public void run() {
-                                if (cauldron != null) { //Check if they are next to a cauldron.
-                                    if (getFirstEat(cauldron) == -1) {
-                                        getFirstEat(cauldron);
-                                    }
-                                    MyHorse.setThirst(horse, false);
+            final long stamp = container.horseLock.writeLock();
+            try {
+                for (MyHorse horse : container.getAllHorses()) {
+                    final Block cauldron = MyHorse.getNearCauldron(horse); //Get the nearby cauldron if there is one.
+                    new BukkitRunnable() {
+                        @Override
+                        public void run() {
+                            if (cauldron != null) { //Check if they are next to a cauldron.
+                                if (getFirstEat(cauldron) == -1) {
+                                    getFirstEat(cauldron);
                                 }
-                            }
-                        }.runTask(EquestriCraftPlugin.plugin);
-                        final long cstamp = cauldronLock.writeLock();
-                        try {
-                            cauldrons.add(cauldron);
-                        } finally {
-                            cauldronLock.unlockWrite(cstamp);
-                        }
-
-                        final Block bale = MyHorse.getNearHayBale(horse); //Get the nearby hay bale if there is one.
-                        new BukkitRunnable() {
-                            @Override
-                            public void run() {
-                                if (bale != null) { //Check if they are next to a hay bale.
-                                    if (getFirstEat(bale) == -1) {
-                                        setFirstEat(bale);
-                                    }
-                                    MyHorse.setHunger(horse, false);
-                                }
-                            }
-                        }.runTask(EquestriCraftPlugin.plugin);
-                        final long bstamp = baleLock.writeLock();
-                        try {
-                            bales.add(bale);
-                        } finally {
-                            baleLock.unlockWrite(bstamp);
-                        }
-
-                        if (MyHorse.getDurationSinceLastDrink(horse) > DRINK_LIMIT) { //Check if the horse is thirsty.
-                            MyHorse.setThirst(horse, true);
-                        }
-                        if (MyHorse.getDurationSinceLastEat(horse) > EAT_LIMIT) { //Check if the horse is hungry.
-                            MyHorse.setHunger(horse, true);
-                        }
-                        if (MyHorse.isHorseSick(horse) && MyHorse.getIllDuration(horse) > SICK_LIMIT) { //Check if the horse has been sick fo too long.
-                            EquestriCraftPlugin.LOG.log(Level.INFO, "A horse died of illness");
-                            MyHorse.kill(horse);
-                        }
-                        if (MyHorse.getHunger(horse) && MyHorse.getHungerDuration(horse) > SICK_LIMIT) { //Kill the horse if it has been hungry longer than the limit.
-                            EquestriCraftPlugin.LOG.log(Level.INFO, "A horse died of hunger");
-                            MyHorse.kill(horse);
-                        }
-                        if (MyHorse.isThirsty(horse) && MyHorse.getThirstDuration(horse) > SICK_LIMIT) { //Kill the horse if it has been thirsty longer than the limit.
-                            EquestriCraftPlugin.LOG.log(Level.INFO, "A horse died of thirst");
-                            MyHorse.kill(horse);
-                        }
-                        if (MyHorse.getDurationSinceLastEat(horse) > DEFECATE_INTERVAL) { //Check if the horse needs to defecate.
-                            if (!MyHorse.hasDefecateSinceEat(horse)) {
-                                MyHorse.defecate(horse);
+                                horse.setThirst(false);
                             }
                         }
+                    }.runTask(EquestriCraftPlugin.plugin);
+                    final long cstamp = cauldronLock.writeLock();
+                    try {
+                        cauldrons.add(cauldron);
+                    } finally {
+                        cauldronLock.unlockWrite(cstamp);
+                    }
 
-                        if (MyHorse.getWellDuration(horse) > ILL_WAIT) { //Check the horse as not been ill too recently.
-                            final double r = Math.random();
-                            if (MyHorse.durationSinceVaccinated(horse) < VACCINATION_DURATION) {
-                                if (r <= VACCINATED_PROBABILITY) {
-                                    MyHorse.setHorseSick(horse, true);
+                    final Block bale = MyHorse.getNearHayBale(horse); //Get the nearby hay bale if there is one.
+                    new BukkitRunnable() {
+                        @Override
+                        public void run() {
+                            if (bale != null) { //Check if they are next to a hay bale.
+                                if (getFirstEat(bale) == -1) {
+                                    setFirstEat(bale);
                                 }
-                            } else {
-                                if (r <= SICK_PROBABILITY) {
-                                    MyHorse.setHorseSick(horse, true);
-                                }
+                                horse.setHunger(false);
                             }
                         }
+                    }.runTask(EquestriCraftPlugin.plugin);
+                    final long bstamp = baleLock.writeLock();
+                    try {
+                        bales.add(bale);
+                    } finally {
+                        baleLock.unlockWrite(bstamp);
+                    }
 
-                        final double r = Math.random();
-                        if (r <= BUCK_PROBABILITY) { //Check if a horse can buck.
-                            horse.eject();
+                    if (horse.getDurationSinceLastDrink() > DRINK_LIMIT) { //Check if the horse is thirsty.
+                        horse.setThirst(true);
+                    }
+                    if (horse.getDurationSinceLastEat() > EAT_LIMIT) { //Check if the horse is hungry.
+                        horse.setHunger(true);
+                    }
+                    if (horse.isSick() && horse.getIllDuration() > SICK_LIMIT) { //Check if the horse has been sick fo too long.
+                        EquestriCraftPlugin.LOG.log(Level.INFO, "A horse died of illness");
+                        horse.kill();
+                    }
+                    if (horse.isHungry() && horse.getHungerDuration() > SICK_LIMIT) { //Kill the horse if it has been hungry longer than the limit.
+                        EquestriCraftPlugin.LOG.log(Level.INFO, "A horse died of hunger");
+                        horse.kill();
+                    }
+                    if (horse.isThirsty() && horse.getThristDuration() > SICK_LIMIT) { //Kill the horse if it has been thirsty longer than the limit.
+                        EquestriCraftPlugin.LOG.log(Level.INFO, "A horse died of thirst");
+                        horse.kill();
+                    }
+                    if (horse.getDurationSinceLastEat() > DEFECATE_INTERVAL) { //Check if the horse needs to defecate.
+                        if (!horse.hasDefecate()) {
+                            horse.defecate();
                         }
                     }
-                } catch (Exception e) {
-                } finally {
-                    EquestriCraftPlugin.horseLock.unlockWrite(stamp);
+
+                    if (horse.getWellDuration() > ILL_WAIT) { //Check the horse as not been ill too recently.
+                        final double r = Math.random();
+                        if (horse.getDurationSinceLastVaccinated() < VACCINATION_DURATION) {
+                            if (r <= VACCINATED_PROBABILITY) {
+                                horse.setSick(true);
+                            }
+                        } else {
+                            if (r <= SICK_PROBABILITY) {
+                                horse.setSick(true);
+                            }
+                        }
+                    }
+
+                    final double r = Math.random();
+                    if (r <= BUCK_PROBABILITY) { //Check if a horse can buck.
+                        horse.buck();
+                    }
                 }
+            } catch (Exception e) {
+            } finally {
+                container.horseLock.unlockWrite(stamp);
             }
             try {
                 Thread.sleep(MAIN_TRHEAD_INTERVAL); //Wait
@@ -327,34 +325,30 @@ public class HorseCheckerThread extends Thread {
         @Override
         public void run() {
             while (true) {
-                for (World w : Bukkit.getWorlds()) {
-                    final long stamp = EquestriCraftPlugin.horseLock.writeLock();
-                    try {
-                        for (Horse horse : w.getEntitiesByClass(Horse.class)) {
-                            final double r = Math.random();
-                            if (r <= BREED_PROBABILITY) { //If the breed probability is met.
-                                final long timeSinceLast = MyHorse.getDurationSinceLastBreed(horse); //Get the time since the horse last bred.
-                                if (timeSinceLast > BREED_INTERVAL) { //Check if it is greater then the breed inverval.
-                                    if (MyHorse.nearMate(horse)) { //Check if the horse is near a valid mate.
-                                        new BukkitRunnable() {
-                                            @Override
-                                            public void run() {
-                                                final Horse h = horse.getWorld().spawn(horse.getLocation(), Horse.class); //Spawn a new horse.
-                                                h.setStyle(horse.getStyle()); //Copy the parent style.
-                                                MyHorse.setLastBreed(horse, getCurrentTime()); //Set the horses new last breed time.
-                                                MyHorse.setLastBreed(h, getCurrentTime());
-                                                MyHorse.initHorse(h);
-                                            }
-                                        }.runTask(EquestriCraftPlugin.plugin);
-                                    }
+                final long stamp = container.horseLock.writeLock();
+                try {
+                    for (MyHorse horse : container.getAllHorses()) {
+                        final double r = Math.random();
+                        if (r <= BREED_PROBABILITY) { //If the breed probability is met.
+                            final long timeSinceLast = horse.getDurationSinceLastBreed(); //Get the time since the horse last bred.
+                            if (timeSinceLast > BREED_INTERVAL) { //Check if it is greater then the breed inverval.
+                                if (MyHorse.nearMate(horse)) { //Check if the horse is near a valid mate.
+                                    new BukkitRunnable() {
+                                        @Override
+                                        public void run() {
+                                            final Horse h = horse.getHorse().getWorld().spawn(horse.getHorse().getLocation(), Horse.class); //Spawn a new horse.
+                                            h.setStyle(horse.getHorse().getStyle()); //Copy the parent style.
+                                            horse.setLastBreed();
+                                        }
+                                    }.runTask(EquestriCraftPlugin.plugin);
                                 }
                             }
                         }
-                    } catch (Exception e) {
-
-                    } finally {
-                        EquestriCraftPlugin.horseLock.unlockWrite(stamp);
                     }
+                } catch (Exception e) {
+
+                } finally {
+                    container.horseLock.unlockWrite(stamp);
                 }
                 try {
                     Thread.sleep(BREED_THREAD_INTERVAL); //Wait

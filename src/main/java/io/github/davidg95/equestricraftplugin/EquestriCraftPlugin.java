@@ -97,82 +97,64 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         if (cmd.getName().equalsIgnoreCase("equestristatus")) {
-            int count = 0;
-            int geld = 0;
-            int stal = 0;
-            int mare = 0;
-            int none = 0;
-            for (World w : Bukkit.getWorlds()) {
-                final long stamp = horseLock.readLock();
-                try {
-                    for (Horse h : w.getEntitiesByClass(Horse.class)) {
-                        count++;
-                        switch (MyHorse.getGenderFromMeta(h)) {
-                            case MyHorse.GELDING:
-                                geld++;
-                                break;
-                            case MyHorse.MARE:
-                                mare++;
-                                break;
-                            case MyHorse.STALLION:
-                                stal++;
-                                break;
-                            default:
-                                none++;
-                                break;
+            new Thread() {
+                @Override
+                public void run() {
+                    int count = 0;
+                    int geld = 0;
+                    int stal = 0;
+                    int mare = 0;
+                    int none = 0;
+                    final long stamp = container.horseLock.writeLock();
+                    try {
+                        for (MyHorse h : container.getAllHorses()) {
+                            count++;
+                            switch (h.getGender()) {
+                                case MyHorse.GELDING:
+                                    geld++;
+                                    break;
+                                case MyHorse.MARE:
+                                    mare++;
+                                    break;
+                                case MyHorse.STALLION:
+                                    stal++;
+                                    break;
+                                default:
+                                    none++;
+                                    break;
+                            }
                         }
+                    } catch (Exception e) {
+                    } finally {
+                        container.horseLock.unlockWrite(stamp);
                     }
-                } catch (Exception e) {
-                } finally {
-                    horseLock.unlockRead(stamp);
+                    sender.sendMessage("Horses: " + count);
+                    sender.sendMessage("Stallions: " + stal);
+                    sender.sendMessage("Mares: " + mare);
+                    sender.sendMessage("Geldings: " + geld);
+                    sender.sendMessage("None assigned: " + none);
                 }
-            }
-            sender.sendMessage("Horses: " + count);
-            sender.sendMessage("Stallions: " + stal);
-            sender.sendMessage("Mares: " + mare);
-            sender.sendMessage("Geldings: " + geld);
-            sender.sendMessage("None assigned: " + none);
+            }.start();
             return true;
         } else if (cmd.getName().equalsIgnoreCase("createhorse")) {
             switch (args.length) {
-                case 1:
+                case 0:
                     if (sender instanceof Player) {
                         final Player player = (Player) sender;
-                        final String genderarg = args[0];
-                        int gender;
-                        if (genderarg.equalsIgnoreCase("stallion")) {
-                            gender = MyHorse.STALLION;
-                        } else if (genderarg.equalsIgnoreCase("mare")) {
-                            gender = MyHorse.MARE;
-                        } else {
-                            sender.sendMessage("Unrecognised gender. Must be STALLION or MARE");
-                            return true;
-                        }
                         final Horse h = player.getWorld().spawn(player.getLocation(), Horse.class);
                     } else {
                         sender.sendMessage("This command can only be run by a player");
                     }
                     break;
-                case 2:
-                    final String genderarg = args[0];
-                    final String name = args[1];
+                case 1:
+                    final String name = args[0];
                     final Player pl = Bukkit.getPlayer(name);
                     if (pl == null) {
-                        return true;
-                    }
-                    int gender;
-                    if (genderarg.equalsIgnoreCase("stallion")) {
-                        gender = MyHorse.STALLION;
-                    } else if (genderarg.equalsIgnoreCase("mare")) {
-                        gender = MyHorse.MARE;
-                    } else {
-                        sender.sendMessage("Unrecognised gender. Must be STALLION or MARE");
+                        sender.sendMessage("Player not found");
                         return true;
                     }
                     final Horse h = pl.getWorld().spawn(pl.getLocation(), Horse.class);
-                    MyHorse.initHorse(h);
-                    MyHorse.setGenderInMeta(h, gender);
-                    sender.sendMessage("Created " + genderarg + " for " + pl.getName());
+                    sender.sendMessage("Created horse for " + pl.getName());
                     break;
                 default:
                     break;
@@ -271,13 +253,13 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                 //if ((sender instanceof Player && ((Player) sender).isOp())) {
                 final Player player = (Player) sender;
                 if (player.getVehicle() != null || player.getVehicle() instanceof Horse) {
-                    final Horse horse = (Horse) player.getVehicle();
+                    final MyHorse horse = container.getHorse(player.getVehicle().getUniqueId());
                     if (args[0].equalsIgnoreCase("stallion")) {
-                        MyHorse.setGenderInMeta(horse, MyHorse.STALLION);
+                        horse.setGender(MyHorse.STALLION);
                     } else if (args[0].equalsIgnoreCase("mare")) {
-                        MyHorse.setGenderInMeta(horse, MyHorse.MARE);
+                        horse.setGender(MyHorse.MARE);
                     } else if (args[0].equalsIgnoreCase("gelding")) {
-                        MyHorse.setGenderInMeta(horse, MyHorse.GELDING);
+                        horse.setGender(MyHorse.GELDING);
                     } else {
                         return false;
                     }
@@ -310,79 +292,20 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         new BukkitRunnable() {
             @Override
             public void run() {
-                final List<Horse> horses = new LinkedList<>();
-                for (final Entity e : event.getChunk().getEntities()) {
-                    if (e.getType() == EntityType.HORSE) {
-                        horses.add((Horse) e);
-                    }
-                }
-                final Runnable run = new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            for (final Horse h : horses) {
-                                MyHorse mh;
-                                if (container.isHorseInCache(h.getUniqueId())) { //Check for and get the horse fram cache.
-                                    mh = container.getHorseFromCache(h.getUniqueId());
-                                } else { //If it was not in cache, get it from file.
-                                    mh = container.getHorseFromFile(h);
-                                }
-                                if (mh != null) { //If the horse was retreived.
-                                    if (mh.getGender() == -1) { //If the horse does not have a gender.
-                                        MyHorse temp = container.getHorseFromFile(h); //Try get the horse from file again.
-                                        if (temp == null) {
-                                            if (mh.getGender() == -1) { //If it does not have a gender.
-                                                MyHorse.initHorse(h); //Initalise the horse.
-                                                mh = MyHorse.horseToMyHorse(h); //Get the MyHorse.
-                                            }
-                                        } else {
-                                            mh = temp;
-                                        }
-                                    }
-                                    MyHorse.myHorseToHorse(mh, h);
-                                    if (container.isHorseInCache(h.getUniqueId())) { //Remove the horse from cache.
-                                        container.removeHorseFromCache(h.getUniqueId());
-                                    }
-                                } else { //If the horse was not in file or in cache.
-                                    MyHorse.initHorse(h);
-                                }
-                            }
-                        } catch (Exception e) {
-
-                        }
-                    }
-                };
-                final Thread thread = new Thread(run, "ChunkLoad");
-                thread.start();
-            }
-        }.runTask(plugin);
-    }
-
-    @EventHandler
-    public void onChunkUnload(ChunkLoadEvent event) {
-        new BukkitRunnable() {
-            @Override
-            public void run() {
                 try {
-                    final List<Horse> horses = new LinkedList<>();
                     for (final Entity e : event.getChunk().getEntities()) {
                         if (e.getType() == EntityType.HORSE) {
-                            horses.add((Horse) e);
-                        }
-                    }
-                    final Runnable run = new Runnable() {
-                        @Override
-                        public void run() {
-                            for (Horse h : horses) {
-                                final MyHorse mh = MyHorse.horseToMyHorse(h);
-                                container.cacheHorse(mh);
+                            if (!container.isHorseInCache(e.getUniqueId())) {
+                                MyHorse mh = new MyHorse((Horse) e);
+                                container.addHorse(mh);
+                            } else {
+                                MyHorse mh = container.getHorse(e.getUniqueId());
+                                mh.setHorse((Horse) e);
                             }
                         }
-                    };
-                    final Thread thread = new Thread(run, "ChunkUnload");
-                    thread.start();
+                    }
                 } catch (Exception e) {
-
+                    LOG.log(Level.SEVERE, "Error on chunk load", e);
                 }
             }
         }.runTask(plugin);
@@ -410,12 +333,12 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     }
                     if (event.getEntity() instanceof Horse) { //Check it was a horse they are hitting.
                         event.setCancelled(true);
-                        final Horse horse = (Horse) event.getEntity(); //Get the Horse instance.
-                        if (MyHorse.getGenderFromMeta(horse) != MyHorse.STALLION) { //check it was a stallion.
+                        final MyHorse horse = container.getHorse(event.getEntity().getUniqueId()); //Get the Horse instance.
+                        if (horse.getGender() != MyHorse.STALLION) { //Check it was a stallion.
                             player.sendMessage("This horse is not a stallion");
                             return;
                         }
-                        MyHorse.setGenderInMeta(horse, MyHorse.GELDING); //Turn the horse into a gelding.
+                        horse.setGender(MyHorse.GELDING); //Turn the horse into a gelding.
                         player.sendMessage("This horse has been gelded");
                     }
                     break;
@@ -429,36 +352,12 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     }
                     if (event.getEntity() instanceof Horse) {
                         event.setCancelled(true);
-                        final Horse horse = (Horse) event.getEntity(); //Get the horse that was clicked on.
-                        boolean sickness = false;
-                        final List<MetadataValue> mdvss = horse.getMetadata(MyHorse.META_HEALTH);
-                        for (MetadataValue md : mdvss) {
-                            if (md.getOwningPlugin() == EquestriCraftPlugin.plugin) {
-                                sickness = md.asBoolean();
-                            }
-                        }
-                        int gender = MyHorse.getGenderFromMeta(horse);
-                        boolean hunger = false;
-                        final List<MetadataValue> mdvsh = horse.getMetadata(MyHorse.META_HUNGER);
-                        for (MetadataValue md : mdvsh) {
-                            if (md.getOwningPlugin() == EquestriCraftPlugin.plugin) {
-                                hunger = md.asBoolean();
-                            }
-                        }
-                        boolean thirst = false;
-                        final List<MetadataValue> mdvst = horse.getMetadata(MyHorse.META_THIRST);
-                        for (MetadataValue md : mdvst) {
-                            if (md.getOwningPlugin() == EquestriCraftPlugin.plugin) {
-                                thirst = md.asBoolean();
-                            }
-                        }
-                        boolean vaccination = false;
-                        final List<MetadataValue> mdvsv = horse.getMetadata(MyHorse.META_VACCINATED);
-                        for (MetadataValue md : mdvsv) {
-                            if (md.getOwningPlugin() == EquestriCraftPlugin.plugin) {
-                                vaccination = md.asBoolean();
-                            }
-                        }
+                        final MyHorse horse = container.getHorse(event.getEntity().getUniqueId()); //Get the horse that was clicked on.
+                        boolean sickness = horse.isSick();
+                        int gender = horse.getGender();
+                        boolean hunger = horse.isHungry();
+                        boolean thirst = horse.isThirsty();
+                        boolean vaccination = horse.isVaccinated();
                         String genderStr;
                         switch (gender) {
                             case MyHorse.STALLION:
@@ -484,7 +383,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         player.sendMessage(hungerStr);
                         player.sendMessage(thirstStr);
                         player.sendMessage(vaccinationStr);
-                        player.sendMessage("Horse UUID: " + horse.getUniqueId());
+                        player.sendMessage("Horse UUID: " + horse.getHorse().getUniqueId());
                     } else {
                         player.sendMessage("You must click on a horse");
                     }
@@ -499,8 +398,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     }
                     if (event.getEntity() instanceof Horse) {
                         event.setCancelled(true);
-                        final Horse horse = (Horse) event.getEntity();
-                        MyHorse.vaccinate(horse);
+                        final MyHorse horse = container.getHorse(event.getEntity().getUniqueId());
+                        horse.setVaccinated(true);
                         player.sendMessage("Horse has been vaccinated");
                     }
                     break;
@@ -514,8 +413,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     }
                     if (event.getEntity() instanceof Horse) {
                         event.setCancelled(true);
-                        final Horse horse = (Horse) event.getEntity();
-                        horse.setMetadata(MyHorse.META_HEALTH, new FixedMetadataValue(EquestriCraftPlugin.plugin, false));
+                        final MyHorse horse = container.getHorse(event.getEntity().getUniqueId());
+                        horse.setSick(false);
                         player.sendMessage("Horse has been cured");
                     }
                     break;
@@ -528,8 +427,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     @EventHandler
     public void onCreatureSpawn(CreatureSpawnEvent evt) {
         if (evt.getEntityType() == EntityType.HORSE) {
-            MyHorse.setHorseGender(MyHorse.generateRandomGender(), (Horse) evt.getEntity());
-            MyHorse.setLastBreed((Horse) evt.getEntity(), MyHorse.getCurrentTime());
+            MyHorse mh = new MyHorse((Horse) evt.getEntity());
+            container.addHorse(mh);
         }
     }
 
