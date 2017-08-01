@@ -11,15 +11,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
-import java.util.concurrent.locks.StampedLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
@@ -27,6 +25,7 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Horse;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
@@ -34,8 +33,6 @@ import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.metadata.FixedMetadataValue;
-import org.bukkit.metadata.MetadataValue;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -48,39 +45,27 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
 
     public static Logger LOG;
 
-    /**
-     * A reference to the plugin object.
-     */
     public static Plugin plugin;
 
     private DataContainer container;
     private HorseCheckerThread checkerThread;
+
     private Properties properties;
     private static final String PROPERTIES_FILE = "equestricraftplugin.properties";
 
-    /**
-     * The name of the medicine used to heal horses.
-     */
     public static final String POTION_NAME = "Healer";
-    /**
-     * The name of the tool used to geld stallions.
-     */
     public static final String SHEARS_NAME = "Gelding Shears";
-    /**
-     * The name of the tool to check horses.
-     */
     public static final String STICK_NAME = "Horse checking wand";
-
     public static final String VACCINE_NAME = "Vaccination";
 
-    public static StampedLock horseLock;
+    private boolean aflag = false;
+    private Player aplayer;
 
     @Override
     public void onEnable() {
         plugin = this;
         LOG = plugin.getLogger();
         properties = new Properties();
-        horseLock = new StampedLock();
         loadProperties();
         container = DataContainer.getInstance();
         checkerThread = new HorseCheckerThread();
@@ -92,11 +77,15 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     public void onDisable() {
         LOG.log(Level.INFO, "Saving horses to file");
         container.saveHorses();
+        DataContainer.destroyInstance();
+        checkerThread = null;
+        HandlerList.unregisterAll(plugin);
+
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-        if (cmd.getName().equalsIgnoreCase("equestristatus")) {
+        if (cmd.getName().equalsIgnoreCase("equestristatus")) {   //equestristatus command
             new Thread() {
                 @Override
                 public void run() {
@@ -136,12 +125,16 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                 }
             }.start();
             return true;
-        } else if (cmd.getName().equalsIgnoreCase("createhorse")) {
+        } else if (cmd.getName().equalsIgnoreCase("createhorse")) {   //createhorse command
             switch (args.length) {
                 case 0:
                     if (sender instanceof Player) {
+                        aflag = true;
+                        aplayer = (Player) sender;
                         final Player player = (Player) sender;
+                        sender.sendMessage("You have entered the spawnhorse command");
                         final Horse h = player.getWorld().spawn(player.getLocation(), Horse.class);
+                        sender.sendMessage("Command execution complete");
                     } else {
                         sender.sendMessage("This command can only be run by a player");
                     }
@@ -160,7 +153,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     break;
             }
             return true;
-        } else if (cmd.getName().equalsIgnoreCase("geldingtool")) {
+        } else if (cmd.getName().equalsIgnoreCase("geldingtool")) {   //geldingtool command
             if (sender instanceof Player) {
                 final Player player = (Player) sender;
                 final PlayerInventory inventory = player.getInventory();
@@ -176,7 +169,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                 sender.sendMessage("Only players may use this command");
             }
             return true;
-        } else if (cmd.getName().equalsIgnoreCase("horsemedicine")) {
+        } else if (cmd.getName().equalsIgnoreCase("horsemedicine")) {   //horsemedicine command
             if (sender instanceof Player) {
                 final Player player = (Player) sender;
                 if (container.isDoctor(player)) {
@@ -194,7 +187,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                 sender.sendMessage("Only players may use this command");
             }
             return true;
-        } else if (cmd.getName().equalsIgnoreCase("horsewand")) {
+        } else if (cmd.getName().equalsIgnoreCase("horsewand")) {   //horsewand command
             if (sender instanceof Player) {
                 final Player player = (Player) sender;
                 final PlayerInventory inventory = player.getInventory();
@@ -210,7 +203,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                 sender.sendMessage("Only a player may use this command");
             }
             return true;
-        } else if (cmd.getName().equalsIgnoreCase("vaccination")) {
+        } else if (cmd.getName().equalsIgnoreCase("vaccination")) {   //vaccination command
             if (sender instanceof Player) {
                 final Player player = (Player) sender;
                 if (container.isDoctor(player)) {
@@ -231,7 +224,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                 sender.sendMessage("Only a player can use this command");
             }
             return true;
-        } else if (cmd.getName().equalsIgnoreCase("adddoctor")) {
+        } else if (cmd.getName().equalsIgnoreCase("adddoctor")) {   //adddoctor command
             if (args.length == 1) {
                 if ((sender instanceof Player && ((Player) sender).isOp()) || !(sender instanceof Player)) {
                     final Player player = Bukkit.getPlayer(args[0]);
@@ -240,7 +233,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     }
                     container.addDoctor(player);
                     sender.sendMessage(args[0] + " is now a doctor");
-                    player.sendMessage("You are not a doctor!");
+                    player.sendMessage("You are now a doctor!");
                 } else {
                     sender.sendMessage("Only ops can use this command");
                 }
@@ -248,7 +241,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                 sender.sendMessage("Usage- /adddoctor <player>");
             }
             return true;
-        } else if (cmd.getName().equalsIgnoreCase("changegender")) {
+        } else if (cmd.getName().equalsIgnoreCase("changegender")) {   //changegender command
             if (args.length == 1) {
                 //if ((sender instanceof Player && ((Player) sender).isOp())) {
                 final Player player = (Player) sender;
@@ -274,7 +267,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                 return false;
             }
             return true;
-        } else if (cmd.getName().equalsIgnoreCase("savehorses")) {
+        } else if (cmd.getName().equalsIgnoreCase("savehorses")) {   //savehorses command
             if ((sender instanceof Player && ((Player) sender).isOp()) || !(sender instanceof Player)) {
                 sender.sendMessage("Saving horses...");
                 container.saveHorses();
@@ -287,6 +280,12 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         return false;
     }
 
+    /**
+     * This method will get the horses from a chunk load event and ensure pair
+     * them with horses from the file.
+     *
+     * @param event
+     */
     @EventHandler
     public void onChunkLoad(ChunkLoadEvent event) {
         new BukkitRunnable() {
@@ -295,11 +294,10 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                 try {
                     for (final Entity e : event.getChunk().getEntities()) {
                         if (e.getType() == EntityType.HORSE) {
-                            if (!container.isHorseInCache(e.getUniqueId())) {
-                                MyHorse mh = new MyHorse((Horse) e);
+                            final MyHorse mh = container.getHorse(e.getUniqueId());
+                            if (mh == null) {
                                 container.addHorse(mh);
                             } else {
-                                MyHorse mh = container.getHorse(e.getUniqueId());
                                 mh.setHorse((Horse) e);
                             }
                         }
@@ -311,6 +309,11 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         }.runTask(plugin);
     }
 
+    /**
+     * This method will check for players using the tools.
+     *
+     * @param event
+     */
     @EventHandler
     public void onPlayerUse(EntityDamageByEntityEvent event) {
         if (!(event.getDamager() instanceof Player)) { //Check the damager is a player.
@@ -361,29 +364,27 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         String genderStr;
                         switch (gender) {
                             case MyHorse.STALLION:
-                                genderStr = "STALLION";
+                                genderStr = ChatColor.DARK_RED + "Stallion";
                                 break;
                             case MyHorse.MARE:
-                                genderStr = "Mare";
+                                genderStr = ChatColor.DARK_PURPLE + "Mare";
                                 break;
                             case MyHorse.GELDING:
-                                genderStr = "GELDING";
+                                genderStr = ChatColor.DARK_AQUA + "Gelding";
                                 break;
                             default:
-                                genderStr = "NONE";
+                                genderStr = "None";
                                 break;
                         }
-                        final String sickStr = "HEALTH: " + (sickness ? "ILL" : "WELL");
-                        final String hungerStr = "HUNGER: " + (hunger ? "HUNGRY" : "NOT HUNGRY");
-                        final String thirstStr = "THIRST: " + (thirst ? "THIRSTY" : "NOT THIRSTY");
-                        final String vaccinationStr = "Vaccinated: " + (vaccination ? "YES" : "NO");
-                        player.sendMessage("Horse gender value: " + gender);
+                        final String sickStr = ChatColor.BOLD + "Health: " + ChatColor.RESET + "" + (sickness ? ChatColor.RED + "Ill" : ChatColor.GREEN + "Well");
+                        final String hungerStr = ChatColor.BOLD + "Hunger: " + ChatColor.RESET + "" + (hunger ? ChatColor.RED + "Hungry" : ChatColor.GREEN + "Not Hungry");
+                        final String thirstStr = ChatColor.BOLD + "Thirst: " + ChatColor.RESET + "" + (thirst ? ChatColor.RED + "Thirsty" : ChatColor.GREEN + "Not Thirsty");
+                        final String vaccinationStr = ChatColor.BOLD + "Vaccinated: " + ChatColor.RESET + "" + (vaccination ? ChatColor.GREEN + "Yes" : ChatColor.RED + "No");
                         player.sendMessage(genderStr);
                         player.sendMessage(sickStr);
                         player.sendMessage(hungerStr);
                         player.sendMessage(thirstStr);
                         player.sendMessage(vaccinationStr);
-                        player.sendMessage("Horse UUID: " + horse.getHorse().getUniqueId());
                     } else {
                         player.sendMessage("You must click on a horse");
                     }
@@ -427,8 +428,15 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     @EventHandler
     public void onCreatureSpawn(CreatureSpawnEvent evt) {
         if (evt.getEntityType() == EntityType.HORSE) {
+            if (aflag) {
+                aplayer.sendMessage("Horse spawned");
+            }
             MyHorse mh = new MyHorse((Horse) evt.getEntity());
             container.addHorse(mh);
+            if (aflag) {
+                aplayer.sendMessage("Horse is now a MyHorse");
+                aflag = false;
+            }
         }
     }
 

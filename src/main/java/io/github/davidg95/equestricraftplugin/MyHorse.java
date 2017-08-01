@@ -117,6 +117,7 @@ public class MyHorse implements Serializable {
         this.wellSince = getCurrentTime();
         this.lastBreed = getCurrentTime();
         this.defecateSinceEat = true;
+        this.uuid = h.getUniqueId();
     }
 
     public static long getCurrentTime() {

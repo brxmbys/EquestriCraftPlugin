@@ -52,26 +52,21 @@ public class DataContainer {
         doctorLock = new StampedLock();
         fileLock = new StampedLock();
         try {
-            loadHorses();
+            loadHorses(); //Load the horses from the file.
         } catch (FileNotFoundException ex) {
-            initHorses();
-            saveHorses();
+            initHorses(); //Initialise the horses.
+            saveHorses(); //Save the initialised horses.
         }
-        initThread();
+        initThread(); //Start the auto save thread.
     }
 
     private void initHorses() {
         int count = 0;
         for (World w : Bukkit.getWorlds()) {
-            final long stamp = horseLock.writeLock();
-            try {
-                for (Horse h : w.getEntitiesByClass(Horse.class)) {
-                    MyHorse mh = new MyHorse(h);
-                    horses.add(mh);
-                    count++;
-                }
-            } finally {
-                horseLock.unlockWrite(stamp);
+            for (Horse h : w.getEntitiesByClass(Horse.class)) {
+                MyHorse mh = new MyHorse(h);
+                addHorse(mh);
+                count++;
             }
         }
         EquestriCraftPlugin.LOG.log(Level.INFO, "Assigned " + count + " horses");
@@ -144,6 +139,9 @@ public class DataContainer {
         }
     }
 
+    /**
+     * Starts the auto save thread.
+     */
     private void initThread() {
         final Runnable run = new Runnable() {
             @Override
@@ -243,6 +241,10 @@ public class DataContainer {
         }
         return container;
     }
+    
+    public static void destroyInstance(){
+        container = null;
+    }
 
     /**
      * Add a new horse.
@@ -286,7 +288,7 @@ public class DataContainer {
     /**
      * Persist horses to file.
      */
-    public void saveHorses() {
+    public final void saveHorses() {
         final long stamp = fileLock.writeLock();
         try {
             EquestriCraftPlugin.LOG.log(Level.INFO, "Saving horses...");
@@ -334,25 +336,5 @@ public class DataContainer {
         } finally {
             fileLock.unlockRead(stamp);
         }
-    }
-
-    public MyHorse getHorseFromFile(Horse horse) {
-        final long stamp = fileLock.readLock();
-        try (InputStream is = new FileInputStream(HORSES_FILE)) {
-            final ObjectInputStream oi = new ObjectInputStream(is);
-            final List<MyHorse> tHorses = (List<MyHorse>) oi.readObject();
-            for (MyHorse mh : tHorses) {
-                if (mh.getUuid().equals(horse.getEntityId())) {
-                    return mh;
-                }
-            }
-        } catch (FileNotFoundException ex) {
-            saveHorses();
-        } catch (IOException | ClassNotFoundException ex) {
-            EquestriCraftPlugin.plugin.getLogger().log(Level.SEVERE, null, ex);
-        } finally {
-            fileLock.unlockRead(stamp);
-        }
-        return null;
     }
 }

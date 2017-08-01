@@ -104,6 +104,7 @@ public class HorseCheckerThread extends Thread {
 
     private void init() {
         breedThread.start();
+        //Create the bale and cauldron checking thread.
         final Runnable run = new Runnable() {
             @Override
             public void run() {
@@ -155,6 +156,7 @@ public class HorseCheckerThread extends Thread {
                 }
             }
         };
+        //Create the vaccination checking thread.
         final Runnable vacRun = new Runnable() {
             @Override
             public void run() {
@@ -178,12 +180,14 @@ public class HorseCheckerThread extends Thread {
                 }
             }
         };
+        
         bAndCThread = new Thread(run, "Bale_Cauldron_Checker");
         bAndCThread.setDaemon(true);
-        bAndCThread.start();
+        bAndCThread.start(); //Start the able and cauldron thread.
+        
         vacThread = new Thread(vacRun, "Vaccination_Checker");
         vacThread.setDaemon(true);
-        vacThread.start();
+        vacThread.start(); //Start the vaccination thread.
     }
 
     @Override
