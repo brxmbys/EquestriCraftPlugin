@@ -9,9 +9,7 @@ import java.util.List;
 import java.util.concurrent.locks.StampedLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Horse;
 import org.bukkit.metadata.FixedMetadataValue;
@@ -88,7 +86,7 @@ public class HorseCheckerThread extends Thread {
 
     public static long BREED_THREAD_INTERVAL = 500;
 
-    public static long MAIN_TRHEAD_INTERVAL = 100;
+    public static long MAIN_THREAD_INTERVAL = 100;
 
     private final DataContainer container;
 
@@ -128,7 +126,7 @@ public class HorseCheckerThread extends Thread {
                     }
                     try {
                         Thread.sleep(5000);
-                    } catch (InterruptedException ex) {
+                    } catch (Exception ex) {
                         Logger.getLogger(HorseCheckerThread.class.getName()).log(Level.SEVERE, null, ex);
                     }
                     final long cstamp = cauldronLock.readLock();
@@ -150,7 +148,7 @@ public class HorseCheckerThread extends Thread {
                     }
                     try {
                         Thread.sleep(5000);
-                    } catch (InterruptedException ex) {
+                    } catch (Exception ex) {
                         Logger.getLogger(HorseCheckerThread.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
@@ -174,7 +172,7 @@ public class HorseCheckerThread extends Thread {
                     }
                     try {
                         Thread.sleep(10000);
-                    } catch (InterruptedException ex) {
+                    } catch (Exception ex) {
                         Logger.getLogger(HorseCheckerThread.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
@@ -282,8 +280,8 @@ public class HorseCheckerThread extends Thread {
                 container.horseLock.unlockWrite(stamp);
             }
             try {
-                Thread.sleep(MAIN_TRHEAD_INTERVAL); //Wait
-            } catch (InterruptedException ex) {
+                Thread.sleep(MAIN_THREAD_INTERVAL); //Wait
+            } catch (Exception ex) {
                 Logger.getLogger(HorseCheckerThread.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
@@ -356,7 +354,7 @@ public class HorseCheckerThread extends Thread {
                 }
                 try {
                     Thread.sleep(BREED_THREAD_INTERVAL); //Wait
-                } catch (InterruptedException ex) {
+                } catch (Exception ex) {
                     Logger.getLogger(HorseCheckerThread.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
