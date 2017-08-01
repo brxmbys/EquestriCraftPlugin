@@ -42,6 +42,7 @@ public class MyHorse implements Serializable {
     private long wellSince;
     private long lastBreed;
     private boolean defecateSinceEat;
+    private HorseBreed breed;
 
     private transient Horse horse;
 
@@ -86,22 +87,6 @@ public class MyHorse implements Serializable {
 
     public static final String META_DEFECATE_SINCE_EAT = "DefecateSinceEat";
 
-    public MyHorse(int gender, boolean vaccination, long vaccinationTime, UUID uuid, long lastEat, boolean hunger, long lastDrink, boolean thirst, boolean ill, long illSince, long wellSince, long lastBreed) {
-        this.gender = gender;
-        this.vaccination = vaccination;
-        this.vaccinationTime = vaccinationTime;
-        this.uuid = uuid;
-        this.lastEat = lastEat;
-        this.hunger = hunger;
-        this.lastDrink = lastDrink;
-        this.thirst = thirst;
-        this.ill = ill;
-        this.illSince = illSince;
-        this.wellSince = wellSince;
-        this.lastBreed = lastBreed;
-        this.defecateSinceEat = false;
-    }
-
     public MyHorse(Horse h) {
         this.gender = MyHorse.generateRandomGender();
         this.vaccination = false;
@@ -118,6 +103,8 @@ public class MyHorse implements Serializable {
         this.lastBreed = getCurrentTime();
         this.defecateSinceEat = true;
         this.uuid = h.getUniqueId();
+        this.breed = HorseBreed.randomType();
+        this.horse = h;
     }
 
     public static long getCurrentTime() {
@@ -520,6 +507,24 @@ public class MyHorse implements Serializable {
      */
     public void setHorse(Horse h) {
         this.horse = h;
+    }
+
+    /**
+     * Get the HorseBreed.
+     *
+     * @return the HorseBreed.
+     */
+    public HorseBreed getBreed() {
+        return breed;
+    }
+
+    /**
+     * Set the breed of the horse.
+     *
+     * @param br the HorseBreed.
+     */
+    public void setBreed(HorseBreed br) {
+        this.breed = br;
     }
 
     @Override

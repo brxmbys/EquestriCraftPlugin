@@ -273,6 +273,29 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                 sender.sendMessage("Only ops can use this command");
             }
             return true;
+        } else if (cmd.getName().equalsIgnoreCase("setbreed")) {   //setbreed command
+            if (args.length == 1) {
+                if ((sender instanceof Player && ((Player) sender).isOp())) {
+                    final Player player = (Player) sender;
+                    if (player.getVehicle() != null || player.getVehicle() instanceof Horse) {
+                        final MyHorse horse = container.getHorse(player.getVehicle().getUniqueId());
+                        for (HorseBreed br : HorseBreed.values()) {
+                            if (br.toString().equalsIgnoreCase(args[0])) {
+                                horse.setBreed(br);
+                                break;
+                            }
+                        }
+                        sender.sendMessage("Breed set to " + args[0]);
+                    } else {
+                        sender.sendMessage("You must be on a horse!");
+                    }
+                } else {
+                    sender.sendMessage("Only ops can use this command");
+                }
+            } else {
+                return false;
+            }
+            return true;
         }
         return false;
     }
@@ -373,11 +396,13 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                                 genderStr = "None";
                                 break;
                         }
+                        String breedStr = ChatColor.BOLD + "Breed: " + ChatColor.RESET + horse.getBreed().toString();
                         final String sickStr = ChatColor.BOLD + "Health: " + ChatColor.RESET + "" + (sickness ? ChatColor.RED + "Ill" : ChatColor.GREEN + "Well");
                         final String hungerStr = ChatColor.BOLD + "Hunger: " + ChatColor.RESET + "" + (hunger ? ChatColor.RED + "Hungry" : ChatColor.GREEN + "Not Hungry");
                         final String thirstStr = ChatColor.BOLD + "Thirst: " + ChatColor.RESET + "" + (thirst ? ChatColor.RED + "Thirsty" : ChatColor.GREEN + "Not Thirsty");
                         final String vaccinationStr = ChatColor.BOLD + "Vaccinated: " + ChatColor.RESET + "" + (vaccination ? ChatColor.GREEN + "Yes" : ChatColor.RED + "No");
                         player.sendMessage(genderStr);
+                        player.sendMessage(breedStr);
                         player.sendMessage(sickStr);
                         player.sendMessage(hungerStr);
                         player.sendMessage(thirstStr);

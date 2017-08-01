@@ -25,7 +25,10 @@ commands:
         usage: /adddoctor <playername>
     changegender:
         description: Change the gender of a horse.
-        usage: /changegender <stallion|mare|gelding>
+        usage: /changegender <stallion|mare|gelding> (must be on a horse)
     savehorses:
         description: Saves the horses to file.
         usage: /savehorses
+    setbreed:
+        description: Set the breed of a horse.
+        usage: /setbreed <breed> (must be on a horse)
