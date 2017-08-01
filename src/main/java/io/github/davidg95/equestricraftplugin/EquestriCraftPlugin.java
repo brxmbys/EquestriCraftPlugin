@@ -451,6 +451,11 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     public void onCreatureSpawn(CreatureSpawnEvent evt) {
         if (evt.getEntityType() == EntityType.HORSE) {
             MyHorse mh = new MyHorse((Horse) evt.getEntity());
+            if (evt.getEntity().getMetadata("breed").size() > 1) {
+                String breed = evt.getEntity().getMetadata("breed").get(0).asString();
+                HorseBreed br = HorseBreed.valueOf(breed);
+                mh.setBreed(br);
+            }
             container.addHorse(mh);
         }
     }

@@ -340,6 +340,7 @@ public class HorseCheckerThread extends Thread {
                                         public void run() {
                                             final Horse h = horse.getHorse().getWorld().spawn(horse.getHorse().getLocation(), Horse.class); //Spawn a new horse.
                                             h.setStyle(horse.getHorse().getStyle()); //Copy the parent style.
+                                            h.setMetadata("breed", new FixedMetadataValue(EquestriCraftPlugin.plugin, horse.getBreed().name()));
                                             horse.setLastBreed();
                                         }
                                     }.runTask(EquestriCraftPlugin.plugin);
