@@ -78,4 +78,19 @@ public enum HorseBreed {
 
         return HorseBreed.values()[index];
     }
+
+    @Override
+    public String toString() {
+        String name = this.name();
+        for (int i = 0; i < name.length(); i++) {
+            if (i > 0) {
+                if (Character.isUpperCase(name.charAt(i)) && Character.isLowerCase(name.charAt(i - 1))) {
+                    final String first = name.substring(0, i);
+                    final String last = name.substring(i);
+                    name = first + " " + last;
+                }
+            }
+        }
+        return name;
+    }
 }
