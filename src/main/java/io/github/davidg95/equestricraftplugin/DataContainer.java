@@ -90,7 +90,7 @@ public class DataContainer {
         final long stamp = horseLock.readLock();
         try {
             for (MyHorse h : horses) {
-                if (h.getUuid().equals(uuid)) {
+                if (h.getUuid() != null && h.getUuid().equals(uuid)) {
                     return h;
                 }
             }
