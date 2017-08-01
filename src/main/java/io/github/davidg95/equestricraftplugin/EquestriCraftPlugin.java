@@ -58,9 +58,6 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     public static final String STICK_NAME = "Horse checking wand";
     public static final String VACCINE_NAME = "Vaccination";
 
-    private boolean aflag = false;
-    private Player aplayer;
-
     @Override
     public void onEnable() {
         plugin = this;
@@ -129,12 +126,12 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             switch (args.length) {
                 case 0:
                     if (sender instanceof Player) {
-                        aflag = true;
-                        aplayer = (Player) sender;
                         final Player player = (Player) sender;
-                        sender.sendMessage("You have entered the spawnhorse command");
-                        final Horse h = player.getWorld().spawn(player.getLocation(), Horse.class);
-                        sender.sendMessage("Command execution complete");
+                        if (player.isOp()) {
+                            final Horse h = player.getWorld().spawn(player.getLocation(), Horse.class);
+                        } else {
+                            player.sendMessage("You must be an op to use this command!");
+                        }
                     } else {
                         sender.sendMessage("This command can only be run by a player");
                     }
@@ -243,26 +240,26 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             return true;
         } else if (cmd.getName().equalsIgnoreCase("changegender")) {   //changegender command
             if (args.length == 1) {
-                //if ((sender instanceof Player && ((Player) sender).isOp())) {
-                final Player player = (Player) sender;
-                if (player.getVehicle() != null || player.getVehicle() instanceof Horse) {
-                    final MyHorse horse = container.getHorse(player.getVehicle().getUniqueId());
-                    if (args[0].equalsIgnoreCase("stallion")) {
-                        horse.setGender(MyHorse.STALLION);
-                    } else if (args[0].equalsIgnoreCase("mare")) {
-                        horse.setGender(MyHorse.MARE);
-                    } else if (args[0].equalsIgnoreCase("gelding")) {
-                        horse.setGender(MyHorse.GELDING);
+                if ((sender instanceof Player && ((Player) sender).isOp())) {
+                    final Player player = (Player) sender;
+                    if (player.getVehicle() != null || player.getVehicle() instanceof Horse) {
+                        final MyHorse horse = container.getHorse(player.getVehicle().getUniqueId());
+                        if (args[0].equalsIgnoreCase("stallion")) {
+                            horse.setGender(MyHorse.STALLION);
+                        } else if (args[0].equalsIgnoreCase("mare")) {
+                            horse.setGender(MyHorse.MARE);
+                        } else if (args[0].equalsIgnoreCase("gelding")) {
+                            horse.setGender(MyHorse.GELDING);
+                        } else {
+                            return false;
+                        }
+                        sender.sendMessage("Gender set to " + args[0]);
                     } else {
-                        return false;
+                        sender.sendMessage("You must be on a horse!");
                     }
-                    sender.sendMessage("Gender set to " + args[0]);
                 } else {
-                    sender.sendMessage("You must be on a horse!");
+                    sender.sendMessage("Only ops can use this command");
                 }
-                //} else {
-                //    sender.sendMessage("Only ops can use this command");
-                //}
             } else {
                 return false;
             }
@@ -428,15 +425,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     @EventHandler
     public void onCreatureSpawn(CreatureSpawnEvent evt) {
         if (evt.getEntityType() == EntityType.HORSE) {
-            if (aflag) {
-                aplayer.sendMessage("Horse spawned");
-            }
             MyHorse mh = new MyHorse((Horse) evt.getEntity());
             container.addHorse(mh);
-            if (aflag) {
-                aplayer.sendMessage("Horse is now a MyHorse");
-                aflag = false;
-            }
         }
     }
 
