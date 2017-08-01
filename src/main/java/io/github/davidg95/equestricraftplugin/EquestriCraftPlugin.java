@@ -381,19 +381,19 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         boolean hunger = horse.isHungry();
                         boolean thirst = horse.isThirsty();
                         boolean vaccination = horse.isVaccinated();
-                        String genderStr;
+                        String genderStr = ChatColor.BOLD + "Gender: " + ChatColor.RESET;
                         switch (gender) {
                             case MyHorse.STALLION:
-                                genderStr = ChatColor.DARK_RED + "Stallion";
+                                genderStr = genderStr + ChatColor.DARK_RED + "Stallion";
                                 break;
                             case MyHorse.MARE:
-                                genderStr = ChatColor.DARK_PURPLE + "Mare";
+                                genderStr = genderStr + ChatColor.DARK_PURPLE + "Mare";
                                 break;
                             case MyHorse.GELDING:
-                                genderStr = ChatColor.DARK_AQUA + "Gelding";
+                                genderStr = genderStr + ChatColor.DARK_AQUA + "Gelding";
                                 break;
                             default:
-                                genderStr = "None";
+                                genderStr = genderStr + "None";
                                 break;
                         }
                         String breedStr = ChatColor.BOLD + "Breed: " + ChatColor.RESET + horse.getBreed().toString();
