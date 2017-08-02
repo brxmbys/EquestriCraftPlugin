@@ -30,7 +30,7 @@ public class MyHorse implements Serializable {
     private long vaccinationTime;
     private boolean vaccination;
     private int gender; //The horses gender.
-    private UUID uuid;
+    private final UUID uuid;
     private long lastEat;
     private boolean hunger;
     private long hungerSince;
@@ -58,34 +58,6 @@ public class MyHorse implements Serializable {
      * Indicates the horses gender is a gelding. Value = 3.
      */
     public static final int GELDING = 3;
-
-    public static final String META_LASTEAT = "LastEatTime";
-
-    public static final String META_HUNGER = "hunger";
-
-    public static final String META_LASTDRINK = "LastDrinkTime";
-
-    public static final String META_THIRST = "thirst";
-
-    public static final String META_HUNGERTIME = "HungerTime";
-
-    public static final String META_THRISTTIME = "ThirstTime";
-
-    public static final String META_HEALTH = "sickness";
-
-    public static final String META_ILLTIME = "IllTime";
-
-    public static final String META_WELLTIME = "WellTime";
-
-    public static final String META_GENDER = "gender";
-
-    public static final String META_BREED = "LastBreed";
-
-    public static final String META_VACCINATED = "vaccinated";
-
-    public static final String META_VACCINE_TIME = "VaccineTime";
-
-    public static final String META_DEFECATE_SINCE_EAT = "DefecateSinceEat";
 
     public MyHorse(Horse h) {
         this.gender = MyHorse.generateRandomGender();
