@@ -79,6 +79,11 @@ public enum HorseBreed {
         return HorseBreed.values()[index];
     }
 
+    /**
+     * Outputs the name of the horse breed with the space between the words.
+     *
+     * @return the horse breed name as a String.
+     */
     @Override
     public String toString() {
         String name = this.name();
