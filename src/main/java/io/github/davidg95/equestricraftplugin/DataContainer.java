@@ -90,6 +90,9 @@ public class DataContainer {
         final long stamp = horseLock.readLock();
         try {
             for (MyHorse h : horses) {
+                if (h == null || h.getUuid() == null) {
+                    continue;
+                }
                 if (h.getUuid() != null && h.getUuid().equals(uuid)) {
                     return h;
                 }
@@ -186,6 +189,9 @@ public class DataContainer {
                 MyHorse current = null;
                 for (MyHorse horse : horses) {
                     current = horse;
+                    if (horse == null || horse.getUuid() == null) {
+                        continue;
+                    }
                     if (h.getUniqueId().equals(horse.getUuid())) {
                         horse.setHorse(h);
                         horsesPaired++;
@@ -241,8 +247,8 @@ public class DataContainer {
         }
         return container;
     }
-    
-    public static void destroyInstance(){
+
+    public static void destroyInstance() {
         container = null;
     }
 

@@ -89,6 +89,8 @@ public class HorseCheckerThread extends Thread {
     public static long MAIN_THREAD_INTERVAL = 100;
 
     private final DataContainer container;
+    
+    private boolean run;
 
     public HorseCheckerThread() {
         super("Horse_Checker_Thread");
@@ -98,15 +100,16 @@ public class HorseCheckerThread extends Thread {
         baleLock = new StampedLock();
         cauldronLock = new StampedLock();
         container = DataContainer.getInstance();
+        run = true;
     }
 
     private void init() {
         breedThread.start();
         //Create the bale and cauldron checking thread.
-        final Runnable run = new Runnable() {
+        final Runnable baleRun = new Runnable() {
             @Override
             public void run() {
-                while (true) {
+                while (run) {
                     final long bstamp = baleLock.readLock();
                     try {
                         for (Block ba : bales) { //Check if any bales need removed.
@@ -158,7 +161,7 @@ public class HorseCheckerThread extends Thread {
         final Runnable vacRun = new Runnable() {
             @Override
             public void run() {
-                while (true) {
+                while (run) {
                     final long stamp = container.horseLock.writeLock();
                     try {
                         for (MyHorse horse : container.getAllHorses()) {
@@ -179,7 +182,7 @@ public class HorseCheckerThread extends Thread {
             }
         };
         
-        bAndCThread = new Thread(run, "Bale_Cauldron_Checker");
+        bAndCThread = new Thread(baleRun, "Bale_Cauldron_Checker");
         bAndCThread.setDaemon(true);
         bAndCThread.start(); //Start the able and cauldron thread.
         
@@ -191,7 +194,7 @@ public class HorseCheckerThread extends Thread {
     @Override
     public void run() {
         init(); //Start the secondary threads.
-        while (true) {
+        while (run) {
             final long stamp = container.horseLock.writeLock();
             try {
                 for (MyHorse horse : container.getAllHorses()) {
@@ -317,6 +320,10 @@ public class HorseCheckerThread extends Thread {
     public int getDrunkCauldrons() {
         return cauldrons.size();
     }
+    
+    public void setRun(boolean run){
+        this.run = run;
+    }
 
     public class BreedCheckerThread extends Thread {
 
@@ -326,7 +333,7 @@ public class HorseCheckerThread extends Thread {
 
         @Override
         public void run() {
-            while (true) {
+            while (run) {
                 final long stamp = container.horseLock.writeLock();
                 try {
                     for (MyHorse horse : container.getAllHorses()) {

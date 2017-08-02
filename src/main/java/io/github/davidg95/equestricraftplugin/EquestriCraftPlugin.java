@@ -75,6 +75,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         LOG.log(Level.INFO, "Saving horses to file");
         container.saveHorses();
         DataContainer.destroyInstance();
+        checkerThread.setRun(false);
         checkerThread = null;
         HandlerList.unregisterAll(plugin);
 
