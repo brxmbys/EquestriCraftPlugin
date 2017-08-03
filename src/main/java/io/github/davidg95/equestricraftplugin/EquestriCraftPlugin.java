@@ -422,17 +422,13 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         }
                         final String breedStr = ChatColor.BOLD + "Breed: " + ChatColor.RESET + horse.getBreed().toString();
                         final String personalityStr = ChatColor.BOLD + "Personality: " + ChatColor.RESET + horse.getPersonality().toString();
-                        final int days = (int) (horse.getAge() / 1000 / 60 / 60 / 24);
-                        int hours;
-                        if (days > 0) {
-                            hours = (int) (horse.getAge() % days);
-                        } else {
-                            hours = (int) horse.getAge() / 1000 / 60 / 60;
-                        }
-                        final String ageStr = ChatColor.BOLD + "Age: " + ChatColor.AQUA + days + ChatColor.RESET + (days == 1 ? " day" : " days") + " and " + ChatColor.BOLD + ChatColor.AQUA + hours + ChatColor.RESET + (hours == 1 ? " hour" : " hours") + " old";
-                        final String sickStr = ChatColor.BOLD + "Health: " + ChatColor.RESET + "" + (sickness ? ChatColor.RED + "Ill" : ChatColor.GREEN + "Well");
-                        final String hungerStr = ChatColor.BOLD + "Hunger: " + ChatColor.RESET + "" + (hunger ? ChatColor.RED + "Hungry" : ChatColor.GREEN + "Not Hungry");
-                        final String thirstStr = ChatColor.BOLD + "Thirst: " + ChatColor.RESET + "" + (thirst ? ChatColor.RED + "Thirsty" : ChatColor.GREEN + "Not Thirsty");
+                        final String ageStr = ChatColor.BOLD + "Age: " + durToString(horse.getAge()) + " old";
+                        String sickSince = durToString(horse.getIllDuration());
+                        final String sickStr = ChatColor.BOLD + "Health: " + ChatColor.RESET + "" + (sickness ? ChatColor.RED + "Ill" + ChatColor.RESET + " for " + sickSince : ChatColor.GREEN + "Well");
+                        String hungerSince = durToString(horse.getHungerDuration());
+                        final String hungerStr = ChatColor.BOLD + "Hunger: " + ChatColor.RESET + "" + (hunger ? ChatColor.RED + "Hungry" + ChatColor.RESET + " for " + hungerSince : ChatColor.GREEN + "Not Hungry");
+                        String thirstSince = durToString(horse.getThristDuration());
+                        final String thirstStr = ChatColor.BOLD + "Thirst: " + ChatColor.RESET + "" + (thirst ? ChatColor.RED + "Thirsty" + ChatColor.RESET + " for " + thirstSince : ChatColor.GREEN + "Not Thirsty");
                         final String vaccinationStr = ChatColor.BOLD + "Vaccinated: " + ChatColor.RESET + "" + (vaccination ? ChatColor.GREEN + "Yes" : ChatColor.RED + "No");
                         player.sendMessage(">------------------------------<");
                         player.sendMessage(genderStr);
@@ -482,6 +478,17 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     break;
             }
         }
+    }
+
+    private String durToString(long dur) {
+        final int days = (int) (dur / 1000 / 60 / 60 / 24);
+        int hours;
+        if (days > 0) {
+            hours = (int) (dur % days);
+        } else {
+            hours = (int) dur / 1000 / 60 / 60;
+        }
+        return "" + ChatColor.BOLD + ChatColor.AQUA + days + ChatColor.RESET + (days == 1 ? " day" : " days") + " and " + ChatColor.BOLD + ChatColor.AQUA + hours + ChatColor.RESET + (hours == 1 ? " hour" : " hours");
     }
 
     @EventHandler
