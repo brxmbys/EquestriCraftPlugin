@@ -405,7 +405,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         } else {
                             hours = (int) horse.getAge() / 1000 / 60 / 60;
                         }
-                        final String ageStr = ChatColor.BOLD + "Age: " + ChatColor.RESET + days + " days and " + hours + " hours old";
+                        final String ageStr = ChatColor.BOLD + "Age: " + ChatColor.AQUA + days + ChatColor.RESET + (days == 1 ? " day" : " days") + " and " + ChatColor.BOLD + ChatColor.AQUA + hours + ChatColor.RESET + (hours == 1 ? " hour" : " hours") + " old";
                         final String sickStr = ChatColor.BOLD + "Health: " + ChatColor.RESET + "" + (sickness ? ChatColor.RED + "Ill" : ChatColor.GREEN + "Well");
                         final String hungerStr = ChatColor.BOLD + "Hunger: " + ChatColor.RESET + "" + (hunger ? ChatColor.RED + "Hungry" : ChatColor.GREEN + "Not Hungry");
                         final String thirstStr = ChatColor.BOLD + "Thirst: " + ChatColor.RESET + "" + (thirst ? ChatColor.RED + "Thirsty" : ChatColor.GREEN + "Not Thirsty");
