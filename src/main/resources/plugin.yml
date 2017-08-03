@@ -32,3 +32,6 @@ commands:
     setbreed:
         description: Set the breed of a horse.
         usage: /setbreed <breed> (must be on a horse)
+    setpersonality:
+        description: Set the personality of a horse.
+        usage: /setpersonality <personality> (must be on a horse)

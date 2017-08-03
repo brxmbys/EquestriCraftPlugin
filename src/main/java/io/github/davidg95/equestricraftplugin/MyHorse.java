@@ -43,7 +43,8 @@ public class MyHorse implements Serializable {
     private long lastBreed;
     private boolean defecateSinceEat;
     private HorseBreed breed;
-    private long birthTime;
+    private final long birthTime;
+    private Personality personality;
 
     private transient Horse horse;
 
@@ -78,6 +79,7 @@ public class MyHorse implements Serializable {
         this.uuid = h.getUniqueId();
         this.breed = HorseBreed.randomType();
         this.birthTime = getCurrentTime();
+        this.personality = Personality.randomType();
         this.horse = h;
     }
 
@@ -517,6 +519,24 @@ public class MyHorse implements Serializable {
      */
     public long getAge() {
         return getCurrentTime() - birthTime;
+    }
+
+    /**
+     * Get the horses personality.
+     *
+     * @return the horses personality.
+     */
+    public Personality getPersonality() {
+        return personality;
+    }
+
+    /**
+     * Set the horses personality.
+     *
+     * @param p the personality.
+     */
+    public void setPersonality(Personality p) {
+        this.personality = p;
     }
 
     @Override
