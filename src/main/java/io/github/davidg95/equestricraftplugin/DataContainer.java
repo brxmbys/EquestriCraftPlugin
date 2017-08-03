@@ -45,6 +45,8 @@ public class DataContainer {
 
     private final StampedLock fileLock;
 
+    private boolean runSave;
+
     private DataContainer() {
         horses = new LinkedList<>();
         doctors = new LinkedList<>();
@@ -149,14 +151,17 @@ public class DataContainer {
         final Runnable run = new Runnable() {
             @Override
             public void run() {
+                runSave = true;
                 EquestriCraftPlugin.LOG.log(Level.INFO, "horses.config will be saved every 10 minutes");
-                while (true) {
+                while (runSave) {
                     try {
                         Thread.sleep(600000); //Ten Minutes
                     } catch (InterruptedException ex) {
                         Logger.getLogger(DataContainer.class.getName()).log(Level.SEVERE, null, ex);
                     }
-                    saveHorses();
+                    if (runSave) {
+                        saveHorses();
+                    }
                 }
             }
 
@@ -249,6 +254,7 @@ public class DataContainer {
     }
 
     public static void destroyInstance() {
+        container.runSave = false;
         container = null;
     }
 

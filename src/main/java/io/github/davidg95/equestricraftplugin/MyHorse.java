@@ -43,6 +43,7 @@ public class MyHorse implements Serializable {
     private long lastBreed;
     private boolean defecateSinceEat;
     private HorseBreed breed;
+    private long birthTime;
 
     private transient Horse horse;
 
@@ -76,6 +77,7 @@ public class MyHorse implements Serializable {
         this.defecateSinceEat = true;
         this.uuid = h.getUniqueId();
         this.breed = HorseBreed.randomType();
+        this.birthTime = getCurrentTime();
         this.horse = h;
     }
 
@@ -497,6 +499,24 @@ public class MyHorse implements Serializable {
      */
     public void setBreed(HorseBreed br) {
         this.breed = br;
+    }
+
+    /**
+     * Get the time the horse was born in ms.
+     *
+     * @return the time as a long.
+     */
+    public long getBirthTime() {
+        return birthTime;
+    }
+
+    /**
+     * Get the duration since the horse was born in ms.
+     *
+     * @return the duration as a long.
+     */
+    public long getAge() {
+        return getCurrentTime() - birthTime;
     }
 
     @Override
