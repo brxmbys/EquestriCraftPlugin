@@ -420,6 +420,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                                 genderStr = genderStr + "None";
                                 break;
                         }
+                        final String name = ChatColor.BOLD + "Name: " + ChatColor.RESET + (horse.getHorse().getCustomName() == null ? "No name" : horse.getHorse().getCustomName());
                         final String breedStr = ChatColor.BOLD + "Breed: " + ChatColor.RESET + horse.getBreed().toString();
                         final String personalityStr = ChatColor.BOLD + "Personality: " + ChatColor.RESET + horse.getPersonality().toString();
                         final String ageStr = ChatColor.BOLD + "Age: " + durToString(horse.getAge()) + " old";
@@ -431,6 +432,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         final String thirstStr = ChatColor.BOLD + "Thirst: " + ChatColor.RESET + "" + (thirst ? ChatColor.RED + "Thirsty" + ChatColor.RESET + " for " + thirstSince : ChatColor.GREEN + "Not Thirsty");
                         final String vaccinationStr = ChatColor.BOLD + "Vaccinated: " + ChatColor.RESET + "" + (vaccination ? ChatColor.GREEN + "Yes" : ChatColor.RED + "No");
                         player.sendMessage(">------------------------------<");
+//                        player.sendMessage(name);
                         player.sendMessage(genderStr);
                         player.sendMessage(breedStr);
                         player.sendMessage(personalityStr);
