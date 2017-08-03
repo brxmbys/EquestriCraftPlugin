@@ -397,7 +397,15 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                                 genderStr = genderStr + "None";
                                 break;
                         }
-                        String breedStr = ChatColor.BOLD + "Breed: " + ChatColor.RESET + horse.getBreed().toString();
+                        final String breedStr = ChatColor.BOLD + "Breed: " + ChatColor.RESET + horse.getBreed().toString();
+                        final int days = (int) (horse.getAge() / 1000 / 60 / 60 / 24);
+                        int hours;
+                        if (days > 0) {
+                            hours = (int) (horse.getAge() % days);
+                        } else {
+                            hours = (int) horse.getAge() / 1000 / 60 / 60;
+                        }
+                        final String ageStr = ChatColor.BOLD + "Age: " + ChatColor.RESET + days + " days and " + hours + " hours old";
                         final String sickStr = ChatColor.BOLD + "Health: " + ChatColor.RESET + "" + (sickness ? ChatColor.RED + "Ill" : ChatColor.GREEN + "Well");
                         final String hungerStr = ChatColor.BOLD + "Hunger: " + ChatColor.RESET + "" + (hunger ? ChatColor.RED + "Hungry" : ChatColor.GREEN + "Not Hungry");
                         final String thirstStr = ChatColor.BOLD + "Thirst: " + ChatColor.RESET + "" + (thirst ? ChatColor.RED + "Thirsty" : ChatColor.GREEN + "Not Thirsty");
@@ -405,6 +413,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         player.sendMessage("------------------------------");
                         player.sendMessage(genderStr);
                         player.sendMessage(breedStr);
+                        player.sendMessage(ageStr);
                         player.sendMessage(sickStr);
                         player.sendMessage(hungerStr);
                         player.sendMessage(thirstStr);
