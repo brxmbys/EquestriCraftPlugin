@@ -286,7 +286,30 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                                 break;
                             }
                         }
-                        sender.sendMessage("Breed set to " + args[0]);
+                        sender.sendMessage("Breed set to " + horse.getBreed().toString());
+                    } else {
+                        sender.sendMessage("You must be on a horse!");
+                    }
+                } else {
+                    sender.sendMessage("Only ops can use this command");
+                }
+            } else {
+                return false;
+            }
+            return true;
+        } else if (cmd.getName().equalsIgnoreCase("setpersonality")) {   //setpersonality command
+            if (args.length == 1) {
+                if ((sender instanceof Player && ((Player) sender).isOp())) {
+                    final Player player = (Player) sender;
+                    if (player.getVehicle() != null || player.getVehicle() instanceof Horse) {
+                        final MyHorse horse = container.getHorse(player.getVehicle().getUniqueId());
+                        for (Personality p : Personality.values()) {
+                            if (p.toString().equalsIgnoreCase(args[0])) {
+                                horse.setPersonality(p);
+                                break;
+                            }
+                        }
+                        sender.sendMessage("Personality set to " + horse.getPersonality().toString());
                     } else {
                         sender.sendMessage("You must be on a horse!");
                     }
@@ -398,6 +421,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                                 break;
                         }
                         final String breedStr = ChatColor.BOLD + "Breed: " + ChatColor.RESET + horse.getBreed().toString();
+                        final String personalityStr = ChatColor.BOLD + "Personality: " + ChatColor.RESET + horse.getPersonality().toString();
                         final int days = (int) (horse.getAge() / 1000 / 60 / 60 / 24);
                         int hours;
                         if (days > 0) {
@@ -413,6 +437,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         player.sendMessage(">------------------------------<");
                         player.sendMessage(genderStr);
                         player.sendMessage(breedStr);
+                        player.sendMessage(personalityStr);
                         player.sendMessage(ageStr);
                         player.sendMessage(sickStr);
                         player.sendMessage(hungerStr);
