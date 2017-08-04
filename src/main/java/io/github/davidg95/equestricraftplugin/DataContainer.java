@@ -179,7 +179,6 @@ public class DataContainer {
         int geld = 0;
         int stal = 0;
         int mare = 0;
-        int none = 0;
         for (World world : Bukkit.getWorlds()) {
             search:
             for (Entity entity : world.getEntities()) {
@@ -191,9 +190,7 @@ public class DataContainer {
                 if (horsesInWorld % 500 == 0) {
                     EquestriCraftPlugin.LOG.log(Level.INFO, "Scanned: " + horsesInWorld);
                 }
-                MyHorse current = null;
                 for (MyHorse horse : horses) {
-                    current = horse;
                     if (horse == null || horse.getUuid() == null) {
                         continue;
                     }
@@ -210,16 +207,11 @@ public class DataContainer {
                             case MyHorse.STALLION:
                                 stal++;
                                 break;
-                            default:
-                                none++;
-                                break;
                         }
                         continue search;
                     }
                 }
-                if (current != null) {
-                    this.addHorse(current);
-                }
+                //If execution get here, then the horse does not exist in the file, so it needes to be initialised.
                 final MyHorse mh = new MyHorse(h);
                 horsesToAdd.add(mh);
             }
@@ -238,7 +230,7 @@ public class DataContainer {
         EquestriCraftPlugin.LOG.log(Level.INFO, "Stallions: " + stal);
         EquestriCraftPlugin.LOG.log(Level.INFO, "Mares: " + mare);
         EquestriCraftPlugin.LOG.log(Level.INFO, "Geldings: " + geld);
-        EquestriCraftPlugin.LOG.log(Level.INFO, "None assigned: " + none);
+        EquestriCraftPlugin.LOG.log(Level.INFO, "None assigned: " + (horsesInWorld - horsesPaired));
     }
 
     /**
