@@ -400,6 +400,10 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     if (event.getEntity() instanceof Horse) {
                         event.setCancelled(true);
                         final MyHorse horse = container.getHorse(event.getEntity().getUniqueId()); //Get the horse that was clicked on.
+                        if(horse == null){
+                            player.sendMessage("This horse has no details, this is an error and should be reported to an admin or dev.");
+                            return;
+                        }
                         boolean sickness = horse.isSick();
                         int gender = horse.getGender();
                         boolean hunger = horse.isHungry();
@@ -482,6 +486,11 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         }
     }
 
+    /**
+     * Convert a long durations in ms to a string displaying the days and hours.
+     * @param dur the duration in ms as a long.
+     * @return String displaying the days and hours.
+     */
     private String durToString(long dur) {
         final int days = (int) (dur / 1000 / 60 / 60 / 24);
         int hours;
