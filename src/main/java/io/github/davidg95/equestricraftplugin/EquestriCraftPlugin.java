@@ -29,6 +29,8 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -404,7 +406,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     if (event.getEntity() instanceof Horse) {
                         event.setCancelled(true);
                         final MyHorse horse = container.getHorse(event.getEntity().getUniqueId()); //Get the horse that was clicked on.
-                        if(horse == null){
+                        if (horse == null) {
                             player.sendMessage("This horse has no details, this is an error and should be reported to an admin or dev.");
                             return;
                         }
@@ -490,8 +492,43 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         }
     }
 
+    @EventHandler
+    public void playerUse(PlayerInteractEntityEvent event) {
+        final Player player = event.getPlayer();
+        if (!(event.getRightClicked() instanceof Horse)) {
+            player.sendMessage("You must click on a horse");
+            return;
+        }
+        final ItemStack inHand = player.getItemInHand(); //Get the item in hand.
+        if (inHand == null) {
+            return;
+        }
+        if (null != inHand.getType()) {
+            switch (inHand.getType()) {
+                case STICK: //Horse wand
+                    //Horse checking stick
+                    if (!inHand.getItemMeta().hasDisplayName()) { //Check the shears have a display name.
+                        return;
+                    }
+                    if (!inHand.getItemMeta().getDisplayName().equals(STICK_NAME)) { //Check it is the horse wand.
+                        return;
+                    }
+                    final Horse horse = (Horse) event.getRightClicked(); //Get the horse that was clicked on.
+                    if (horse.getTarget() == null) {
+                        horse.setTarget(player);
+                    } else {
+                        horse.setTarget(null);
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
     /**
      * Convert a long durations in ms to a string displaying the days and hours.
+     *
      * @param dur the duration in ms as a long.
      * @return String displaying the days and hours.
      */
