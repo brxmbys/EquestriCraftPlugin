@@ -496,7 +496,6 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     public void playerUse(PlayerInteractEntityEvent event) {
         final Player player = event.getPlayer();
         if (!(event.getRightClicked() instanceof Horse)) {
-            player.sendMessage("You must click on a horse");
             return;
         }
         final ItemStack inHand = player.getItemInHand(); //Get the item in hand.
