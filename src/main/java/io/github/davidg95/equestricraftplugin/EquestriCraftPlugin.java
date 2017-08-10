@@ -327,14 +327,14 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         } else if (cmd.getName().equalsIgnoreCase("showbreeds")) {   //showbreeds command
             String breeds = "";
             for (HorseBreed br : HorseBreed.values()) {
-                breeds += br.toString() + "\n";
+                breeds += br.toString() + ", ";
             }
             sender.sendMessage(breeds);
             return true;
         } else if (cmd.getName().equalsIgnoreCase("showtraits")) {   //showtraits command
             String traits = "";
             for (Personality per : Personality.values()) {
-                traits += per.toString() + "\n";
+                traits += per.toString() + ", ";
             }
             sender.sendMessage(traits);
             return true;
