@@ -10,7 +10,7 @@ package io.github.davidg95.equestricraftplugin;
  * @author David
  */
 public enum Personality {
-    Aggressive, Confident, Calm, Anxious, Agile, Clever, Friendly, Gentle, Dominant, Shy, Sassy;
+    Aggressive, Confident, Calm, Anxious, Agile, Clever, Friendly, Gentle, Dominant, Shy, Sassy, Lazy;
 
     /**
      * Get a random personality.
