@@ -355,6 +355,28 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             }
             sender.sendMessage(traits);
             return true;
+        } else if (cmd.getName().equalsIgnoreCase("setage")) {   //setage command
+            if (args.length == 1) {
+                if (sender instanceof Player && ((Player) sender).isOp()) {
+                    final Player player = (Player) sender;
+                    if (player.getVehicle() != null && player.getVehicle() instanceof Horse) {
+                        final Horse horse = (Horse) player.getVehicle();
+                        final MyHorse mh = container.getHorse(horse.getUniqueId());
+                        try {
+                            int months = Integer.parseInt(args[0]);
+                            mh.setAgeInMonths(months);
+                            player.sendMessage("Age set");
+                        } catch (NumberFormatException ex) {
+                            player.sendMessage("Must enter a number for months");
+                        }
+                        return true;
+                    }
+                    return false;
+                }
+                sender.sendMessage("Only ops can use this command");
+                return true;
+            }
+            return false;
         } else if (cmd.getName().equalsIgnoreCase("eqhelp")) {   //eqhelp command
             boolean op = false;
             boolean console = false;
@@ -389,6 +411,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                 sender.sendMessage(ChatColor.BOLD + "/changegender <stallion|gelding|mare> - " + ChatColor.RESET + "set the gender of a horse. Must be on the horse");
                 sender.sendMessage(ChatColor.BOLD + "/setbreed <breed> - " + ChatColor.RESET + "set the breed of the horse");
                 sender.sendMessage(ChatColor.BOLD + "/setpersonality <personality> - " + ChatColor.RESET + "set the personality of the horse");
+                sender.sendMessage(ChatColor.BOLD + "/setage <age> - " + ChatColor.RESET + "set the age of the horse in months");
             }
             sender.sendMessage(ChatColor.BOLD + "/showbreeds - " + ChatColor.RESET + "show the list of breeds");
             sender.sendMessage(ChatColor.BOLD + "/showtraits - " + ChatColor.RESET + "show the list of personalities");
@@ -504,7 +527,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         final String name = ChatColor.BOLD + "Name: " + ChatColor.RESET + (horse.getHorse().getCustomName() == null ? "No name" : horse.getHorse().getCustomName());
                         final String breedStr = ChatColor.BOLD + "Breed: " + ChatColor.RESET + horse.getBreed().toString();
                         final String personalityStr = ChatColor.BOLD + "Personalites: " + ChatColor.RESET + horse.getPersonalities()[0].toString() + ", " + horse.getPersonalities()[1].toString();
-                        final String ageStr = ChatColor.BOLD + "Age: " + durToStringYears(horse.getAge()) + " old";
+                        final String ageStr = ChatColor.BOLD + "Age: " + durToStringYears(horse.getAgeInMonths()) + " old";
                         String sickSince = durToString(horse.getIllDuration());
                         final String sickStr = ChatColor.BOLD + "Health: " + ChatColor.RESET + "" + (sickness ? ChatColor.RED + "Ill\nYou will need to take the horse to a vet to find out the exact illness." + ChatColor.RESET + " for " + sickSince : ChatColor.GREEN + "Well");
                         String hungerSince = durToString(horse.getHungerDuration());
@@ -624,13 +647,10 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
      * @param dur the duration in ms as a long.
      * @return String displaying the months and years
      */
-    private String durToStringYears(long dur) {
-        final double days = (int) (dur / 1000 / 60 / 60 / 24);
-        final double y = days / 30;
-        final double m = (int) (y * 12);
-        final int years = (int) (m / 12);
-        final int months = (int) (m % 12);
-        return "" + ChatColor.BOLD + ChatColor.AQUA + years + ChatColor.RESET + (years == 1 ? " year" : " years") + " and " + ChatColor.BOLD + ChatColor.AQUA + months + ChatColor.RESET + (months == 1 ? " month" : " months");
+    private String durToStringYears(int m) {
+        final int years = (int) Math.floor(m / 12);
+        final int months = m - (years * 12);
+        return "" + ChatColor.BOLD + ChatColor.AQUA + years + ChatColor.RESET + (years == 1 ? " year" : " years") + " and " + ChatColor.BOLD + ChatColor.AQUA + months + ChatColor.RESET + (months == 1 ? " month" : " months") + " Total months: " + m;
     }
 
     @EventHandler

@@ -43,7 +43,7 @@ public class MyHorse implements Serializable {
     private long lastBreed;
     private boolean defecateSinceEat;
     private HorseBreed breed;
-    private final long birthTime;
+    private long birthTime;
     private final Personality[] personality;
     private int dieat;
 
@@ -542,14 +542,34 @@ public class MyHorse implements Serializable {
     }
 
     /**
+     * Set the age of the horse in ms. This method simply edits the birth time
+     * of the horse.
+     *
+     * @param age the age in ms as a long.
+     */
+    public void setAge(long age) {
+        birthTime = getCurrentTime() - age;
+    }
+
+    /**
      * Get the horses age in months.
      *
      * @return the age of the horse in months.
      */
     public int getAgeInMonths() {
-        final double days = (int) (getAge() / 1000 / 60 / 60 / 24);
-        final double y = days / 30;
-        return (int) (y * 12);
+        final double days = (int) (getAge() / 1000L / 60L / 60L / 24L);
+        final double y = days / 30L;
+        return (int) y;
+    }
+
+    /**
+     * Set the age of the horse in months, this method changes the birth time.
+     *
+     * @param months the age in months as an int.
+     */
+    public void setAgeInMonths(int months) {
+        long age = months * 30L * 24L * 60L * 60L * 1000L;
+        setAge(age);
     }
 
     /**

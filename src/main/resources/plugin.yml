@@ -42,5 +42,8 @@ commands:
         description: Show a list of the traits/personalities.
         usage: /showtraits
     eqhelp:
-        decription: shows a list of help commands.
+        decription: Show a list of help commands.
         usage: /eqhelp
+    setage:
+        description: Set the age of the horse.
+        usage: /setage <age> (must be on a horse
