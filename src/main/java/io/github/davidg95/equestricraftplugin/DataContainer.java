@@ -212,6 +212,7 @@ public class DataContainer {
                     }
                 }
                 //If execution get here, then the horse does not exist in the file, so it needes to be initialised.
+                EquestriCraftPlugin.LOG.log(Level.INFO, "Adding new horse");
                 final MyHorse mh = new MyHorse(h);
                 horsesToAdd.add(mh);
             }
