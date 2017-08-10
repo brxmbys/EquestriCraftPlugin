@@ -89,7 +89,7 @@ public class HorseCheckerThread extends Thread {
     public static long MAIN_THREAD_INTERVAL = 100;
 
     private final DataContainer container;
-    
+
     private boolean run;
 
     public HorseCheckerThread() {
@@ -181,11 +181,11 @@ public class HorseCheckerThread extends Thread {
                 }
             }
         };
-        
+
         bAndCThread = new Thread(baleRun, "Bale_Cauldron_Checker");
         bAndCThread.setDaemon(true);
         bAndCThread.start(); //Start the able and cauldron thread.
-        
+
         vacThread = new Thread(vacRun, "Vaccination_Checker");
         vacThread.setDaemon(true);
         vacThread.start(); //Start the vaccination thread.
@@ -277,6 +277,10 @@ public class HorseCheckerThread extends Thread {
                     if (r <= BUCK_PROBABILITY) { //Check if a horse can buck.
                         horse.buck();
                     }
+
+                    if (horse.getAge() > horse.getDieAt() && horse.getDieAt() > 300) { //Check if the horse is too old.
+                        horse.kill();
+                    }
                 }
             } catch (Exception e) {
             } finally {
@@ -320,8 +324,8 @@ public class HorseCheckerThread extends Thread {
     public int getDrunkCauldrons() {
         return cauldrons.size();
     }
-    
-    public void setRun(boolean run){
+
+    public void setRun(boolean run) {
         this.run = run;
     }
 

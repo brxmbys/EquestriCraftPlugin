@@ -25,7 +25,7 @@ import org.bukkit.scheduler.BukkitRunnable;
  */
 public class MyHorse implements Serializable {
 
-    private static final long serialVersionUID = 2573463;
+    private static final long serialVersionUID = 1L;
 
     private long vaccinationTime;
     private boolean vaccination;
@@ -45,9 +45,10 @@ public class MyHorse implements Serializable {
     private HorseBreed breed;
     private final long birthTime;
     private Personality personality;
+    private int dieat;
 
     private transient Horse horse;
-
+    
     /**
      * Indicates the horses gender is a stallion. Value = 1.
      */
@@ -81,6 +82,7 @@ public class MyHorse implements Serializable {
         this.birthTime = getCurrentTime();
         this.personality = Personality.randomType();
         this.horse = h;
+        this.dieat = randomDieAt();
     }
 
     public static long getCurrentTime() {
@@ -100,6 +102,16 @@ public class MyHorse implements Serializable {
                 }
             }
         }.runTask(EquestriCraftPlugin.plugin);
+    }
+
+    /**
+     * Generate a random month between the age of 25 and 35.
+     *
+     * @return in between 300 and 420
+     */
+    public static int randomDieAt() {
+        double r = Math.random();
+        return (int) (r * 120) + 300;
     }
 
     /**
@@ -519,6 +531,35 @@ public class MyHorse implements Serializable {
      */
     public long getAge() {
         return getCurrentTime() - birthTime;
+    }
+
+    /**
+     * Get the horses age in months.
+     *
+     * @return the age of the horse in months.
+     */
+    public int getAgeInMonths() {
+        final double days = (int) (getAge() / 1000 / 60 / 60 / 24);
+        final double y = days / 30;
+        return (int) (y * 12);
+    }
+
+    /**
+     * Get the age the horse will die at.
+     *
+     * @return horse death age as an int.
+     */
+    public int getDieAt() {
+        return dieat;
+    }
+
+    /**
+     * Set the horses death age.
+     *
+     * @param dieat the age in months the horse will die at.
+     */
+    public void setDieat(int dieat) {
+        this.dieat = dieat;
     }
 
     /**

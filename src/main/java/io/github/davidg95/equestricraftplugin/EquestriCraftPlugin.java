@@ -463,6 +463,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         player.sendMessage(hungerStr);
                         player.sendMessage(thirstStr);
                         player.sendMessage(vaccinationStr);
+                        player.sendMessage("Die At: " + horse.getDieAt() + " months");
                         player.sendMessage(">------------------------------<");
                     } else {
                         player.sendMessage("You must click on a horse");
