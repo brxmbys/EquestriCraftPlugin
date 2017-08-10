@@ -121,6 +121,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     sender.sendMessage("Mares: " + mare);
                     sender.sendMessage("Geldings: " + geld);
                     sender.sendMessage("None assigned: " + none);
+                    sender.sendMessage("---------------------------");
+                    sender.sendMessage("Checker Thread: " + checkerThread.isAlive());
                 }
             }.start();
             return true;
@@ -389,36 +391,36 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             }
 
             if (op || console) {
-                sender.sendMessage(ChatColor.BOLD + "/equestristatus - " + ChatColor.RESET + "shows horse numbers");
+                sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/equestristatus - " + ChatColor.RESET + "shows horse numbers");
             }
             if (op) {
-                sender.sendMessage(ChatColor.BOLD + "/createhorse - " + ChatColor.RESET + "create a horse");
+                sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/createhorse - " + ChatColor.RESET + "create a horse");
             }
             if (!console) {
-                sender.sendMessage(ChatColor.BOLD + "/geldingtool - " + ChatColor.RESET + "spawn the gelding tool");
+                sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/geldingtool - " + ChatColor.RESET + "spawn the gelding tool");
             }
             if (!console) {
-                sender.sendMessage(ChatColor.BOLD + "/horsewand - " + ChatColor.RESET + "spawn the horse wand tool");
+                sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/horsewand - " + ChatColor.RESET + "spawn the horse wand tool");
             }
             if (doctor) {
                 sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "/horsemedicine - " + ChatColor.RESET + "spawn the horse healing tool");
                 sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "/vaccination - " + ChatColor.RESET + "spawn the vaccination tool");
             }
             if (op || console) {
-                sender.sendMessage(ChatColor.BOLD + "/adddoctor <player> - " + ChatColor.RESET + "make a player a doctor");
+                sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/adddoctor <player> - " + ChatColor.RESET + "make a player a doctor");
             }
             if (op) {
-                sender.sendMessage(ChatColor.BOLD + "/changegender <stallion|gelding|mare> - " + ChatColor.RESET + "set the gender of a horse. Must be on the horse");
-                sender.sendMessage(ChatColor.BOLD + "/setbreed <breed> - " + ChatColor.RESET + "set the breed of the horse");
-                sender.sendMessage(ChatColor.BOLD + "/setpersonality <personality> - " + ChatColor.RESET + "set the personality of the horse");
-                sender.sendMessage(ChatColor.BOLD + "/setage <age> - " + ChatColor.RESET + "set the age of the horse in months");
+                sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/changegender <stallion|gelding|mare> - " + ChatColor.RESET + "set the gender of a horse. Must be on the horse");
+                sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/setbreed <breed> - " + ChatColor.RESET + "set the breed of the horse");
+                sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/setpersonality <personality> - " + ChatColor.RESET + "set the personality of the horse");
+                sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/setage <age> - " + ChatColor.RESET + "set the age of the horse in months");
             }
-            sender.sendMessage(ChatColor.BOLD + "/showbreeds - " + ChatColor.RESET + "show the list of breeds");
-            sender.sendMessage(ChatColor.BOLD + "/showtraits - " + ChatColor.RESET + "show the list of personalities");
+            sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/showbreeds - " + ChatColor.RESET + "show the list of breeds");
+            sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/showtraits - " + ChatColor.RESET + "show the list of personalities");
             if (op || console) {
-                sender.sendMessage(ChatColor.BOLD + "/savehorses - " + ChatColor.RESET + "save the horses to file");
+                sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/savehorses - " + ChatColor.RESET + "save the horses to file");
             }
-            sender.sendMessage(ChatColor.BOLD + "/eqhelp - " + ChatColor.RESET + "shows this message");
+            sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/eqhelp - " + ChatColor.RESET + "shows this message");
             return true;
         }
         return false;
