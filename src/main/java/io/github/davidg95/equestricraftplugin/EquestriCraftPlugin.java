@@ -285,7 +285,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     if (player.getVehicle() != null || player.getVehicle() instanceof Horse) {
                         final MyHorse horse = container.getHorse(player.getVehicle().getUniqueId());
                         for (HorseBreed br : HorseBreed.values()) {
-                            if (br.toString().equalsIgnoreCase(args[0])) {
+                            if (br.name().equalsIgnoreCase(args[0])) {
                                 horse.setBreed(br);
                                 break;
                             }

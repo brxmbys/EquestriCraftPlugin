@@ -56,6 +56,7 @@ public enum HorseBreed {
     NormanCob,
     NorthSwedishHorse,
     Oldenburg,
+    PasoFino,
     Percheron,
     RockyMountainHorse,
     SelleFrançais,
@@ -66,6 +67,7 @@ public enum HorseBreed {
     TennesseeWalking,
     Thoroughbred,
     Trakhener,
+    WelshPony,
     Westphalian;
 
     /**
