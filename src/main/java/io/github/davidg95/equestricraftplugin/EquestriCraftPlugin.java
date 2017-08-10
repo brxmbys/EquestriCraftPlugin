@@ -546,9 +546,12 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     final Horse horse = (Horse) event.getRightClicked(); //Get the horse that was clicked on.
                     if (horse.getTarget() == null) {
                         horse.setTarget(player);
+                        player.sendMessage("Horse will follow you");
                     } else {
                         horse.setTarget(null);
+                        player.sendMessage("Horse will not follow you");
                     }
+                    event.setCancelled(true);
                     break;
                 default:
                     break;
