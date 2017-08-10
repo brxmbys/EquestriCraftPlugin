@@ -409,10 +409,10 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     break;
                 case STICK: //Horse wand
                     //Horse checking stick
-                    if (!inHand.getItemMeta().hasDisplayName()) { //Check the shears have a display name.
+                    if (!inHand.getItemMeta().hasDisplayName()) { //Check the stick has a display name.
                         return;
                     }
-                    if (!inHand.getItemMeta().getDisplayName().equals(STICK_NAME)) { //Check the shears are the Gelding Shears.
+                    if (!inHand.getItemMeta().getDisplayName().equals(STICK_NAME)) { //Check the stick is the horse wand.
                         return;
                     }
                     if (event.getEntity() instanceof Horse) {
@@ -445,7 +445,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         final String name = ChatColor.BOLD + "Name: " + ChatColor.RESET + (horse.getHorse().getCustomName() == null ? "No name" : horse.getHorse().getCustomName());
                         final String breedStr = ChatColor.BOLD + "Breed: " + ChatColor.RESET + horse.getBreed().toString();
                         final String personalityStr = ChatColor.BOLD + "Personality: " + ChatColor.RESET + horse.getPersonality().toString();
-                        final String ageStr = ChatColor.BOLD + "Age: " + durToString(horse.getAge()) + " old";
+                        final String ageStr = ChatColor.BOLD + "Age: " + durToStringYears(horse.getAge()) + " old";
                         String sickSince = durToString(horse.getIllDuration());
                         final String sickStr = ChatColor.BOLD + "Health: " + ChatColor.RESET + "" + (sickness ? ChatColor.RED + "Ill" + ChatColor.RESET + " for " + sickSince : ChatColor.GREEN + "Well");
                         String hungerSince = durToString(horse.getHungerDuration());
@@ -519,6 +519,22 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             hours = (int) dur / 1000 / 60 / 60;
         }
         return "" + ChatColor.BOLD + ChatColor.AQUA + days + ChatColor.RESET + (days == 1 ? " day" : " days") + " and " + ChatColor.BOLD + ChatColor.AQUA + hours + ChatColor.RESET + (hours == 1 ? " hour" : " hours");
+    }
+
+    /**
+     * Convert a long durations in ms to a string displaying the months and
+     * years where a year lasts one month.
+     *
+     * @param dur the duration in ms as a long.
+     * @return String displaying the months and years
+     */
+    private String durToStringYears(long dur) {
+        final double days = (int) (dur / 1000 / 60 / 60 / 24);
+        final double y = days / 30;
+        final double m = (int) (y * 12);
+        final int years = (int) (m / 12);
+        final int months = (int) (m % 12);
+        return "" + ChatColor.BOLD + ChatColor.AQUA + years + ChatColor.RESET + (years == 1 ? " year" : " years") + " and " + ChatColor.BOLD + ChatColor.AQUA + months + ChatColor.RESET + (months == 1 ? " month" : " months");
     }
 
     @EventHandler
