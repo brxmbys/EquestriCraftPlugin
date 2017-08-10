@@ -4,6 +4,8 @@
 package io.github.davidg95.equestricraftplugin;
 
 /**
+ * Enum for horse breed, Note that adding horse breeds can change the breeds of
+ * some horses on the server.
  *
  * @author David
  */
