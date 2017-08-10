@@ -44,11 +44,11 @@ public class MyHorse implements Serializable {
     private boolean defecateSinceEat;
     private HorseBreed breed;
     private final long birthTime;
-    private Personality personality;
+    private final Personality[] personality;
     private int dieat;
 
     private transient Horse horse;
-    
+
     /**
      * Indicates the horses gender is a stallion. Value = 1.
      */
@@ -80,7 +80,15 @@ public class MyHorse implements Serializable {
         this.uuid = h.getUniqueId();
         this.breed = HorseBreed.randomType();
         this.birthTime = getCurrentTime();
-        this.personality = Personality.randomType();
+        Personality p1 = Personality.randomType();
+        Personality p2;
+        while (true) {
+            p2 = Personality.randomType();
+            if (!p1.equals(p2)) {
+                break;
+            }
+        }
+        this.personality = new Personality[]{p1, p2};
         this.horse = h;
         this.dieat = randomDieAt();
     }
@@ -567,17 +575,19 @@ public class MyHorse implements Serializable {
      *
      * @return the horses personality.
      */
-    public Personality getPersonality() {
+    public Personality[] getPersonalities() {
         return personality;
     }
 
     /**
      * Set the horses personality.
      *
-     * @param p the personality.
+     * @param p1 the first personality.
+     * @param p2 the second personality.
      */
-    public void setPersonality(Personality p) {
-        this.personality = p;
+    public void setPersonalities(Personality p1, Personality p2) {
+        personality[0] = p1;
+        personality[1] = p2;
     }
 
     @Override

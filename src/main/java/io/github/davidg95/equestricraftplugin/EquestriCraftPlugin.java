@@ -302,18 +302,34 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             }
             return true;
         } else if (cmd.getName().equalsIgnoreCase("setpersonality")) {   //setpersonality command
-            if (args.length == 1) {
+            if (args.length == 2) {
                 if ((sender instanceof Player && ((Player) sender).isOp())) {
                     final Player player = (Player) sender;
                     if (player.getVehicle() != null || player.getVehicle() instanceof Horse) {
                         final MyHorse horse = container.getHorse(player.getVehicle().getUniqueId());
+                        if (args[0].equalsIgnoreCase(args[1])) {
+                            player.sendMessage("You must select two different personalities");
+                        }
+                        Personality p1 = null;
+                        Personality p2 = null;
                         for (Personality p : Personality.values()) {
                             if (p.toString().equalsIgnoreCase(args[0])) {
-                                horse.setPersonality(p);
+                                p1 = p;
                                 break;
                             }
                         }
-                        sender.sendMessage(ChatColor.BOLD + "Personality set to " + horse.getPersonality().toString());
+                        for (Personality p : Personality.values()) {
+                            if (p.toString().equalsIgnoreCase(args[1])) {
+                                p2 = p;
+                                break;
+                            }
+                        }
+                        if (p1 == null || p2 == null) {
+                            player.sendMessage("Some personalities could not be found");
+                            return true;
+                        }
+                        horse.setPersonalities(p1, p2);
+                        sender.sendMessage(ChatColor.BOLD + "Personality set to " + p1.toString() + " and " + p2.toString());
                     } else {
                         sender.sendMessage(ChatColor.BOLD + "You must be on a horse!");
                     }
@@ -444,7 +460,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         }
                         final String name = ChatColor.BOLD + "Name: " + ChatColor.RESET + (horse.getHorse().getCustomName() == null ? "No name" : horse.getHorse().getCustomName());
                         final String breedStr = ChatColor.BOLD + "Breed: " + ChatColor.RESET + horse.getBreed().toString();
-                        final String personalityStr = ChatColor.BOLD + "Personality: " + ChatColor.RESET + horse.getPersonality().toString();
+                        final String personalityStr = ChatColor.BOLD + "Personalites: " + ChatColor.RESET + horse.getPersonalities()[0].toString() + ", " + horse.getPersonalities()[1].toString();
                         final String ageStr = ChatColor.BOLD + "Age: " + durToStringYears(horse.getAge()) + " old";
                         String sickSince = durToString(horse.getIllDuration());
                         final String sickStr = ChatColor.BOLD + "Health: " + ChatColor.RESET + "" + (sickness ? ChatColor.RED + "Ill" + ChatColor.RESET + " for " + sickSince : ChatColor.GREEN + "Well");

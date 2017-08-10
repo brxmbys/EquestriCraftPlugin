@@ -4,6 +4,8 @@
 package io.github.davidg95.equestricraftplugin;
 
 /**
+ * Enum for personalities/traits. Note that adding new traits can change the
+ * traits of some horses on the server.
  *
  * @author David
  */
