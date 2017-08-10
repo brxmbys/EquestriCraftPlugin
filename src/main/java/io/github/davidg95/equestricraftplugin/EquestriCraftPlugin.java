@@ -499,10 +499,9 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     }
                     if (event.getEntity() instanceof Horse) {
                         event.setCancelled(true);
-                        final MyHorse horse = container.getHorse(event.getEntity().getUniqueId()); //Get the horse that was clicked on.
+                        MyHorse horse = container.getHorse(event.getEntity().getUniqueId()); //Get the horse that was clicked on.
                         if (horse == null) {
-                            player.sendMessage("This horse has no details, this is an error and should be reported to an admin or dev.");
-                            return;
+                            horse = new MyHorse((Horse) event.getEntity());
                         }
                         boolean sickness = horse.isSick();
                         int gender = horse.getGender();
@@ -650,7 +649,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     private String durToStringYears(int m) {
         final int years = (int) Math.floor(m / 12);
         final int months = m - (years * 12);
-        return "" + ChatColor.BOLD + ChatColor.AQUA + years + ChatColor.RESET + (years == 1 ? " year" : " years") + " and " + ChatColor.BOLD + ChatColor.AQUA + months + ChatColor.RESET + (months == 1 ? " month" : " months") + " Total months: " + m;
+        return "" + ChatColor.BOLD + ChatColor.AQUA + years + ChatColor.RESET + (years == 1 ? " year" : " years") + " and " + ChatColor.BOLD + ChatColor.AQUA + months + ChatColor.RESET + (months == 1 ? " month" : " months");
     }
 
     @EventHandler
