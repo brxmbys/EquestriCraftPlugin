@@ -506,7 +506,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         final String personalityStr = ChatColor.BOLD + "Personalites: " + ChatColor.RESET + horse.getPersonalities()[0].toString() + ", " + horse.getPersonalities()[1].toString();
                         final String ageStr = ChatColor.BOLD + "Age: " + durToStringYears(horse.getAge()) + " old";
                         String sickSince = durToString(horse.getIllDuration());
-                        final String sickStr = ChatColor.BOLD + "Health: " + ChatColor.RESET + "" + (sickness ? ChatColor.RED + "Ill" + ChatColor.RESET + " for " + sickSince : ChatColor.GREEN + "Well");
+                        final String sickStr = ChatColor.BOLD + "Health: " + ChatColor.RESET + "" + (sickness ? ChatColor.RED + "Ill\nYou will need to take the horse to a vet to find out the exact illness." + ChatColor.RESET + " for " + sickSince : ChatColor.GREEN + "Well");
                         String hungerSince = durToString(horse.getHungerDuration());
                         final String hungerStr = ChatColor.BOLD + "Hunger: " + ChatColor.RESET + "" + (hunger ? ChatColor.RED + "Hungry" + ChatColor.RESET + " for " + hungerSince : ChatColor.GREEN + "Not Hungry");
                         String thirstSince = durToString(horse.getThristDuration());
