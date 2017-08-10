@@ -35,3 +35,9 @@ commands:
     setpersonality:
         description: Set the personality of a horse.
         usage: /setpersonality <personality> (must be on a horse)
+    showbreeds:
+        description: Show a list of the breeds.
+        usage: /showbreeds
+    showtraits:
+        description: Show a list of the traits/personalities.
+        usage: /showtraits

@@ -324,6 +324,20 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                 return false;
             }
             return true;
+        } else if (cmd.getName().equalsIgnoreCase("showbreeds")) {   //showbreeds command
+            String breeds = "";
+            for (HorseBreed br : HorseBreed.values()) {
+                breeds += br.toString() + "\n";
+            }
+            sender.sendMessage(breeds);
+            return true;
+        } else if (cmd.getName().equalsIgnoreCase("showtraits")) {   //showtraits command
+            String traits = "";
+            for (Personality per : Personality.values()) {
+                traits += per.toString() + "\n";
+            }
+            sender.sendMessage(traits);
+            return true;
         }
         return false;
     }
@@ -404,7 +418,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     if (event.getEntity() instanceof Horse) {
                         event.setCancelled(true);
                         final MyHorse horse = container.getHorse(event.getEntity().getUniqueId()); //Get the horse that was clicked on.
-                        if(horse == null){
+                        if (horse == null) {
                             player.sendMessage("This horse has no details, this is an error and should be reported to an admin or dev.");
                             return;
                         }
@@ -492,6 +506,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
 
     /**
      * Convert a long durations in ms to a string displaying the days and hours.
+     *
      * @param dur the duration in ms as a long.
      * @return String displaying the days and hours.
      */
