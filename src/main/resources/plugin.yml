@@ -41,3 +41,6 @@ commands:
     showtraits:
         description: Show a list of the traits/personalities.
         usage: /showtraits
+    eqhelp:
+        decription: shows a list of help commands.
+        usage: /eqhelp
