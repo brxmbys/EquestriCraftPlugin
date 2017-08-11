@@ -46,6 +46,7 @@ public class MyHorse implements Serializable {
     private long birthTime;
     private final Personality[] personality;
     private int dieat;
+    private Illness illness;
 
     private transient Horse horse;
 
@@ -91,6 +92,7 @@ public class MyHorse implements Serializable {
         this.personality = new Personality[]{p1, p2};
         this.horse = h;
         this.dieat = randomDieAt();
+        this.illness = null;
     }
 
     public static long getCurrentTime() {
@@ -442,6 +444,16 @@ public class MyHorse implements Serializable {
     public void setSick(boolean sick) {
         if (sick) {
             this.illSince = getCurrentTime();
+            while (true) {
+                this.illness = Illness.randomIllness();
+                if (gender == MyHorse.MARE) {
+                    if (illness != Illness.MareReproductiveLoss) {
+                        break;
+                    }
+                } else {
+                    break;
+                }
+            }
         } else {
             this.wellSince = getCurrentTime();
         }
@@ -608,6 +620,15 @@ public class MyHorse implements Serializable {
     public void setPersonalities(Personality p1, Personality p2) {
         personality[0] = p1;
         personality[1] = p2;
+    }
+
+    /**
+     * Get the horses illness.
+     *
+     * @return the horses illness.
+     */
+    public Illness getIllness() {
+        return illness;
     }
 
     @Override
