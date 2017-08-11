@@ -492,7 +492,7 @@ public class MyHorse implements Serializable {
      * fraction of their health.
      */
     public void buck() {
-        if(horse == null){
+        if (horse == null) {
             return;
         }
         final Player player = (Player) horse.getPassenger();
@@ -641,6 +641,15 @@ public class MyHorse implements Serializable {
      */
     public Illness getIllness() {
         return illness;
+    }
+
+    /**
+     * Set the horses illness.
+     *
+     * @param illness the illness.
+     */
+    public void setIllness(Illness illness) {
+        this.illness = illness;
     }
 
     @Override
