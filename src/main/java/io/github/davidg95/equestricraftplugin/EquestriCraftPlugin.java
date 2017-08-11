@@ -503,7 +503,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         event.setCancelled(true);
                         MyHorse horse = container.getHorse(event.getEntity().getUniqueId()); //Get the horse that was clicked on.
                         if (horse == null) {
-                            return;
+                            player.sendMessage("This horse has no details assigned");
                         }
                         boolean sickness = horse.isSick();
                         int gender = horse.getGender();
