@@ -201,43 +201,56 @@ public class HorseCheckerThread extends Thread {
                     if (horse == null) {
                         continue;
                     }
-                    final Block cauldron = MyHorse.getNearCauldron(horse); //Get the nearby cauldron if there is one.
+
                     new BukkitRunnable() {
                         @Override
                         public void run() {
+                            final Block cauldron = MyHorse.getNearCauldron(horse); //Get the nearby cauldron if there is one.
                             if (cauldron != null) { //Check if they are next to a cauldron.
                                 if (getFirstEat(cauldron) == -1) {
                                     getFirstEat(cauldron);
                                 }
                                 horse.setThirst(false);
                             }
+                            final Runnable caulAdd = new Runnable() {
+                                @Override
+                                public void run() {
+                                    final long cstamp = cauldronLock.writeLock();
+                                    try {
+                                        cauldrons.add(cauldron);
+                                    } finally {
+                                        cauldronLock.unlockWrite(cstamp);
+                                    }
+                                }
+                            };
+                            new Thread(caulAdd, "Caul_Add").start();
                         }
                     }.runTask(EquestriCraftPlugin.plugin);
-                    final long cstamp = cauldronLock.writeLock();
-                    try {
-                        cauldrons.add(cauldron);
-                    } finally {
-                        cauldronLock.unlockWrite(cstamp);
-                    }
 
-                    final Block bale = MyHorse.getNearHayBale(horse); //Get the nearby hay bale if there is one.
                     new BukkitRunnable() {
                         @Override
                         public void run() {
+                            final Block bale = MyHorse.getNearHayBale(horse); //Get the nearby hay bale if there is one.
                             if (bale != null) { //Check if they are next to a hay bale.
                                 if (getFirstEat(bale) == -1) {
                                     setFirstEat(bale);
                                 }
                                 horse.setHunger(false);
                             }
+                            final Runnable baleAdd = new Runnable() {
+                                @Override
+                                public void run() {
+                                    final long bstamp = baleLock.writeLock();
+                                    try {
+                                        bales.add(bale);
+                                    } finally {
+                                        baleLock.unlockWrite(bstamp);
+                                    }
+                                }
+                            };
+                            new Thread(baleAdd, "Bale_Add").start();
                         }
                     }.runTask(EquestriCraftPlugin.plugin);
-                    final long bstamp = baleLock.writeLock();
-                    try {
-                        bales.add(bale);
-                    } finally {
-                        baleLock.unlockWrite(bstamp);
-                    }
 
                     if (horse.getDurationSinceLastDrink() > DRINK_LIMIT) { //Check if the horse is thirsty.
                         horse.setThirst(true);
