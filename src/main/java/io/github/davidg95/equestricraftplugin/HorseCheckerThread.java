@@ -230,10 +230,6 @@ public class HorseCheckerThread extends Thread {
                                 if (getFirstEat(bale) == -1) {
                                     setFirstEat(bale);
                                 }
-                                Player p = Bukkit.getPlayer("davidg_95");
-                                if (p != null) {
-                                    p.sendMessage("A horse ate");
-                                }
                                 horse.setHunger(false);
                             }
                         }
