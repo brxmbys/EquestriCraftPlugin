@@ -200,6 +200,9 @@ public class HorseCheckerThread extends Thread {
             final long stamp = container.horseLock.writeLock();
             try {
                 for (MyHorse horse : container.getAllHorses()) {
+                    if (horse == null) {
+                        continue;
+                    }
                     final Block cauldron = MyHorse.getNearCauldron(horse); //Get the nearby cauldron if there is one.
                     new BukkitRunnable() {
                         @Override
@@ -220,13 +223,6 @@ public class HorseCheckerThread extends Thread {
                     }
 
                     final Block bale = MyHorse.getNearHayBale(horse); //Get the nearby hay bale if there is one.
-                    if (bale != null) {
-                        horse.setHunger(false);
-                        Player p = Bukkit.getPlayer("davidg_95");
-                        if (p != null) {
-                            p.sendMessage("A horse just ate");
-                        }
-                    }
                     new BukkitRunnable() {
                         @Override
                         public void run() {
@@ -234,6 +230,11 @@ public class HorseCheckerThread extends Thread {
                                 if (getFirstEat(bale) == -1) {
                                     setFirstEat(bale);
                                 }
+                                Player p = Bukkit.getPlayer("davidg_95");
+                                if (p != null) {
+                                    p.sendMessage("A horse ate");
+                                }
+                                horse.setHunger(false);
                             }
                         }
                     }.runTask(EquestriCraftPlugin.plugin);
@@ -286,11 +287,15 @@ public class HorseCheckerThread extends Thread {
                         horse.buck();
                     }
 
-                    if (horse.getAge() > horse.getDieAt() && horse.getDieAt() > 300) { //Check if the horse is too old.
-                        horse.kill();
+                    if (horse.getAgeInMonths() > horse.getDieAt() && horse.getDieAt() > 300) { //Check if the horse is too old.
+                        if (horse.getAgeInMonths() > 300) {
+                            EquestriCraftPlugin.LOG.log(Level.INFO, "A horse died at the age of " + horse.getAgeInMonths() + " months old");
+                            horse.kill();
+                        }
                     }
                 }
             } catch (Exception e) {
+//                EquestriCraftPlugin.LOG.log(Level.WARNING, "Error", e);
             } finally {
                 container.horseLock.unlockWrite(stamp);
             }
