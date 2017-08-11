@@ -380,6 +380,27 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                 return true;
             }
             return false;
+        } else if (cmd.getName().equalsIgnoreCase("doctortool")) {   //doctortool command
+            if (sender instanceof Player) {
+                final Player player = (Player) sender;
+                if (container.isDoctor(player)) {
+                    final PlayerInventory inventory = player.getInventory();
+                    final ItemStack doctorTool = new ItemStack(Material.STICK, 1);
+                    final ItemMeta im = doctorTool.getItemMeta();
+                    im.setDisplayName(DOCTOR_TOOL);
+                    final List<String> comments = new ArrayList<>();
+                    comments.add("Used to vaccinate horses.");
+                    comments.add("Vaccinations last for 4 weeks");
+                    im.setLore(comments);
+                    doctorTool.setItemMeta(im);
+                    inventory.addItem(doctorTool);
+                } else {
+                    sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "Only a doctor can use this command");
+                }
+            } else {
+                sender.sendMessage("Only a player can use this command");
+            }
+            return true;
         } else if (cmd.getName().equalsIgnoreCase("eqhelp")) {   //eqhelp command
             boolean op = false;
             boolean console = false;
@@ -406,6 +427,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             if (doctor) {
                 sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "/horsemedicine - " + ChatColor.RESET + "spawn the horse healing tool");
                 sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "/vaccination - " + ChatColor.RESET + "spawn the vaccination tool");
+                sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "/doctortool - " + ChatColor.RESET + "spawn the doctor tool for checking a horses health");
             }
             if (op || console) {
                 sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/adddoctor <player> - " + ChatColor.RESET + "make a player a doctor");

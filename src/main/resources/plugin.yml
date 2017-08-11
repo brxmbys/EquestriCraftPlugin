@@ -23,6 +23,9 @@ commands:
     adddoctor:
         description: Make a player a doctor.
         usage: /adddoctor <playername>
+    doctortool:
+        description: Spawn the tool to check a horses health.
+        usage: /doctortool
     changegender:
         description: Change the gender of a horse.
         usage: /changegender <stallion|mare|gelding> (must be on a horse)
