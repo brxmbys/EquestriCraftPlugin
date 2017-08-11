@@ -9,9 +9,11 @@ import java.util.List;
 import java.util.concurrent.locks.StampedLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Horse;
+import org.bukkit.entity.Player;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.metadata.MetadataValue;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -218,6 +220,13 @@ public class HorseCheckerThread extends Thread {
                     }
 
                     final Block bale = MyHorse.getNearHayBale(horse); //Get the nearby hay bale if there is one.
+                    if (bale != null) {
+                        horse.setHunger(false);
+                        Player p = Bukkit.getPlayer("davidg_95");
+                        if (p != null) {
+                            p.sendMessage("A horse just ate");
+                        }
+                    }
                     new BukkitRunnable() {
                         @Override
                         public void run() {
@@ -225,7 +234,6 @@ public class HorseCheckerThread extends Thread {
                                 if (getFirstEat(bale) == -1) {
                                     setFirstEat(bale);
                                 }
-                                horse.setHunger(false);
                             }
                         }
                     }.runTask(EquestriCraftPlugin.plugin);

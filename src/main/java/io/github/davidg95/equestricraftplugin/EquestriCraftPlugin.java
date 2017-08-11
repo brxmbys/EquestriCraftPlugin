@@ -121,6 +121,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     sender.sendMessage("Mares: " + mare);
                     sender.sendMessage("Geldings: " + geld);
                     sender.sendMessage("None assigned: " + none);
+                    sender.sendMessage("---------------------------");
+                    sender.sendMessage("Checker Thread: " + checkerThread.isAlive());
                 }
             }.start();
             return true;
@@ -542,7 +544,9 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         player.sendMessage(ageStr);
                         player.sendMessage(sickStr);
                         player.sendMessage(hungerStr);
+                        player.sendMessage("    -Last eat: " + durToString(horse.getDurationSinceLastEat()));
                         player.sendMessage(thirstStr);
+                        player.sendMessage("    -Last drink: " + durToString(horse.getDurationSinceLastDrink()));
                         player.sendMessage(vaccinationStr);
 //                        player.sendMessage("Die At: " + horse.getDieAt() + " months");
                         player.sendMessage(">------------------------------<");
