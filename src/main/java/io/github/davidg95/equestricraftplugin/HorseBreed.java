@@ -76,7 +76,8 @@ public enum HorseBreed {
     Trakhener,
     WelshPony,
     Westphalian,
-    AmericanSportPony;
+    AmericanSportPony,
+    Tinker;
 
     /**
      * Get a random horse breed.
