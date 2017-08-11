@@ -580,7 +580,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                             event.setCancelled(true);
                             MyHorse horse = container.getHorse(event.getEntity().getUniqueId()); //Get the horse that was clicked on.
                             if (horse == null) {
-                                player.sendMessage("Error checking horse");
+                                player.sendMessage(ChatColor.RED + "Error checking horse");
                                 return;
                             }
                             boolean sickness = horse.isSick();
@@ -599,15 +599,15 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                                     }
                                 }
                                 if (illness != null) {
-                                    player.sendMessage("This horse has got " + illness.toString());
+                                    player.sendMessage(ChatColor.BOLD + "This horse has got " + ChatColor.AQUA + illness.toString());
                                 } else {
                                     player.sendMessage("Unknown illness");
                                 }
                             } else {
-                                player.sendMessage("Horse is not sick");
+                                player.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "Horse is not sick");
                             }
                         } else {
-                            player.sendMessage("You must click on a horse");
+                            player.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "You must click on a horse");
                         }
                     }
                     break;
