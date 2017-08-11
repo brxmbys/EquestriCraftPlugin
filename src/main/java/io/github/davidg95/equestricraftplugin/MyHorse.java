@@ -131,7 +131,9 @@ public class MyHorse implements Serializable {
         new BukkitRunnable() {
             @Override
             public void run() {
-                horse.setHealth(0);
+                if (horse != null) {
+                    horse.setHealth(0);
+                }
             }
         }.runTask(EquestriCraftPlugin.plugin);
     }
@@ -152,6 +154,9 @@ public class MyHorse implements Serializable {
      * @return the block the cauldron is in, null if there is not one nearby.
      */
     public static Block getNearCauldron(MyHorse horse) {
+        if (horse == null || horse.getHorse() == null) {
+            return null;
+        }
         final Horse h = horse.getHorse();
         for (Block b : getNearbyBlocks(h)) {
             if (b.getType() == Material.CAULDRON) {
@@ -168,6 +173,9 @@ public class MyHorse implements Serializable {
      * @return the block the hay bale is in, null if there is not one nearby.
      */
     public static Block getNearHayBale(MyHorse horse) {
+        if (horse == null || horse.getHorse() == null) {
+            return null;
+        }
         final Horse h = horse.getHorse();
         for (Block b : getNearbyBlocks(h)) {
             if (b.getType() == Material.HAY_BLOCK) {
@@ -180,6 +188,7 @@ public class MyHorse implements Serializable {
     /**
      * Get a List of all the block next to the horse.
      *
+     * @param horse the horse object.
      * @return the blocks as a list.
      */
     private static List<Block> getNearbyBlocks(Horse horse) {
@@ -483,6 +492,9 @@ public class MyHorse implements Serializable {
      * fraction of their health.
      */
     public void buck() {
+        if(horse == null){
+            return;
+        }
         final Player player = (Player) horse.getPassenger();
         if (player != null) {
             horse.eject();

@@ -519,56 +519,58 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     if (!inHand.getItemMeta().hasDisplayName()) { //Check the stick has a display name.
                         return;
                     }
-                    if (inHand.getItemMeta().getDisplayName().equals(STICK_NAME)) { //Check the stick is the horse wand.
-                        if (event.getEntity() instanceof Horse) {
-                            event.setCancelled(true);
-                            MyHorse horse = container.getHorse(event.getEntity().getUniqueId()); //Get the horse that was clicked on.
-                            if (horse == null) {
-                                return;
-                            }
-                            boolean sickness = horse.isSick();
-                            int gender = horse.getGender();
-                            boolean hunger = horse.isHungry();
-                            boolean thirst = horse.isThirsty();
-                            boolean vaccination = horse.isVaccinated();
-                            String genderStr = ChatColor.BOLD + "Gender: " + ChatColor.RESET;
-                            switch (gender) {
-                                case MyHorse.STALLION:
-                                    genderStr = genderStr + ChatColor.DARK_RED + "Stallion";
-                                    break;
-                                case MyHorse.MARE:
-                                    genderStr = genderStr + ChatColor.DARK_PURPLE + "Mare";
-                                    break;
-                                case MyHorse.GELDING:
-                                    genderStr = genderStr + ChatColor.DARK_AQUA + "Gelding";
-                                    break;
-                                default:
-                                    genderStr = genderStr + "None";
-                                    break;
-                            }
-                            final String name = ChatColor.BOLD + "Name: " + ChatColor.RESET + (horse.getHorse().getCustomName() == null ? "No name" : horse.getHorse().getCustomName());
-                            final String breedStr = ChatColor.BOLD + "Breed: " + ChatColor.RESET + horse.getBreed().toString();
-                            final String personalityStr = ChatColor.BOLD + "Personalites: " + ChatColor.RESET + horse.getPersonalities()[0].toString() + ", " + horse.getPersonalities()[1].toString();
-                            final String ageStr = ChatColor.BOLD + "Age: " + durToStringYears(horse.getAgeInMonths()) + " old";
-                            String sickSince = durToString(horse.getIllDuration());
-                            final String sickStr = ChatColor.BOLD + "Health: " + ChatColor.RESET + "" + (sickness ? ChatColor.RED + "Ill\nYou will need to take the horse to a vet to find out the exact illness." + ChatColor.RESET + " for " + sickSince : ChatColor.GREEN + "Well");
-                            String hungerSince = durToString(horse.getHungerDuration());
-                            final String hungerStr = ChatColor.BOLD + "Hunger: " + ChatColor.RESET + "" + (hunger ? ChatColor.RED + "Hungry" + ChatColor.RESET + " for " + hungerSince : ChatColor.GREEN + "Not Hungry");
-                            String thirstSince = durToString(horse.getThristDuration());
-                            final String thirstStr = ChatColor.BOLD + "Thirst: " + ChatColor.RESET + "" + (thirst ? ChatColor.RED + "Thirsty" + ChatColor.RESET + " for " + thirstSince : ChatColor.GREEN + "Not Thirsty");
-                            final String vaccinationStr = ChatColor.BOLD + "Vaccinated: " + ChatColor.RESET + "" + (vaccination ? ChatColor.GREEN + "Yes" : ChatColor.RED + "No");
-                            player.sendMessage(">------------------------------<");
+                if (!inHand.getItemMeta().getDisplayName().equals(STICK_NAME)) { //Check the stick is the horse wand.
+                        return;
+                    }
+                    if (event.getEntity() instanceof Horse) {
+                        event.setCancelled(true);
+                        MyHorse horse = container.getHorse(event.getEntity().getUniqueId()); //Get the horse that was clicked on.
+                        if (horse == null) {
+                            player.sendMessage("This horse has no details assigned");
+                        }
+                        boolean sickness = horse.isSick();
+                        int gender = horse.getGender();
+                        boolean hunger = horse.isHungry();
+                        boolean thirst = horse.isThirsty();
+                        boolean vaccination = horse.isVaccinated();
+                        String genderStr = ChatColor.BOLD + "Gender: " + ChatColor.RESET;
+                        switch (gender) {
+                            case MyHorse.STALLION:
+                                genderStr = genderStr + ChatColor.DARK_RED + "Stallion";
+                                break;
+                            case MyHorse.MARE:
+                                genderStr = genderStr + ChatColor.DARK_PURPLE + "Mare";
+                                break;
+                            case MyHorse.GELDING:
+                                genderStr = genderStr + ChatColor.DARK_AQUA + "Gelding";
+                                break;
+                            default:
+                                genderStr = genderStr + "None";
+                                break;
+                        }
+                        final String name = ChatColor.BOLD + "Name: " + ChatColor.RESET + (horse.getHorse().getCustomName() == null ? "No name" : horse.getHorse().getCustomName());
+                        final String breedStr = ChatColor.BOLD + "Breed: " + ChatColor.RESET + horse.getBreed().toString();
+                        final String personalityStr = ChatColor.BOLD + "Personalites: " + ChatColor.RESET + horse.getPersonalities()[0].toString() + ", " + horse.getPersonalities()[1].toString();
+                        final String ageStr = ChatColor.BOLD + "Age: " + durToStringYears(horse.getAgeInMonths()) + " old";
+                        String sickSince = durToString(horse.getIllDuration());
+                        final String sickStr = ChatColor.BOLD + "Health: " + ChatColor.RESET + "" + (sickness ? ChatColor.RED + "Ill" + ChatColor.RESET + " for " + sickSince : ChatColor.GREEN + "Well") + (sickness ? ChatColor.RED + "\nYou will need to take the horse to a vet to find out the exact illness." : "");
+                        String hungerSince = durToString(horse.getHungerDuration());
+                        final String hungerStr = ChatColor.BOLD + "Hunger: " + ChatColor.RESET + "" + (hunger ? ChatColor.RED + "Hungry" + ChatColor.RESET + " for " + hungerSince : ChatColor.GREEN + "Not Hungry");
+                        String thirstSince = durToString(horse.getThristDuration());
+                        final String thirstStr = ChatColor.BOLD + "Thirst: " + ChatColor.RESET + "" + (thirst ? ChatColor.RED + "Thirsty" + ChatColor.RESET + " for " + thirstSince : ChatColor.GREEN + "Not Thirsty");
+                        final String vaccinationStr = ChatColor.BOLD + "Vaccinated: " + ChatColor.RESET + "" + (vaccination ? ChatColor.GREEN + "Yes" : ChatColor.RED + "No");
+                        player.sendMessage(">------------------------------<");
 //                        player.sendMessage(name);
-                            player.sendMessage(genderStr);
-                            player.sendMessage(breedStr);
-                            player.sendMessage(personalityStr);
-                            player.sendMessage(ageStr);
-                            player.sendMessage(sickStr);
-                            player.sendMessage(hungerStr);
-                            player.sendMessage("    -Last eat: " + durToString(horse.getDurationSinceLastEat()));
-                            player.sendMessage(thirstStr);
-                            player.sendMessage("    -Last drink: " + durToString(horse.getDurationSinceLastDrink()));
-                            player.sendMessage(vaccinationStr);
+                        player.sendMessage(genderStr);
+                        player.sendMessage(breedStr);
+                        player.sendMessage(personalityStr);
+                        player.sendMessage(ageStr);
+                        player.sendMessage(sickStr);
+                        player.sendMessage(hungerStr);
+//                        player.sendMessage("    -Last eat: " + durToString(horse.getDurationSinceLastEat()));
+                        player.sendMessage(thirstStr);
+//                        player.sendMessage("    -Last drink: " + durToString(horse.getDurationSinceLastDrink()));
+                        player.sendMessage(vaccinationStr);
 //                        player.sendMessage("Die At: " + horse.getDieAt() + " months");
                             player.sendMessage(">------------------------------<");
                         } else {
