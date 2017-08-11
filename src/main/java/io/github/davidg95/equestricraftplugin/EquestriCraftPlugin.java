@@ -58,6 +58,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     public static final String SHEARS_NAME = "Gelding Shears";
     public static final String STICK_NAME = "Horse checking wand";
     public static final String VACCINE_NAME = "Vaccination";
+    public static final String DOCTOR_TOOL = "Doctor's Tool";
 
     @Override
     public void onEnable() {
@@ -379,6 +380,27 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                 return true;
             }
             return false;
+        } else if (cmd.getName().equalsIgnoreCase("doctortool")) {   //doctortool command
+            if (sender instanceof Player) {
+                final Player player = (Player) sender;
+                if (container.isDoctor(player)) {
+                    final PlayerInventory inventory = player.getInventory();
+                    final ItemStack doctorTool = new ItemStack(Material.STICK, 1);
+                    final ItemMeta im = doctorTool.getItemMeta();
+                    im.setDisplayName(DOCTOR_TOOL);
+                    final List<String> comments = new ArrayList<>();
+                    comments.add("Used to vaccinate horses.");
+                    comments.add("Vaccinations last for 4 weeks");
+                    im.setLore(comments);
+                    doctorTool.setItemMeta(im);
+                    inventory.addItem(doctorTool);
+                } else {
+                    sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "Only a doctor can use this command");
+                }
+            } else {
+                sender.sendMessage("Only a player can use this command");
+            }
+            return true;
         } else if (cmd.getName().equalsIgnoreCase("eqhelp")) {   //eqhelp command
             boolean op = false;
             boolean console = false;
@@ -405,6 +427,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             if (doctor) {
                 sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "/horsemedicine - " + ChatColor.RESET + "spawn the horse healing tool");
                 sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "/vaccination - " + ChatColor.RESET + "spawn the vaccination tool");
+                sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "/doctortool - " + ChatColor.RESET + "spawn the doctor tool for checking a horses health");
             }
             if (op || console) {
                 sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/adddoctor <player> - " + ChatColor.RESET + "make a player a doctor");
@@ -496,7 +519,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     if (!inHand.getItemMeta().hasDisplayName()) { //Check the stick has a display name.
                         return;
                     }
-                    if (!inHand.getItemMeta().getDisplayName().equals(STICK_NAME)) { //Check the stick is the horse wand.
+                if (!inHand.getItemMeta().getDisplayName().equals(STICK_NAME)) { //Check the stick is the horse wand.
                         return;
                     }
                     if (event.getEntity() instanceof Horse) {
@@ -549,9 +572,27 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
 //                        player.sendMessage("    -Last drink: " + durToString(horse.getDurationSinceLastDrink()));
                         player.sendMessage(vaccinationStr);
 //                        player.sendMessage("Die At: " + horse.getDieAt() + " months");
-                        player.sendMessage(">------------------------------<");
-                    } else {
-                        player.sendMessage("You must click on a horse");
+                            player.sendMessage(">------------------------------<");
+                        } else {
+                            player.sendMessage("You must click on a horse");
+                        }
+                    } else if (inHand.getItemMeta().getDisplayName().equals(DOCTOR_TOOL)) {
+                        if (event.getEntity() instanceof Horse) {
+                            event.setCancelled(true);
+                            MyHorse horse = container.getHorse(event.getEntity().getUniqueId()); //Get the horse that was clicked on.
+                            if (horse == null) {
+                                return;
+                            }
+                            boolean sickness = horse.isSick();
+                            if (sickness) {
+                                Illness illness = horse.getIllness();
+                                if (illness != null) {
+                                    player.sendMessage("This horse has got " + illness.toString());
+                                }
+                            }
+                        } else {
+                            player.sendMessage("You must click on a horse");
+                        }
                     }
                     break;
                 case BLAZE_ROD: //Vaccination
