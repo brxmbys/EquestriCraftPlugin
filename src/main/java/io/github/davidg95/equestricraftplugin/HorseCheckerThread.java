@@ -4,6 +4,7 @@
 package io.github.davidg95.equestricraftplugin;
 
 import java.util.Date;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.locks.StampedLock;
@@ -197,7 +198,9 @@ public class HorseCheckerThread extends Thread {
         while (run) {
             final long stamp = container.horseLock.writeLock();
             try {
-                for (MyHorse horse : container.getAllHorses()) {
+                Iterator it = container.getAllHorses().iterator();
+                while (it.hasNext()) {
+                    final MyHorse horse = (MyHorse) it.next();
                     if (horse == null) {
                         continue;
                     }
@@ -264,14 +267,17 @@ public class HorseCheckerThread extends Thread {
                     if (horse.isSick() && horse.getIllDuration() > SICK_LIMIT) { //Check if the horse has been sick fo too long.
                         EquestriCraftPlugin.LOG.log(Level.INFO, "A horse died of illness");
                         horse.kill();
+                        it.remove();
                     }
                     if (horse.isHungry() && horse.getHungerDuration() > SICK_LIMIT) { //Kill the horse if it has been hungry longer than the limit.
                         EquestriCraftPlugin.LOG.log(Level.INFO, "A horse died of hunger");
                         horse.kill();
+                        it.remove();
                     }
                     if (horse.isThirsty() && horse.getThristDuration() > SICK_LIMIT) { //Kill the horse if it has been thirsty longer than the limit.
                         EquestriCraftPlugin.LOG.log(Level.INFO, "A horse died of thirst");
                         horse.kill();
+                        it.remove();
                     }
                     if (horse.getDurationSinceLastEat() > DEFECATE_INTERVAL) { //Check if the horse needs to defecate.
                         if (!horse.hasDefecate()) {
@@ -299,8 +305,9 @@ public class HorseCheckerThread extends Thread {
 
                     if (horse.getAgeInMonths() > horse.getDieAt() && horse.getDieAt() > 300) { //Check if the horse is too old.
                         if (horse.getAgeInMonths() > 300) {
-//                            EquestriCraftPlugin.LOG.log(Level.INFO, "A horse died at the age of " + horse.getAgeInMonths() + " months old");
+                            EquestriCraftPlugin.LOG.log(Level.INFO, "A horse died at the age of " + horse.getAgeInMonths() + " months old");
                             horse.kill();
+                            it.remove();
                         }
                     }
                 }
