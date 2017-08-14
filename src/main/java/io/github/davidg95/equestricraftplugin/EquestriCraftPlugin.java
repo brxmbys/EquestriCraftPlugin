@@ -566,9 +566,9 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                             player.sendMessage(ageStr);
                             player.sendMessage(sickStr);
                             player.sendMessage(hungerStr);
-//                        player.sendMessage("    -Last eat: " + durToString(horse.getDurationSinceLastEat()));
+//                            player.sendMessage("    -Last eat: " + durToString(horse.getDurationSinceLastEat()));
                             player.sendMessage(thirstStr);
-//                        player.sendMessage("    -Last drink: " + durToString(horse.getDurationSinceLastDrink()));
+//                            player.sendMessage("    -Last drink: " + durToString(horse.getDurationSinceLastDrink()));
                             player.sendMessage(vaccinationStr);
 //                        player.sendMessage("Die At: " + horse.getDieAt() + " months");
                             player.sendMessage(">------------------------------<");
