@@ -367,6 +367,10 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         final MyHorse mh = container.getHorse(horse.getUniqueId());
                         try {
                             int months = Integer.parseInt(args[0]);
+                            if(months >= 300){
+                                player.sendMessage("Must be value under 300");
+                                return true;
+                            }
                             mh.setAgeInMonths(months);
                             player.sendMessage("Age set");
                         } catch (NumberFormatException ex) {
