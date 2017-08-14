@@ -201,6 +201,9 @@ public class HorseCheckerThread extends Thread {
                     if (horse == null) {
                         continue;
                     }
+                    if (horse.getHorse() == null) {
+                        continue;
+                    }
 
                     new BukkitRunnable() {
                         @Override
@@ -208,7 +211,7 @@ public class HorseCheckerThread extends Thread {
                             final Block cauldron = MyHorse.getNearCauldron(horse); //Get the nearby cauldron if there is one.
                             if (cauldron != null) { //Check if they are next to a cauldron.
                                 if (getFirstEat(cauldron) == -1) {
-                                    getFirstEat(cauldron);
+                                    setFirstEat(cauldron);
                                 }
                                 horse.setThirst(false);
                             }

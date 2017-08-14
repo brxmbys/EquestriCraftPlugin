@@ -707,9 +707,9 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
      * @param dur the duration in ms as a long.
      * @return String displaying the months and years
      */
-    private String durToStringYears(int m) {
+    private String durToStringYears(double m) {
         final int years = (int) Math.floor(m / 12);
-        final int months = m - (years * 12);
+        final int months = (int) (m - (years * 12));
         return "" + ChatColor.BOLD + ChatColor.AQUA + years + ChatColor.RESET + (years == 1 ? " year" : " years") + " and " + ChatColor.BOLD + ChatColor.AQUA + months + ChatColor.RESET + (months == 1 ? " month" : " months");
     }
 

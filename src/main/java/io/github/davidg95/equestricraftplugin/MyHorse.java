@@ -582,10 +582,10 @@ public class MyHorse implements Serializable {
      *
      * @return the age of the horse in months.
      */
-    public int getAgeInMonths() {
-        final double days = (int) (getAge() / 1000L / 60L / 60L / 24L);
-        final double y = days / 30L;
-        return (int) y;
+    public double getAgeInMonths() {
+        final double days = ((double)getAge() / 1000L / 60L / 60L / 24L);
+        final double y = days / 2.5;
+        return y;
     }
 
     /**
