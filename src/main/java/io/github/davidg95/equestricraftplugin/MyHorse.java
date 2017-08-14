@@ -389,11 +389,13 @@ public class MyHorse implements Serializable {
         new BukkitRunnable() {
             @Override
             public void run() {
-                final Block block = horse.getLocation().getBlock();
-                if (block.getType() == Material.AIR) {
-                    block.setType(Material.CARPET);
-                    byte b = 12;
-                    block.setData(b);
+                if (horse != null) {
+                    final Block block = horse.getLocation().getBlock();
+                    if (block.getType() == Material.AIR) {
+                        block.setType(Material.CARPET);
+                        byte b = 12;
+                        block.setData(b);
+                    }
                 }
             }
         }.runTask(EquestriCraftPlugin.plugin);

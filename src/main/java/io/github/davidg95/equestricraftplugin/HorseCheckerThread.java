@@ -86,7 +86,7 @@ public class HorseCheckerThread extends Thread {
 
     public static long BREED_THREAD_INTERVAL = 500;
 
-    public static long MAIN_THREAD_INTERVAL = 100;
+    public static long MAIN_THREAD_INTERVAL = 2000;
 
     private final DataContainer container;
 
@@ -296,7 +296,7 @@ public class HorseCheckerThread extends Thread {
 
                     if (horse.getAgeInMonths() > horse.getDieAt() && horse.getDieAt() > 300) { //Check if the horse is too old.
                         if (horse.getAgeInMonths() > 300) {
-                            EquestriCraftPlugin.LOG.log(Level.INFO, "A horse died at the age of " + horse.getAgeInMonths() + " months old");
+//                            EquestriCraftPlugin.LOG.log(Level.INFO, "A horse died at the age of " + horse.getAgeInMonths() + " months old");
                             horse.kill();
                         }
                     }
