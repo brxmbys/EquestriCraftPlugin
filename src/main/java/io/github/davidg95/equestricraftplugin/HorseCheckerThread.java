@@ -190,7 +190,7 @@ public class HorseCheckerThread extends Thread {
         vacThread = new Thread(vacRun, "Vaccination_Checker");
         vacThread.setDaemon(true);
         vacThread.start(); //Start the vaccination thread.
-    }
+        }
 
     @Override
     public void run() {

@@ -594,7 +594,8 @@ public class MyHorse implements Serializable {
      * @param months the age in months as an int.
      */
     public void setAgeInMonths(int months) {
-        long age = months * 30L * 24L * 60L * 60L * 1000L;
+        double m = (double) months;
+        long age = (long)(m * 2.5) * 24L * 60L * 60L * 1000L;
         setAge(age);
     }
 
