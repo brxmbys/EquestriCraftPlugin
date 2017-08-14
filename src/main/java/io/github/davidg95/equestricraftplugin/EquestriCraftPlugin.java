@@ -91,13 +91,12 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                 public void run() {
                     int count = 0;
                     int geld = 0;
-                    int stal = 0;
                     int mare = 0;
+                    int stal = 0;
                     int none = 0;
                     final long stamp = container.horseLock.writeLock();
                     try {
                         for (MyHorse h : container.getAllHorses()) {
-                            count++;
                             switch (h.getGender()) {
                                 case MyHorse.GELDING:
                                     geld++;
@@ -112,6 +111,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                                     none++;
                                     break;
                             }
+                            count++;
                         }
                     } catch (Exception e) {
                     } finally {
