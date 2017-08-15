@@ -23,7 +23,10 @@ public enum Illness {
     WobblerDisease,
     WestNileFever,
     TripleE,
-    EquineShivers;
+    EquineShivers,
+    BrokenLegs,
+    RecurrentAirwayObstruction,
+    Heaves;
 
     /**
      * Get a random illness.
