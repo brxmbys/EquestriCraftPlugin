@@ -26,7 +26,14 @@ public enum Illness {
     EquineShivers,
     BrokenLegs,
     RecurrentAirwayObstruction,
-    Heaves;
+    Heaves,
+    DegenerativeJointDisease,
+    KidneyInflammation,
+    Trauma,
+    Concussion,
+    Corns,
+    Curb,
+    BrokenBloodVessals;
 
     /**
      * Get a random illness.
