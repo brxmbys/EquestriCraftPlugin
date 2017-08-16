@@ -33,7 +33,7 @@ public enum Illness {
     Concussion,
     Corns,
     Curb,
-    BrokenBloodVessals;
+    BrokenBloodVessels;
 
     /**
      * Get a random illness.
