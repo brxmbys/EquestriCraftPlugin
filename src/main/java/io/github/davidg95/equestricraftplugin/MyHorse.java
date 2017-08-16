@@ -14,6 +14,7 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Horse;
+import org.bukkit.entity.Horse.Variant;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -80,6 +81,11 @@ public class MyHorse implements Serializable {
         this.defecateSinceEat = true;
         this.uuid = h.getUniqueId();
         this.breed = HorseBreed.randomType();
+        if (h.getVariant() == Variant.DONKEY) {
+            breed = HorseBreed.Donkey;
+        } else if (h.getVariant() == Variant.MULE) {
+            breed = HorseBreed.Mule;
+        }
         this.birthTime = getCurrentTime();
         Personality p1 = Personality.randomType();
         Personality p2;
@@ -583,7 +589,7 @@ public class MyHorse implements Serializable {
      * @return the age of the horse in months.
      */
     public double getAgeInMonths() {
-        final double days = ((double)getAge() / 1000L / 60L / 60L / 24L);
+        final double days = ((double) getAge() / 1000L / 60L / 60L / 24L);
         final double y = days / 2.5;
         return y;
     }
@@ -595,7 +601,7 @@ public class MyHorse implements Serializable {
      */
     public void setAgeInMonths(int months) {
         double m = (double) months;
-        long age = (long)(m * 2.5) * 24L * 60L * 60L * 1000L;
+        long age = (long) (m * 2.5) * 24L * 60L * 60L * 1000L;
         setAge(age);
     }
 

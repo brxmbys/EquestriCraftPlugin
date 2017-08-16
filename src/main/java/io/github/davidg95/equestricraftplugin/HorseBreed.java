@@ -79,7 +79,9 @@ public enum HorseBreed {
     AmericanSportPony,
     Tinker,
     Knabstrupper,
-    Draft;
+    Draft,
+    Donkey,
+    Mule;
 
     /**
      * Get a random horse breed.
