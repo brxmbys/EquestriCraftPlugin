@@ -107,7 +107,7 @@ public class MyHorse implements Serializable {
         return new Date().getTime();
     }
 
-    private static void setSideEffects(Horse horse, boolean set) {
+    private void setSideEffects(boolean set) {
         new BukkitRunnable() {
             @Override
             public void run() {
@@ -463,6 +463,7 @@ public class MyHorse implements Serializable {
     public void setSick(boolean sick) {
         if (sick) {
             this.illSince = getCurrentTime();
+            setSideEffects(true);
             while (true) {
                 this.illness = Illness.randomIllness();
                 if (gender == MyHorse.MARE) {
@@ -475,6 +476,7 @@ public class MyHorse implements Serializable {
             }
         } else {
             this.wellSince = getCurrentTime();
+            setSideEffects(false);
         }
         this.ill = sick;
     }
