@@ -310,6 +310,10 @@ public class HorseCheckerThread extends Thread {
                             it.remove();
                         }
                     }
+                    
+                    if (horse.getAge() > 1209600000L) { //Check if the horse is too old.
+                        horse.getHorse().setAdult();
+                    }
                 }
             } catch (Exception e) {
 //                EquestriCraftPlugin.LOG.log(Level.WARNING, "Error", e);
