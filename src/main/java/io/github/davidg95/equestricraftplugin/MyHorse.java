@@ -99,6 +99,8 @@ public class MyHorse implements Serializable {
         this.horse = h;
         this.dieat = randomDieAt();
         this.illness = null;
+        h.setBaby();
+        h.setAgeLock(true);
     }
 
     public static long getCurrentTime() {
