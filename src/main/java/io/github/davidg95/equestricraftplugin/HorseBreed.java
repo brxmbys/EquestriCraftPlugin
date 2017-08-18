@@ -54,7 +54,7 @@ public enum HorseBreed {
     Kladruber,
     Lipizzaner,
     Lusitano,
-    MissourieFoxTrotter,
+    MissouriFoxTrotter,
     Morab,
     MorganHorse,
     Mustang,
