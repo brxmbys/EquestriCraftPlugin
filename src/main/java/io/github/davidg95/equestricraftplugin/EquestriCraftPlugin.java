@@ -18,6 +18,7 @@ import java.util.logging.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
@@ -29,6 +30,7 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.inventory.ItemStack;
@@ -89,40 +91,45 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             new Thread() {
                 @Override
                 public void run() {
-                    int count = 0;
-                    int geld = 0;
-                    int mare = 0;
-                    int stal = 0;
-                    int none = 0;
-                    final long stamp = container.horseLock.writeLock();
-                    try {
-                        for (MyHorse h : container.getAllHorses()) {
-                            switch (h.getGender()) {
-                                case MyHorse.GELDING:
-                                    geld++;
-                                    break;
-                                case MyHorse.MARE:
-                                    mare++;
-                                    break;
-                                case MyHorse.STALLION:
-                                    stal++;
-                                    break;
-                                default:
-                                    none++;
-                                    break;
-                            }
-                            count++;
-                        }
-                    } catch (Exception e) {
-                    } finally {
-                        container.horseLock.unlockWrite(stamp);
-                    }
-                    sender.sendMessage("Horses: " + count);
-                    sender.sendMessage("Stallions: " + stal);
-                    sender.sendMessage("Mares: " + mare);
-                    sender.sendMessage("Geldings: " + geld);
-                    sender.sendMessage("None assigned: " + none);
-                    sender.sendMessage("---------------------------");
+//                    int count = 0;
+//                    int geld = 0;
+//                    int mare = 0;
+//                    int stal = 0;
+//                    int none = 0;
+//                    final long stamp = container.horseLock.writeLock();
+//                    try {
+//                        for (World w : Bukkit.getWorlds()) {
+//                            for (Entity e : w.getEntitiesByClass(Horse.class)) {
+//                                MyHorse h = container.getHorse(e.getUniqueId());
+//                                if (h != null) {
+//                                    switch (h.getGender()) {
+//                                        case MyHorse.GELDING:
+//                                            geld++;
+//                                            break;
+//                                        case MyHorse.MARE:
+//                                            mare++;
+//                                            break;
+//                                        case MyHorse.STALLION:
+//                                            stal++;
+//                                            break;
+//                                        default:
+//                                            none++;
+//                                            break;
+//                                    }
+//                                }
+//                                count++;
+//                            }
+//                        }
+//                    } catch (Exception e) {
+//                    } finally {
+//                        container.horseLock.unlockWrite(stamp);
+//                    }
+//                    sender.sendMessage("Horses: " + count);
+//                    sender.sendMessage("Stallions: " + stal);
+//                    sender.sendMessage("Mares: " + mare);
+//                    sender.sendMessage("Geldings: " + geld);
+//                    sender.sendMessage("None assigned: " + none);
+//                    sender.sendMessage("---------------------------");
                     sender.sendMessage("Checker Thread: " + checkerThread.isAlive());
                 }
             }.start();
@@ -367,7 +374,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         final MyHorse mh = container.getHorse(horse.getUniqueId());
                         try {
                             int months = Integer.parseInt(args[0]);
-                            if(months >= 300){
+                            if (months >= 300) {
                                 player.sendMessage("Must be value under 300");
                                 return true;
                             }
@@ -480,6 +487,11 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                 }
             }
         }.runTask(plugin);
+    }
+    
+    @EventHandler
+    public void onPlayerJoin(FoodLevelChangeEvent evt){
+        evt.setCancelled(true);
     }
 
     /**
