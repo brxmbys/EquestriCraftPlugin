@@ -34,10 +34,8 @@ public class DataContainer {
     private static DataContainer container;
 
     private List<MyHorse> horses;
-    public final StampedLock horseLock;
 
     private List<UUID> doctors;
-    private final StampedLock doctorLock;
 
     private Thread saveThread;
 
@@ -50,8 +48,6 @@ public class DataContainer {
     private DataContainer() {
         horses = new LinkedList<>();
         doctors = new LinkedList<>();
-        horseLock = new StampedLock();
-        doctorLock = new StampedLock();
         fileLock = new StampedLock();
         try {
             loadHorses(); //Load the horses from the file.
@@ -80,17 +76,10 @@ public class DataContainer {
      * @param horse the MyHorse to cache.
      */
     public void addHorse(MyHorse horse) {
-        final long stamp = horseLock.writeLock();
-        try {
             horses.add(horse);
-        } finally {
-            horseLock.unlockWrite(stamp);
-        }
     }
 
     public MyHorse getHorse(UUID uuid) {
-        final long stamp = horseLock.readLock();
-        try {
             for (MyHorse h : horses) {
                 if (h == null || h.getUuid() == null) {
                     continue;
@@ -99,9 +88,6 @@ public class DataContainer {
                     return h;
                 }
             }
-        } finally {
-            horseLock.unlockRead(stamp);
-        }
         return null;
     }
 
@@ -112,16 +98,11 @@ public class DataContainer {
      * @return the true if it is in the cache, false if it is not.
      */
     public boolean isHorseInCache(UUID uuid) {
-        final long stamp = horseLock.readLock();
-        try {
             for (MyHorse mh : horses) {
                 if (mh.getUuid().equals(uuid)) {
                     return true;
                 }
             }
-        } finally {
-            horseLock.unlockRead(stamp);
-        }
         return false;
     }
 
@@ -131,17 +112,12 @@ public class DataContainer {
      * @param uuid the UUID of the horse to remove.
      */
     public void removeHorse(UUID uuid) {
-        final long stamp = horseLock.writeLock();
-        try {
             for (int i = 0; i < horses.size(); i++) {
                 if (horses.get(i).getUuid().equals(uuid)) {
                     horses.remove(i);
                     return;
                 }
             }
-        } finally {
-            horseLock.unlockWrite(stamp);
-        }
     }
 
     /**
@@ -217,14 +193,9 @@ public class DataContainer {
                 horsesToAdd.add(mh);
             }
         }
-        final long stamp = horseLock.writeLock();
-        try {
             for (MyHorse horse : horsesToAdd) {
                 horses.add(horse);
             }
-        } finally {
-            horseLock.unlockWrite(stamp);
-        }
         EquestriCraftPlugin.LOG.log(Level.INFO, "Load complete");
         EquestriCraftPlugin.LOG.log(Level.INFO, "Number of horses in world: " + horsesInWorld);
         EquestriCraftPlugin.LOG.log(Level.INFO, "Number of horses paired: " + horsesPaired);
@@ -257,12 +228,7 @@ public class DataContainer {
      * @param p the Doctor to add.
      */
     public void addDoctor(Player p) {
-        final long stamp = doctorLock.writeLock();
-        try {
             doctors.add(p.getUniqueId());
-        } finally {
-            doctorLock.unlockWrite(stamp);
-        }
     }
 
     /**
@@ -273,16 +239,11 @@ public class DataContainer {
      * exists.
      */
     public boolean isDoctor(Player p) {
-        final long stamp = doctorLock.readLock();
-        try {
             for (UUID u : doctors) {
                 if (u.equals(p.getUniqueId())) {
                     return true;
                 }
             }
-        } finally {
-            doctorLock.unlockRead(stamp);
-        }
         return false;
     }
 
@@ -306,7 +267,6 @@ public class DataContainer {
             } catch (IOException ex) {
                 EquestriCraftPlugin.plugin.getLogger().log(Level.SEVERE, null, ex);
             }
-            final long hStamp = horseLock.writeLock();
             try (OutputStream os = new FileOutputStream(HORSES_FILE)) {
                 final ObjectOutputStream oo = new ObjectOutputStream(os);
                 oo.writeObject(horses);
@@ -315,8 +275,6 @@ public class DataContainer {
                 EquestriCraftPlugin.plugin.getLogger().log(Level.SEVERE, null, ex);
             } catch (IOException ex) {
                 EquestriCraftPlugin.plugin.getLogger().log(Level.SEVERE, null, ex);
-            } finally {
-                horseLock.unlockWrite(hStamp);
             }
         } finally {
             fileLock.unlockWrite(stamp);
