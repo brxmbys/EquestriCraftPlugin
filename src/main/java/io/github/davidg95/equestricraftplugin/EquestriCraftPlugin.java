@@ -18,7 +18,6 @@ import java.util.logging.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
@@ -32,6 +31,7 @@ import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -490,8 +490,13 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     }
     
     @EventHandler
-    public void onPlayerJoin(FoodLevelChangeEvent evt){
+    public void onFoodChangeJoin(FoodLevelChangeEvent evt){
         evt.setCancelled(true);
+    }
+    
+    @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent evt){
+        evt.getPlayer().sendMessage("Untill we get the crashing sorted, please do no spend too much time remaking horses. You will get them all back. -David");
     }
 
     /**
