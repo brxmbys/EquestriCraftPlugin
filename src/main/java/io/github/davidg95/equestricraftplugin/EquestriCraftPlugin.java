@@ -269,7 +269,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         } else {
                             return false;
                         }
-                        sender.sendMessage(ChatColor.BOLD + "Gender set to " + args[0]);
+                        sender.sendMessage(ChatColor.BOLD + "Gender set to " + genderStr);
                     } else {
                         sender.sendMessage("You must be on a horse!");
                     }
@@ -488,14 +488,14 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             }
         }.runTask(plugin);
     }
-    
+
     @EventHandler
-    public void onFoodChangeJoin(FoodLevelChangeEvent evt){
+    public void onFoodChangeJoin(FoodLevelChangeEvent evt) {
         evt.setCancelled(true);
     }
-    
+
     @EventHandler
-    public void onPlayerJoin(PlayerJoinEvent evt){
+    public void onPlayerJoin(PlayerJoinEvent evt) {
         evt.getPlayer().sendMessage("Untill we get the crashing sorted, please do no spend too much time remaking horses. You will get them all back. -David");
     }
 
