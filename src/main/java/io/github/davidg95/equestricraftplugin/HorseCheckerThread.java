@@ -187,7 +187,7 @@ public class HorseCheckerThread extends Thread {
         vacThread = new Thread(vacRun, "Vaccination_Checker");
         vacThread.setDaemon(true);
         vacThread.start(); //Start the vaccination thread.
-        }
+    }
 
     @Override
     public void run() {
@@ -306,9 +306,11 @@ public class HorseCheckerThread extends Thread {
                             it.remove();
                         }
                     }
-                    
-                    if (horse.getAgeInMonths() > 12) { //Check if the horse can become a foal
+
+                    if (horse.getAgeInMonths() > 12) { //Check if the horse can become an adult
                         horse.getHorse().setAdult();
+                    } else {
+                        horse.getHorse().setBaby();
                     }
                 }
             } catch (Exception e) {
