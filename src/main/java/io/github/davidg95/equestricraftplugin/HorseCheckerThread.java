@@ -307,7 +307,7 @@ public class HorseCheckerThread extends Thread {
                         }
                     }
                     
-                    if (horse.getAge() > 1209600000L) { //Check if the horse is too old.
+                    if (horse.getAgeInMonths() > 12) { //Check if the horse can become a foal
                         horse.getHorse().setAdult();
                     }
                 }
