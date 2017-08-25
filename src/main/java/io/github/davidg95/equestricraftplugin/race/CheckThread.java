@@ -31,8 +31,9 @@ public class CheckThread extends Thread {
         while (run) {
             for (int i = 0; i < players.size(); i++) {
                 final Player player = players.get(i);
-                //Logic to check if they have crossed the line.
-                race.completePlayer(player);
+                if (player.getLocation().getBlockZ() < 11135) {
+                    race.completePlayer(player);
+                }
             }
             if (race.getCompletedPlayers().size() == race.getPlayers().size()) {
                 run = false;

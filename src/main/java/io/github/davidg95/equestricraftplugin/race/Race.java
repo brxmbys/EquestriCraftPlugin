@@ -3,11 +3,13 @@
  */
 package io.github.davidg95.equestricraftplugin.race;
 
+import io.github.davidg95.equestricraftplugin.EquestriCraftPlugin;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.metadata.FixedMetadataValue;
 
 /**
  *
@@ -58,7 +60,14 @@ public class Race {
     }
 
     public void completePlayer(Player p) {
+        final long time = new Date().getTime();
+        final long raceTime = time - startTime;
+        final double seconds = raceTime / 1000;
+        final int position = complete.size() + 1;
         complete.add(p);
+        p.sendMessage("Position: " + position);
+        p.sendMessage("Your time: " + seconds + "s");
+        p.setMetadata("time", new FixedMetadataValue(EquestriCraftPlugin.plugin, time));
     }
 
     public List getCompletedPlayers() {
