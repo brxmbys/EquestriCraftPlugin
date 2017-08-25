@@ -361,7 +361,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         } else {
                             mh = container.getHorse(UUID.fromString(player.getMetadata("horse").get(0).asString()));
                         }
-                        if(mh == null){
+                        if (mh == null) {
                             sender.sendMessage("No horse selected");
                             return true;
                         }
@@ -697,6 +697,11 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     }
                     if (!OP_REQ || player.isOp()) {
                         final Horse horse = (Horse) event.getRightClicked(); //Get the horse that was clicked on.
+                        MyHorse mh = container.getHorse(horse.getUniqueId());
+                        if (mh == null) {
+                            mh = new MyHorse(horse);
+                            container.addHorse(mh);
+                        }
                         player.setMetadata("horse", new FixedMetadataValue(EquestriCraftPlugin.plugin, horse.getUniqueId()));
                         player.sendMessage("You are now editing this horse");
 //                    if (horse.getTarget() == null) {
