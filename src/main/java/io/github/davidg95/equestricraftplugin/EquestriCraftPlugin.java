@@ -32,7 +32,6 @@ import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -65,6 +64,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     public static final String DOCTOR_TOOL = "Doctor's Tool";
 
     public static boolean OP_REQ = true;
+    public static boolean BLOCK_HUNGER = true;
 
     @Override
     public void onEnable() {
@@ -497,13 +497,10 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     }
 
     @EventHandler
-    public void onFoodChangeJoin(FoodLevelChangeEvent evt) {
-        evt.setCancelled(true);
-    }
-
-    @EventHandler
-    public void onPlayerJoin(PlayerJoinEvent evt) {
-        evt.getPlayer().sendMessage("Untill we get the crashing sorted, please do no spend too much time remaking horses. You will get them all back. -David");
+    public void onFoodChangeEvent(FoodLevelChangeEvent evt) {
+        if (BLOCK_HUNGER) {
+            evt.setCancelled(true);
+        }
     }
 
     /**
@@ -776,6 +773,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             HorseCheckerThread.SICK_PROBABILITY = Double.parseDouble(properties.getProperty("SICK_PROBABILITY"));
             HorseCheckerThread.VACCINATED_PROBABILITY = Double.parseDouble(properties.getProperty("VACCINATED_SICK_PROBABILITY"));
             OP_REQ = properties.getProperty("OP_REQ", "TRUE").equals("TRUE");
+            BLOCK_HUNGER = Boolean.parseBoolean(properties.getProperty("BLOCK_HUNGER", Boolean.toString(BLOCK_HUNGER)));
+            saveProperties();
         } catch (FileNotFoundException ex) {
             saveProperties();
         } catch (IOException ex) {
@@ -803,6 +802,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             properties.setProperty("SICK_PROBABILITY", Double.toString(HorseCheckerThread.SICK_PROBABILITY));
             properties.setProperty("VACCINATED_SICK_PROBABILITY", Double.toString(HorseCheckerThread.VACCINATED_PROBABILITY));
             properties.setProperty("OP_REQ", (OP_REQ ? "TRUE" : "FALSE"));
+            properties.setProperty("BLOCK_HUNGER", Boolean.toString(BLOCK_HUNGER));
             properties.store(os, null);
         } catch (FileNotFoundException ex) {
             LOG.log(Level.SEVERE, null, ex);
