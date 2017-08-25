@@ -9,6 +9,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.metadata.FixedMetadataValue;
 
@@ -41,10 +42,18 @@ public class Race {
     }
 
     public void finish() {
-        EquestriCraftPlugin.LOG.log(Level.INFO, "RACE COMPLETE!");
-        EquestriCraftPlugin.LOG.log(Level.INFO, "Rankings-");
+        Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "RACE COMPLETE!");
+        Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.AQUA + "Rankings-");
         for (int i = 0; i < players.size(); i++) {
-            EquestriCraftPlugin.LOG.log(Level.INFO, (i + 1) + "- " + players.get(i).getName());
+            if (i == 0) {
+                Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GOLD + "1st- " + ChatColor.RESET + "" + ChatColor.BOLD + players.get(i).getName());
+            } else if (i == 1) {
+                Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GRAY + "2nd- " + ChatColor.RESET + "" + ChatColor.BOLD + players.get(i).getName());
+            } else if (i == 2) {
+                Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.YELLOW + "3rd- " + ChatColor.RESET + "" + ChatColor.BOLD + players.get(i).getName());
+            } else {
+                Bukkit.broadcastMessage(ChatColor.BOLD + "" + (i + 1) + "th" + players.get(i).getName());
+            }
         }
     }
 

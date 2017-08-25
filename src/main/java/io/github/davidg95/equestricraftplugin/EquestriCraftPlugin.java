@@ -469,21 +469,24 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             if (args.length >= 1) {
                 if (args[0].equalsIgnoreCase("open")) {
                     race = new Race();
+                    Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "Race is now open for entries");
                 } else if (args[0].equalsIgnoreCase("add")) {
                     if (args.length == 2) {
                         final Player player = Bukkit.getPlayer(args[1]);
                         if (player == null) {
-                            sender.sendMessage("Player not found");
+                            sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "Player not found");
                             return true;
                         }
                         boolean result = race.addPlayer(player);
                         if (!result) {
-                            player.sendMessage("Race already started");
+                            player.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "Race already started");
                         } else {
-                            player.sendMessage("You are in the race!");
+                            player.sendMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "You are in the race!");
+                            Bukkit.broadcastMessage(player.getName() + " is in the race!");
                         }
                     }
                 } else if (args[0].equalsIgnoreCase("start")) {
+                    Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "Race has started!");
                     race.start();
                 }
             }
