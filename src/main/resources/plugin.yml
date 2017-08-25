@@ -50,3 +50,6 @@ commands:
     setage:
         description: Set the age of the horse.
         usage: /setage <age> (must be on a horse
+    cleanup:
+        description: Clean up the horses list of duplicates.
+        usage: /cleanup

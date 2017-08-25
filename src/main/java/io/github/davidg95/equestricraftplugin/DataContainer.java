@@ -70,24 +70,61 @@ public class DataContainer {
         EquestriCraftPlugin.LOG.log(Level.INFO, "Assigned " + count + " horses");
     }
 
+    public void empty() {
+        horses.clear();
+        doctors.clear();
+        horses = null;
+        doctors = null;
+    }
+
+    public void cleanHorses() {
+        EquestriCraftPlugin.LOG.log(Level.INFO, "Performing clean");
+        int removed = 0;
+        for (int i = 0; i < horses.size(); i++) {
+            if (horses.get(i) == null || horses.get(i).getUuid() == null) {
+                horses.remove(i);
+                i--;
+                removed++;
+            }
+        }
+        EquestriCraftPlugin.LOG.log(Level.INFO, "Clean complete");
+        EquestriCraftPlugin.LOG.log(Level.INFO, removed + " horses removed");
+        EquestriCraftPlugin.LOG.log(Level.INFO, horses.size() + " horses left");
+    }
+
     /**
      * Cache a horse when its chunk is getting unloaded.
      *
      * @param horse the MyHorse to cache.
      */
     public void addHorse(MyHorse horse) {
-            horses.add(horse);
+        if (horses.size() > 0) {
+            for (int i = 0; i < horses.size(); i++) {
+                try {
+                    if (horses.get(i) == null || horses.get(i).getUuid() == null || horse.getUuid() == null) {
+                        continue;
+                    }
+                    if (horses.get(i).getUuid().equals(horse.getUuid())) {
+                        horses.set(i, horse);
+                        return;
+                    }
+                } catch (Exception e) {
+
+                }
+            }
+        }
+        horses.add(horse);
     }
 
     public MyHorse getHorse(UUID uuid) {
-            for (MyHorse h : horses) {
-                if (h == null || h.getUuid() == null) {
-                    continue;
-                }
-                if (h.getUuid() != null && h.getUuid().equals(uuid)) {
-                    return h;
-                }
+        for (int i = 0; i < horses.size(); i++) {
+            if (horses.get(i) == null || horses.get(i).getUuid() == null) {
+                continue;
             }
+            if (horses.get(i).getUuid().equals(uuid)) {
+                return horses.get(i);
+            }
+        }
         return null;
     }
 
@@ -98,11 +135,11 @@ public class DataContainer {
      * @return the true if it is in the cache, false if it is not.
      */
     public boolean isHorseInCache(UUID uuid) {
-            for (MyHorse mh : horses) {
-                if (mh.getUuid().equals(uuid)) {
-                    return true;
-                }
+        for (MyHorse mh : horses) {
+            if (mh.getUuid().equals(uuid)) {
+                return true;
             }
+        }
         return false;
     }
 
@@ -112,12 +149,12 @@ public class DataContainer {
      * @param uuid the UUID of the horse to remove.
      */
     public void removeHorse(UUID uuid) {
-            for (int i = 0; i < horses.size(); i++) {
-                if (horses.get(i).getUuid().equals(uuid)) {
-                    horses.remove(i);
-                    return;
-                }
+        for (int i = 0; i < horses.size(); i++) {
+            if (horses.get(i).getUuid().equals(uuid)) {
+                horses.remove(i);
+                return;
             }
+        }
     }
 
     /**
@@ -148,7 +185,6 @@ public class DataContainer {
     }
 
     private void pairHorses() {
-        final List<MyHorse> horsesToAdd = new LinkedList<>();
         int horsesInWorld = 0;
         int horsesPaired = 0;
 
@@ -193,9 +229,6 @@ public class DataContainer {
 //                horsesToAdd.add(mh);
             }
         }
-            for (MyHorse horse : horsesToAdd) {
-                horses.add(horse);
-            }
         EquestriCraftPlugin.LOG.log(Level.INFO, "Load complete");
         EquestriCraftPlugin.LOG.log(Level.INFO, "Number of horses in world: " + horsesInWorld);
         EquestriCraftPlugin.LOG.log(Level.INFO, "Number of horses paired: " + horsesPaired);
@@ -219,6 +252,7 @@ public class DataContainer {
 
     public static void destroyInstance() {
         container.runSave = false;
+        container.empty();
         container = null;
     }
 
@@ -228,7 +262,7 @@ public class DataContainer {
      * @param p the Doctor to add.
      */
     public void addDoctor(Player p) {
-            doctors.add(p.getUniqueId());
+        doctors.add(p.getUniqueId());
     }
 
     /**
@@ -239,11 +273,11 @@ public class DataContainer {
      * exists.
      */
     public boolean isDoctor(Player p) {
-            for (UUID u : doctors) {
-                if (u.equals(p.getUniqueId())) {
-                    return true;
-                }
+        for (UUID u : doctors) {
+            if (u.equals(p.getUniqueId())) {
+                return true;
             }
+        }
         return false;
     }
 

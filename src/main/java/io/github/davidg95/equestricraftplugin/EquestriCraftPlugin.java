@@ -82,16 +82,18 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     public void onDisable() {
         LOG.log(Level.INFO, "Saving horses to file");
         container.saveHorses();
-        DataContainer.destroyInstance();
         checkerThread.setRun(false);
         checkerThread = null;
         HandlerList.unregisterAll(plugin);
+        DataContainer.destroyInstance();
+        container = null;
 
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         if (cmd.getName().equalsIgnoreCase("equestristatus")) {   //equestristatus command
+            sender.sendMessage("Horses in list: " + container.getAllHorses().size());
             sender.sendMessage("Checker Thread: " + checkerThread.isAlive());
             return true;
         } else if (cmd.getName().equalsIgnoreCase("createhorse")) {   //createhorse command
@@ -219,7 +221,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         if (player.getVehicle() != null || player.getVehicle() instanceof Horse) {
                             horse = container.getHorse(player.getVehicle().getUniqueId());
                         } else {
-                            horse = container.getHorse(UUID.fromString(player.getMetadata("horse").get(0).toString()));
+                            horse = container.getHorse(UUID.fromString(player.getMetadata("horse").get(0).asString()));
                         }
                         if (horse == null) {
                             player.sendMessage("No horse selected");
@@ -267,7 +269,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         if (player.getVehicle() != null || player.getVehicle() instanceof Horse) {
                             horse = container.getHorse(player.getVehicle().getUniqueId());
                         } else {
-                            horse = container.getHorse(UUID.fromString(player.getMetadata("horse").toString()));
+                            horse = container.getHorse(UUID.fromString(player.getMetadata("horse").get(0).asString()));
                         }
                         if (horse == null) {
                             player.sendMessage("No horse selected");
@@ -298,7 +300,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         if (player.getVehicle() != null || player.getVehicle() instanceof Horse) {
                             horse = container.getHorse(player.getVehicle().getUniqueId());
                         } else {
-                            horse = container.getHorse(UUID.fromString(player.getMetadata("horse").toString()));
+                            horse = container.getHorse(UUID.fromString(player.getMetadata("horse").get(0).asString()));
                         }
                         if (args[0].equalsIgnoreCase(args[1])) {
                             player.sendMessage("You must select two different personalities");
@@ -347,8 +349,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             }
             sender.sendMessage(traits);
             return true;
-        } else if (cmd.getName()
-                .equalsIgnoreCase("setage")) {   //setage command
+        } else if (cmd.getName().equalsIgnoreCase("setage")) {   //setage command
             if (args.length == 1) {
                 if (sender instanceof Player) {
                     final Player player = (Player) sender;
@@ -358,7 +359,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                             final Horse horse = (Horse) player.getVehicle();
                             mh = container.getHorse(horse.getUniqueId());
                         } else {
-                            mh = container.getHorse(UUID.fromString(player.getMetadata("horse").toString()));
+                            mh = container.getHorse(UUID.fromString(player.getMetadata("horse").get(0).asString()));
                         }
                         try {
                             int months = Integer.parseInt(args[0]);
@@ -444,6 +445,19 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             }
             sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/eqhelp - " + ChatColor.RESET + "shows this message");
             return true;
+        } else if (cmd.getName().equalsIgnoreCase("cleanup")) {
+            if (sender instanceof Player) {
+                sender.sendMessage("This command can only be run from the console");
+                return true;
+            }
+            final Runnable run = new Runnable() {
+                @Override
+                public void run() {
+                    container.cleanHorses();
+                }
+            };
+            final Thread thread = new Thread(run, "Cleanup_Thread");
+            thread.start();
         }
 
         return false;
@@ -467,7 +481,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                             if (mh == null) {
                                 container.addHorse(mh);
                             } else {
-                                mh.setHorse((Horse) e);
+                                container.getHorse(e.getUniqueId()).setHorse((Horse) e);
                             }
                         }
                     }
