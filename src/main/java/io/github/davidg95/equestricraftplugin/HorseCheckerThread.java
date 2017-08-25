@@ -163,7 +163,6 @@ public class HorseCheckerThread extends Thread {
             @Override
             public void run() {
                 while (run) {
-                    final long stamp = container.horseLock.writeLock();
                     try {
                         for (MyHorse horse : container.getAllHorses()) {
                             if (horse.getDurationSinceLastVaccinated() > VACCINATION_DURATION) { //Check if any vaccinations have expired.
@@ -171,8 +170,6 @@ public class HorseCheckerThread extends Thread {
                             }
                         }
                     } catch (Exception e) {
-                    } finally {
-                        container.horseLock.unlockWrite(stamp);
                     }
                     try {
                         Thread.sleep(10000);
@@ -196,7 +193,6 @@ public class HorseCheckerThread extends Thread {
     public void run() {
         init(); //Start the secondary threads.
         while (run) {
-            final long stamp = container.horseLock.writeLock();
             try {
                 Iterator it = container.getAllHorses().iterator();
                 while (it.hasNext()) {
@@ -317,8 +313,6 @@ public class HorseCheckerThread extends Thread {
                 }
             } catch (Exception e) {
 //                EquestriCraftPlugin.LOG.log(Level.WARNING, "Error", e);
-            } finally {
-                container.horseLock.unlockWrite(stamp);
             }
             try {
                 Thread.sleep(MAIN_THREAD_INTERVAL); //Wait
@@ -372,9 +366,9 @@ public class HorseCheckerThread extends Thread {
         @Override
         public void run() {
             while (run) {
-                final long stamp = container.horseLock.writeLock();
                 try {
-                    for (MyHorse horse : container.getAllHorses()) {
+                    for (int i = 0; i < container.getAllHorses().size(); i++) {
+                        MyHorse horse = container.getAllHorses().get(i);
                         final double r = Math.random();
                         if (r <= BREED_PROBABILITY) { //If the breed probability is met.
                             final long timeSinceLast = horse.getDurationSinceLastBreed(); //Get the time since the horse last bred.
@@ -395,8 +389,6 @@ public class HorseCheckerThread extends Thread {
                     }
                 } catch (Exception e) {
 
-                } finally {
-                    container.horseLock.unlockWrite(stamp);
                 }
                 try {
                     Thread.sleep(BREED_THREAD_INTERVAL); //Wait
