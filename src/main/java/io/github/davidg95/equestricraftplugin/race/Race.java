@@ -7,6 +7,7 @@ import io.github.davidg95.equestricraftplugin.EquestriCraftPlugin;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.metadata.FixedMetadataValue;
@@ -40,10 +41,10 @@ public class Race {
     }
 
     public void finish() {
-        Bukkit.broadcastMessage("RACE COMPLETE!");
-        Bukkit.broadcastMessage("Rankings-");
+        EquestriCraftPlugin.LOG.log(Level.INFO, "RACE COMPLETE!");
+        EquestriCraftPlugin.LOG.log(Level.INFO, "Rankings-");
         for (int i = 0; i < players.size(); i++) {
-            Bukkit.broadcastMessage((i + 1) + "- " + players.get(i).getName());
+            EquestriCraftPlugin.LOG.log(Level.INFO, (i + 1) + "- " + players.get(i).getName());
         }
     }
 
@@ -71,6 +72,6 @@ public class Race {
     }
 
     public List getCompletedPlayers() {
-        return players;
+        return complete;
     }
 }
