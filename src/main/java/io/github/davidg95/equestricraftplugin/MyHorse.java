@@ -31,7 +31,7 @@ public class MyHorse implements Serializable {
     private long vaccinationTime;
     private boolean vaccination;
     private int gender; //The horses gender.
-    private final UUID uuid;
+    private UUID uuid;
     private long lastEat;
     private boolean hunger;
     private long hungerSince;
@@ -539,6 +539,7 @@ public class MyHorse implements Serializable {
      */
     public void setHorse(Horse h) {
         this.horse = h;
+        this.uuid = h.getUniqueId();
     }
 
     /**

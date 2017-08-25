@@ -173,6 +173,7 @@ public class DataContainer {
                         Logger.getLogger(DataContainer.class.getName()).log(Level.SEVERE, null, ex);
                     }
                     if (runSave) {
+                        cleanHorses();
                         saveHorses();
                     }
                 }
