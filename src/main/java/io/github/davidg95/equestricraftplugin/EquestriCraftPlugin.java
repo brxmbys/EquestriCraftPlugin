@@ -361,6 +361,10 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         } else {
                             mh = container.getHorse(UUID.fromString(player.getMetadata("horse").get(0).asString()));
                         }
+                        if(mh == null){
+                            sender.sendMessage("No horse selected");
+                            return true;
+                        }
                         try {
                             int months = Integer.parseInt(args[0]);
                             if (months >= 300) {
