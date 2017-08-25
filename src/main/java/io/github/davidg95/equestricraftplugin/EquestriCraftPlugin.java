@@ -36,6 +36,7 @@ import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -61,6 +62,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     public static final String STICK_NAME = "Horse checking wand";
     public static final String VACCINE_NAME = "Vaccination";
     public static final String DOCTOR_TOOL = "Doctor's Tool";
+
+    public static boolean OP_REQ = true;
 
     @Override
     public void onEnable() {
@@ -88,51 +91,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         if (cmd.getName().equalsIgnoreCase("equestristatus")) {   //equestristatus command
-            new Thread() {
-                @Override
-                public void run() {
-//                    int count = 0;
-//                    int geld = 0;
-//                    int mare = 0;
-//                    int stal = 0;
-//                    int none = 0;
-//                    final long stamp = container.horseLock.writeLock();
-//                    try {
-//                        for (World w : Bukkit.getWorlds()) {
-//                            for (Entity e : w.getEntitiesByClass(Horse.class)) {
-//                                MyHorse h = container.getHorse(e.getUniqueId());
-//                                if (h != null) {
-//                                    switch (h.getGender()) {
-//                                        case MyHorse.GELDING:
-//                                            geld++;
-//                                            break;
-//                                        case MyHorse.MARE:
-//                                            mare++;
-//                                            break;
-//                                        case MyHorse.STALLION:
-//                                            stal++;
-//                                            break;
-//                                        default:
-//                                            none++;
-//                                            break;
-//                                    }
-//                                }
-//                                count++;
-//                            }
-//                        }
-//                    } catch (Exception e) {
-//                    } finally {
-//                        container.horseLock.unlockWrite(stamp);
-//                    }
-//                    sender.sendMessage("Horses: " + count);
-//                    sender.sendMessage("Stallions: " + stal);
-//                    sender.sendMessage("Mares: " + mare);
-//                    sender.sendMessage("Geldings: " + geld);
-//                    sender.sendMessage("None assigned: " + none);
-//                    sender.sendMessage("---------------------------");
-                    sender.sendMessage("Checker Thread: " + checkerThread.isAlive());
-                }
-            }.start();
+            sender.sendMessage("Checker Thread: " + checkerThread.isAlive());
             return true;
         } else if (cmd.getName().equalsIgnoreCase("createhorse")) {   //createhorse command
             switch (args.length) {
@@ -252,26 +211,28 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             return true;
         } else if (cmd.getName().equalsIgnoreCase("changegender")) {   //changegender command
             if (args.length == 1) {
-                if ((sender instanceof Player && ((Player) sender).isOp())) {
+                if (sender instanceof Player) {
                     final Player player = (Player) sender;
-                    if (player.getVehicle() != null || player.getVehicle() instanceof Horse) {
-                        final MyHorse horse = container.getHorse(player.getVehicle().getUniqueId());
-                        String genderStr = "";
-                        if (args[0].equalsIgnoreCase("stallion")) {
-                            horse.setGender(MyHorse.STALLION);
-                            genderStr = ChatColor.DARK_RED + "Stallion";
-                        } else if (args[0].equalsIgnoreCase("mare")) {
-                            horse.setGender(MyHorse.MARE);
-                            genderStr = ChatColor.DARK_PURPLE + "Mare";
-                        } else if (args[0].equalsIgnoreCase("gelding")) {
-                            horse.setGender(MyHorse.GELDING);
-                            genderStr = ChatColor.DARK_AQUA + "Gelding";
+                    if (!OP_REQ || player.isOp()) {
+                        if (player.getVehicle() != null || player.getVehicle() instanceof Horse) {
+                            final MyHorse horse = container.getHorse(player.getVehicle().getUniqueId());
+                            String genderStr = "";
+                            if (args[0].equalsIgnoreCase("stallion")) {
+                                horse.setGender(MyHorse.STALLION);
+                                genderStr = ChatColor.DARK_RED + "Stallion";
+                            } else if (args[0].equalsIgnoreCase("mare")) {
+                                horse.setGender(MyHorse.MARE);
+                                genderStr = ChatColor.DARK_PURPLE + "Mare";
+                            } else if (args[0].equalsIgnoreCase("gelding")) {
+                                horse.setGender(MyHorse.GELDING);
+                                genderStr = ChatColor.DARK_AQUA + "Gelding";
+                            } else {
+                                return false;
+                            }
+                            sender.sendMessage(ChatColor.BOLD + "Gender set to " + genderStr);
                         } else {
-                            return false;
+                            sender.sendMessage("You must be on a horse!");
                         }
-                        sender.sendMessage(ChatColor.BOLD + "Gender set to " + genderStr);
-                    } else {
-                        sender.sendMessage("You must be on a horse!");
                     }
                 } else {
                     sender.sendMessage("Only ops can use this command");
@@ -291,19 +252,21 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             return true;
         } else if (cmd.getName().equalsIgnoreCase("setbreed")) {   //setbreed command
             if (args.length == 1) {
-                if ((sender instanceof Player && ((Player) sender).isOp())) {
+                if (sender instanceof Player) {
                     final Player player = (Player) sender;
-                    if (player.getVehicle() != null || player.getVehicle() instanceof Horse) {
-                        final MyHorse horse = container.getHorse(player.getVehicle().getUniqueId());
-                        for (HorseBreed br : HorseBreed.values()) {
-                            if (br.name().equalsIgnoreCase(args[0])) {
-                                horse.setBreed(br);
-                                break;
+                    if (!OP_REQ || player.isOp()) {
+                        if (player.getVehicle() != null || player.getVehicle() instanceof Horse) {
+                            final MyHorse horse = container.getHorse(player.getVehicle().getUniqueId());
+                            for (HorseBreed br : HorseBreed.values()) {
+                                if (br.name().equalsIgnoreCase(args[0])) {
+                                    horse.setBreed(br);
+                                    break;
+                                }
                             }
+                            sender.sendMessage(ChatColor.BOLD + "Breed set to " + horse.getBreed().toString());
+                        } else {
+                            sender.sendMessage("You must be on a horse!");
                         }
-                        sender.sendMessage(ChatColor.BOLD + "Breed set to " + horse.getBreed().toString());
-                    } else {
-                        sender.sendMessage("You must be on a horse!");
                     }
                 } else {
                     sender.sendMessage("Only ops can use this command");
@@ -314,35 +277,37 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             return true;
         } else if (cmd.getName().equalsIgnoreCase("setpersonality")) {   //setpersonality command
             if (args.length == 2) {
-                if ((sender instanceof Player && ((Player) sender).isOp())) {
+                if (sender instanceof Player) {
                     final Player player = (Player) sender;
-                    if (player.getVehicle() != null || player.getVehicle() instanceof Horse) {
-                        final MyHorse horse = container.getHorse(player.getVehicle().getUniqueId());
-                        if (args[0].equalsIgnoreCase(args[1])) {
-                            player.sendMessage("You must select two different personalities");
-                        }
-                        Personality p1 = null;
-                        Personality p2 = null;
-                        for (Personality p : Personality.values()) {
-                            if (p.toString().equalsIgnoreCase(args[0])) {
-                                p1 = p;
-                                break;
+                    if (!OP_REQ || player.isOp()) {
+                        if (player.getVehicle() != null || player.getVehicle() instanceof Horse) {
+                            final MyHorse horse = container.getHorse(player.getVehicle().getUniqueId());
+                            if (args[0].equalsIgnoreCase(args[1])) {
+                                player.sendMessage("You must select two different personalities");
                             }
-                        }
-                        for (Personality p : Personality.values()) {
-                            if (p.toString().equalsIgnoreCase(args[1])) {
-                                p2 = p;
-                                break;
+                            Personality p1 = null;
+                            Personality p2 = null;
+                            for (Personality p : Personality.values()) {
+                                if (p.toString().equalsIgnoreCase(args[0])) {
+                                    p1 = p;
+                                    break;
+                                }
                             }
+                            for (Personality p : Personality.values()) {
+                                if (p.toString().equalsIgnoreCase(args[1])) {
+                                    p2 = p;
+                                    break;
+                                }
+                            }
+                            if (p1 == null || p2 == null) {
+                                player.sendMessage("Some personalities could not be found");
+                                return true;
+                            }
+                            horse.setPersonalities(p1, p2);
+                            sender.sendMessage(ChatColor.BOLD + "Personality set to " + p1.toString() + " and " + p2.toString());
+                        } else {
+                            sender.sendMessage(ChatColor.BOLD + "You must be on a horse!");
                         }
-                        if (p1 == null || p2 == null) {
-                            player.sendMessage("Some personalities could not be found");
-                            return true;
-                        }
-                        horse.setPersonalities(p1, p2);
-                        sender.sendMessage(ChatColor.BOLD + "Personality set to " + p1.toString() + " and " + p2.toString());
-                    } else {
-                        sender.sendMessage(ChatColor.BOLD + "You must be on a horse!");
                     }
                 } else {
                     sender.sendMessage("Only ops can use this command");
@@ -367,23 +332,25 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             return true;
         } else if (cmd.getName().equalsIgnoreCase("setage")) {   //setage command
             if (args.length == 1) {
-                if (sender instanceof Player && ((Player) sender).isOp()) {
+                if (sender instanceof Player) {
                     final Player player = (Player) sender;
-                    if (player.getVehicle() != null && player.getVehicle() instanceof Horse) {
-                        final Horse horse = (Horse) player.getVehicle();
-                        final MyHorse mh = container.getHorse(horse.getUniqueId());
-                        try {
-                            int months = Integer.parseInt(args[0]);
-                            if (months >= 300) {
-                                player.sendMessage("Must be value under 300");
-                                return true;
+                    if (!OP_REQ || player.isOp()) {
+                        if (player.getVehicle() != null && player.getVehicle() instanceof Horse) {
+                            final Horse horse = (Horse) player.getVehicle();
+                            final MyHorse mh = container.getHorse(horse.getUniqueId());
+                            try {
+                                int months = Integer.parseInt(args[0]);
+                                if (months >= 300) {
+                                    player.sendMessage("Must be value under 300");
+                                    return true;
+                                }
+                                mh.setAgeInMonths(months);
+                                player.sendMessage("Age set");
+                            } catch (NumberFormatException ex) {
+                                player.sendMessage("Must enter a number for months");
                             }
-                            mh.setAgeInMonths(months);
-                            player.sendMessage("Age set");
-                        } catch (NumberFormatException ex) {
-                            player.sendMessage("Must enter a number for months");
+                            return true;
                         }
-                        return true;
                     }
                     return false;
                 }
@@ -688,13 +655,17 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     if (!inHand.getItemMeta().getDisplayName().equals(STICK_NAME)) { //Check it is the horse wand.
                         return;
                     }
-                    final Horse horse = (Horse) event.getRightClicked(); //Get the horse that was clicked on.
-                    if (horse.getTarget() == null) {
-                        horse.setTarget(player);
-                        player.sendMessage("Horse will follow you");
-                    } else {
-                        horse.setTarget(null);
-                        player.sendMessage("Horse will not follow you");
+                    if (!OP_REQ || player.isOp()) {
+                        final Horse horse = (Horse) event.getRightClicked(); //Get the horse that was clicked on.
+                        player.setMetadata("horse", new FixedMetadataValue(EquestriCraftPlugin.plugin, horse.getUniqueId()));
+                        player.sendMessage("You are now editing this horse");
+//                    if (horse.getTarget() == null) {
+//                        horse.setTarget(player);
+//                        player.sendMessage("Horse will follow you");
+//                    } else {
+//                        horse.setTarget(null);
+//                        player.sendMessage("Horse will not follow you");
+//                    }
                     }
                     event.setCancelled(true);
                     break;
@@ -759,6 +730,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             HorseCheckerThread.BREED_PROBABILITY = Double.parseDouble(properties.getProperty("BREED_PROBABILITY"));
             HorseCheckerThread.SICK_PROBABILITY = Double.parseDouble(properties.getProperty("SICK_PROBABILITY"));
             HorseCheckerThread.VACCINATED_PROBABILITY = Double.parseDouble(properties.getProperty("VACCINATED_SICK_PROBABILITY"));
+            OP_REQ = properties.getProperty("OP_REQ", "TRUE").equals("TRUE");
         } catch (FileNotFoundException ex) {
             saveProperties();
         } catch (IOException ex) {
@@ -785,6 +757,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             properties.setProperty("BREED_PROBABILITY", Double.toString(HorseCheckerThread.BREED_PROBABILITY));
             properties.setProperty("SICK_PROBABILITY", Double.toString(HorseCheckerThread.SICK_PROBABILITY));
             properties.setProperty("VACCINATED_SICK_PROBABILITY", Double.toString(HorseCheckerThread.VACCINATED_PROBABILITY));
+            properties.setProperty("OP_REQ", (OP_REQ ? "TRUE" : "FALSE"));
             properties.store(os, null);
         } catch (FileNotFoundException ex) {
             LOG.log(Level.SEVERE, null, ex);
