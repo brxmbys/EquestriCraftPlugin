@@ -73,7 +73,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     public void onEnable() {
         plugin = this;
         LOG = plugin.getLogger();
-        if(!this.getDataFolder().exists()){
+        if (!this.getDataFolder().exists()) {
             this.getDataFolder().mkdir();
         }
         properties = new Properties();
@@ -782,7 +782,9 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     @EventHandler
     public void onCreatureSpawn(CreatureSpawnEvent evt) {
         if (evt.getEntityType() == EntityType.HORSE) {
-            MyHorse mh = new MyHorse((Horse) evt.getEntity());
+            final Horse horse = (Horse) evt.getEntity();
+            MyHorse mh = new MyHorse(horse);
+            horse.setBaby();
             if (evt.getEntity().getMetadata("breed").size() > 1) {
                 String breed = evt.getEntity().getMetadata("breed").get(0).asString();
                 HorseBreed br = HorseBreed.valueOf(breed);
