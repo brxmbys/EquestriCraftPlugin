@@ -307,7 +307,7 @@ public class HorseCheckerThread extends Thread {
                         }
                     }
 
-                    if (horse.getAgeInMonths() > 12) { //Check if the horse can become an adult
+                    if (horse.getAgeInMonths() >= 12) { //Check if the horse can become an adult
                         new BukkitRunnable() {
                             @Override
                             public void run() {
@@ -324,7 +324,7 @@ public class HorseCheckerThread extends Thread {
                     }
                 }
             } catch (Exception e) {
-//                EquestriCraftPlugin.LOG.log(Level.WARNING, "Error", e);
+                EquestriCraftPlugin.LOG.log(Level.WARNING, "Error", e);
             }
             try {
                 Thread.sleep(MAIN_THREAD_INTERVAL); //Wait
