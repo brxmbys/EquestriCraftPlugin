@@ -43,7 +43,7 @@ public class DataContainer {
 
     private final StampedLock fileLock;
 
-    private boolean runSave;
+    private volatile boolean runSave;
 
     private DataContainer() {
         horses = new LinkedList<>();

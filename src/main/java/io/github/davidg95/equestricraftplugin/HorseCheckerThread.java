@@ -91,7 +91,7 @@ public class HorseCheckerThread extends Thread {
 
     private final DataContainer container;
 
-    private boolean run;
+    private volatile boolean run;
 
     public HorseCheckerThread() {
         super("Horse_Checker_Thread");
