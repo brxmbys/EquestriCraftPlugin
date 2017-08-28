@@ -73,6 +73,9 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     public void onEnable() {
         plugin = this;
         LOG = plugin.getLogger();
+        if(!this.getDataFolder().exists()){
+            this.getDataFolder().mkdir();
+        }
         properties = new Properties();
         loadProperties();
         container = DataContainer.getInstance();
