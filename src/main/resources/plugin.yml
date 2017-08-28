@@ -53,3 +53,6 @@ commands:
     cleanup:
         description: Clean up the horses list of duplicates.
         usage: /cleanup
+    race:
+        description: Race commands.
+        usage: /race <options>

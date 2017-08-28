@@ -3,6 +3,7 @@
  */
 package io.github.davidg95.equestricraftplugin;
 
+import io.github.davidg95.equestricraftplugin.race.Race;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -65,6 +66,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
 
     public static boolean OP_REQ = true;
     public static boolean BLOCK_HUNGER = true;
+
+    private Race race;
 
     @Override
     public void onEnable() {
@@ -465,6 +468,32 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             };
             final Thread thread = new Thread(run, "Cleanup_Thread");
             thread.start();
+        } else if (cmd.getName().equalsIgnoreCase("race")) {
+            if (args.length >= 1) {
+                if (args[0].equalsIgnoreCase("open")) {
+                    race = new Race();
+                    Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "Race is now open for entries");
+                } else if (args[0].equalsIgnoreCase("add")) {
+                    if (args.length == 2) {
+                        final Player player = Bukkit.getPlayer(args[1]);
+                        if (player == null) {
+                            sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "Player not found");
+                            return true;
+                        }
+                        boolean result = race.addPlayer(player);
+                        if (!result) {
+                            player.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "Race already started");
+                        } else {
+                            player.sendMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "You are in the race!");
+                            Bukkit.broadcastMessage(player.getName() + " is in the race!");
+                        }
+                    }
+                } else if (args[0].equalsIgnoreCase("start")) {
+                    Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "Race has started!");
+                    race.start();
+                }
+            }
+            return true;
         }
 
         return false;
