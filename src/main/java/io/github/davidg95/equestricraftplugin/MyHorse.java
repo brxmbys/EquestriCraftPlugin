@@ -222,15 +222,15 @@ public class MyHorse implements Serializable {
      * @return true if they are near a mate, false if they are not.
      */
     public static boolean nearMate(MyHorse horse) {
-        if (horse.getGender() == GELDING) { //If it is a gelding, return false.
+        if (horse.getGender() != MARE) { //If it is not a mare, return false.
             return false;
         }
-        final List<Entity> nearby = horse.getHorse().getNearbyEntities(1.5, 1.5, 1.5); //Get entires withing a 1.5 block radius.
+        final List<Entity> nearby = horse.getHorse().getNearbyEntities(1.5, 1.5, 1.5); //Get entites withing a 1.5 block radius.
         for (Entity e : nearby) {
             if (e.getType() == EntityType.HORSE) { //Check if the entity is a horse.
                 final Horse h = (Horse) e;
                 final MyHorse mh = DataContainer.getInstance().getHorse(h.getUniqueId());
-                if (horse.getGender() == GELDING) { //If it is a gelding, return false.
+                if (horse.getGender() != STALLION) { //If it is a gelding, return false.
                     return false;
                 }
                 if (horse.getGender() != mh.getGender()) { //If it is the opposite gender, return true.
