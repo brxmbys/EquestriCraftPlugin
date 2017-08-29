@@ -495,6 +495,10 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                             sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "Player not found");
                             return true;
                         }
+                        if (race == null || race.isStarted() || race.isFinnsihed()) {
+                            sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "Race not currently open for entries");
+                            return true;
+                        }
                         boolean result = race.addPlayer(player);
                         if (!result) {
                             player.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "Race already started");
