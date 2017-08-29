@@ -24,6 +24,7 @@ public class Race {
     private CheckThread thread;
 
     private boolean started;
+    private boolean finnished;
 
     private long startTime;
 
@@ -31,6 +32,7 @@ public class Race {
         players = new LinkedList<>();
         complete = new LinkedList<>();
         started = false;
+        finnished = false;
     }
 
     public void start() {
@@ -41,6 +43,7 @@ public class Race {
     }
 
     public void finish() {
+        finnished = true;
         Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "RACE COMPLETE!");
         Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.AQUA + "Rankings-");
         for (int i = 0; i < players.size(); i++) {
@@ -51,9 +54,14 @@ public class Race {
             } else if (i == 2) {
                 Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.YELLOW + "3rd- " + ChatColor.RESET + "" + ChatColor.BOLD + players.get(i).getName());
             } else {
-                Bukkit.broadcastMessage(ChatColor.BOLD + "" + (i + 1) + "th" + players.get(i).getName());
+                Bukkit.broadcastMessage(ChatColor.BOLD + "" + (i + 1) + "th- " + players.get(i).getName());
             }
         }
+    }
+    
+    public void terminate(){
+        finnished = true;
+        Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.RED + "RACE HAS BEEN TERMINATED!");
     }
 
     public boolean addPlayer(Player p) {
@@ -64,7 +72,7 @@ public class Race {
         return true;
     }
 
-    public List getPlayers() {
+    public List<Player> getPlayers() {
         return players;
     }
 
@@ -81,5 +89,17 @@ public class Race {
 
     public List getCompletedPlayers() {
         return complete;
+    }
+
+    public boolean withdraw(Player player) {
+        return players.remove(player);
+    }
+
+    public boolean isFinnsihed() {
+        return finnished;
+    }
+
+    public boolean isStarted() {
+        return started;
     }
 }

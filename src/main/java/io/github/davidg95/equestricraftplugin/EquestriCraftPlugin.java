@@ -489,8 +489,48 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         }
                     }
                 } else if (args[0].equalsIgnoreCase("start")) {
-                    Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "Race has started!");
+                    if (race == null || race.isFinnsihed()) {
+                        sender.sendMessage("You must open a new race first. Use /race open");
+                        return true;
+                    } else if (race.isStarted()) {
+                        sender.sendMessage("The current race must finnish first");
+                        return true;
+                    } else if(race.getPlayers().isEmpty()){
+                        sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "There are no players in the race yet");
+                        return true;
+                    }
                     race.start();
+                    Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "Race has started!");
+                } else if (args[0].equalsIgnoreCase("withdraw")) {
+                    if (!(sender instanceof Player)) {
+                        sender.sendMessage("Only players can use this command");
+                        return true;
+                    }
+                    if (race == null || race.isFinnsihed()) {
+                        sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "There is not an active race");
+                    }
+                    final Player player = (Player) sender;
+                    if (race.withdraw(player)) {
+                        player.sendMessage("You have withdrawn from the race");
+                        Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.RED + player.getName() + " has withdrawn from the race!");
+                    } else{
+                        player.sendMessage("You are not in the race");
+                    }
+                } else if (args[0].equalsIgnoreCase("end")) {
+                    race.terminate();
+                    race = null;
+                } else if(args[0].equalsIgnoreCase("list")){
+                    if(race == null || race.isFinnsihed()){
+                        sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "There is not an active race");
+                        return true;
+                    }
+                    sender.sendMessage("Race entrants:");
+                    for(Player p: race.getPlayers()){
+                        sender.sendMessage(p.getName());
+                    }
+                    sender.sendMessage("Total entrants: " + race.getPlayers().size());
+                } else{
+                    sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "Unknown command");
                 }
             }
             return true;

@@ -31,7 +31,8 @@ public class CheckThread extends Thread {
         while (run) {
             for (int i = 0; i < players.size(); i++) {
                 final Player player = players.get(i);
-                if (player.getLocation().getBlockZ() == 11135) {
+                int z = player.getLocation().getBlockZ();
+                if (z < 11135 && z > 11130) {
                     race.completePlayer(player);
                 }
             }
