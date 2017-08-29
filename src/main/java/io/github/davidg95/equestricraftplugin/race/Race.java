@@ -71,7 +71,9 @@ public class Race {
      */
     public void terminate() {
         finnished = true;
-        thread.stopRun();
+        if (thread != null) {
+            thread.stopRun();
+        }
         Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.RED + "RACE HAS BEEN TERMINATED!");
     }
 
