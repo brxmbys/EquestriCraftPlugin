@@ -495,7 +495,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     } else if (race.isStarted()) {
                         sender.sendMessage("The current race must finnish first");
                         return true;
-                    } else if(race.getPlayers().isEmpty()){
+                    } else if (race.getPlayers().isEmpty()) {
                         sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "There are no players in the race yet");
                         return true;
                     }
@@ -513,23 +513,27 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     if (race.withdraw(player)) {
                         player.sendMessage("You have withdrawn from the race");
                         Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.RED + player.getName() + " has withdrawn from the race!");
-                    } else{
+                    } else {
                         player.sendMessage("You are not in the race");
                     }
                 } else if (args[0].equalsIgnoreCase("end")) {
-                    race.terminate();
-                    race = null;
-                } else if(args[0].equalsIgnoreCase("list")){
-                    if(race == null || race.isFinnsihed()){
+                    if (race != null) {
+                        race.terminate();
+                        race = null;
+                    } else {
+                        sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "There is no active race session");
+                    }
+                } else if (args[0].equalsIgnoreCase("list")) {
+                    if (race == null || race.isFinnsihed()) {
                         sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "There is not an active race");
                         return true;
                     }
                     sender.sendMessage("Race entrants:");
-                    for(Player p: race.getPlayers()){
+                    for (Player p : race.getPlayers()) {
                         sender.sendMessage("- " + p.getName());
                     }
                     sender.sendMessage("Total entrants: " + race.getPlayers().size());
-                } else{
+                } else {
                     sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "Unknown command");
                 }
             }
