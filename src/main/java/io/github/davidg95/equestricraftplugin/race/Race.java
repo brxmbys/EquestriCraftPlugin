@@ -19,8 +19,8 @@ import org.bukkit.metadata.FixedMetadataValue;
  */
 public class Race {
 
-    private final List<Player> players; //The players entering the race.
-    private final List<PlayerTime> complete; //The name and the times of the players who have completed the race.
+    private final List<RacePlayer> players; //The players entering the race.
+    private final List<RacePlayer> complete; //The name and the times of the players who have completed the race.
 
     private CheckThread thread; //CheckerThread.
 
@@ -29,7 +29,10 @@ public class Race {
 
     private long startTime; //Time the race started at.
 
-    public Race() {
+    private final int laps; //The number of laps.
+
+    public Race(int laps) {
+        this.laps = laps;
         players = new LinkedList<>();
         complete = new LinkedList<>();
         started = false;
@@ -88,16 +91,16 @@ public class Race {
         if (started) {
             return false;
         }
-        players.add(p);
+        players.add(new RacePlayer(p));
         return true;
     }
 
     /**
      * Get all entrants.
      *
-     * @return List of type Player.
+     * @return List of type RacePlayer.
      */
-    public List<Player> getPlayers() {
+    public List<RacePlayer> getPlayers() {
         return players;
     }
 
@@ -107,28 +110,29 @@ public class Race {
      *
      * @param p the player.
      */
-    public void completePlayer(Player p) {
+    public void completePlayer(RacePlayer p) {
         final long time = new Date().getTime();
         final long raceTime = time - startTime;
         final double seconds = raceTime / 1000;
         final int position = complete.size() + 1;
-        for (PlayerTime pt : complete) {
-            if (pt.name.equals(p.getName())) {
+        p.setTime(seconds);
+        for (RacePlayer rp : complete) {
+            if (rp.getPlayer().getName().equals(p.getPlayer().getName())) {
                 return;
             }
         }
-        complete.add(new PlayerTime(p.getName(), seconds));
-        p.sendMessage("Position: " + position);
-        p.sendMessage("Your time: " + seconds + "s");
-        p.setMetadata("time", new FixedMetadataValue(EquestriCraftPlugin.plugin, time));
+        complete.add(p);
+        p.getPlayer().sendMessage("Position: " + position);
+        p.getPlayer().sendMessage("Your time: " + seconds + "s");
+        p.getPlayer().setMetadata("time", new FixedMetadataValue(EquestriCraftPlugin.plugin, time));
     }
 
     /**
      * Get the complete players and times.
      *
-     * @return List of type PlayerTime.
+     * @return List of type RacePlayer.
      */
-    public List<PlayerTime> getCompletedPlayers() {
+    public List<RacePlayer> getCompletedPlayers() {
         return complete;
     }
 
@@ -139,7 +143,13 @@ public class Race {
      * @return true if they were in the race, false if they were not.
      */
     public boolean withdraw(Player player) {
-        return players.remove(player);
+        for (int i = 0; i < players.size(); i++) {
+            if (players.get(i).getPlayer().getName().equals(player.getName())) {
+                players.remove(i);
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -161,21 +171,11 @@ public class Race {
     }
 
     /**
-     * Class modeling player time.
+     * Get the laps of the race.
+     *
+     * @return the laps as an int.
      */
-    public class PlayerTime {
-
-        private String name;
-        private double time;
-
-        public PlayerTime(String name, double time) {
-            this.name = name;
-            this.time = time;
-        }
-
-        @Override
-        public String toString() {
-            return name + " - " + time + "s";
-        }
+    public int laps() {
+        return laps;
     }
 }

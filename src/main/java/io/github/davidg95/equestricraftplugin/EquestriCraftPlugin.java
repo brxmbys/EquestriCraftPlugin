@@ -4,6 +4,7 @@
 package io.github.davidg95.equestricraftplugin;
 
 import io.github.davidg95.equestricraftplugin.race.Race;
+import io.github.davidg95.equestricraftplugin.race.RacePlayer;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -471,8 +472,22 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         } else if (cmd.getName().equalsIgnoreCase("race")) {
             if (args.length >= 1) {
                 if (args[0].equalsIgnoreCase("open")) {
-                    race = new Race();
-                    Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "***Race is now open for entries***");
+                    if (args.length >= 2) {
+                        try {
+                            int laps = Integer.parseInt(args[1]);
+                            if (laps < 1) {
+                                sender.sendMessage("Must be 1 or greater");
+                                return true;
+                            }
+                            race = new Race(laps);
+                            Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "***" + laps + " lap race is now open for entries***");
+                        } catch (NumberFormatException ex) {
+                            sender.sendMessage("You must specify the number of laps");
+                        }
+                    } else {
+                        sender.sendMessage("You must specify the number of laps");
+                    }
+                    return true;
                 } else if (args[0].equalsIgnoreCase("add")) {
                     if (args.length == 2) {
                         final Player player = Bukkit.getPlayer(args[1]);
@@ -529,8 +544,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         return true;
                     }
                     sender.sendMessage("Race entrants:");
-                    for (Player p : race.getPlayers()) {
-                        sender.sendMessage("- " + p.getName());
+                    for (RacePlayer p : race.getPlayers()) {
+                        sender.sendMessage("- " + p.getPlayer().getName());
                     }
                     sender.sendMessage("Total entrants: " + race.getPlayers().size());
                 } else {
