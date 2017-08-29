@@ -19,7 +19,7 @@ import org.bukkit.metadata.FixedMetadataValue;
 public class Race {
 
     private final List<Player> players;
-    private final List<Player> complete;
+    private final List<PlayerTime> complete;
 
     private CheckThread thread;
 
@@ -46,20 +46,20 @@ public class Race {
         finnished = true;
         Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "RACE COMPLETE!");
         Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.AQUA + "Rankings-");
-        for (int i = 0; i < players.size(); i++) {
+        for (int i = 0; i < complete.size(); i++) {
             if (i == 0) {
-                Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GOLD + "1st- " + ChatColor.RESET + "" + ChatColor.BOLD + players.get(i).getName());
+                Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GOLD + "1st- " + ChatColor.RESET + "" + ChatColor.BOLD + complete.get(i).toString());
             } else if (i == 1) {
-                Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GRAY + "2nd- " + ChatColor.RESET + "" + ChatColor.BOLD + players.get(i).getName());
+                Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GRAY + "2nd- " + ChatColor.RESET + "" + ChatColor.BOLD + complete.get(i).toString());
             } else if (i == 2) {
-                Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.YELLOW + "3rd- " + ChatColor.RESET + "" + ChatColor.BOLD + players.get(i).getName());
+                Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.YELLOW + "3rd- " + ChatColor.RESET + "" + ChatColor.BOLD + complete.get(i).toString());
             } else {
-                Bukkit.broadcastMessage(ChatColor.BOLD + "" + (i + 1) + "th- " + players.get(i).getName());
+                Bukkit.broadcastMessage(ChatColor.BOLD + "" + (i + 1) + "th- " + complete.get(i).toString());
             }
         }
     }
-    
-    public void terminate(){
+
+    public void terminate() {
         finnished = true;
         Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.RED + "RACE HAS BEEN TERMINATED!");
     }
@@ -81,7 +81,12 @@ public class Race {
         final long raceTime = time - startTime;
         final double seconds = raceTime / 1000;
         final int position = complete.size() + 1;
-        complete.add(p);
+        for (PlayerTime pt : complete) {
+            if (pt.name.equals(p.getName())) {
+                return;
+            }
+        }
+        complete.add(new PlayerTime(p.getName(), seconds));
         p.sendMessage("Position: " + position);
         p.sendMessage("Your time: " + seconds + "s");
         p.setMetadata("time", new FixedMetadataValue(EquestriCraftPlugin.plugin, time));
@@ -101,5 +106,21 @@ public class Race {
 
     public boolean isStarted() {
         return started;
+    }
+
+    public class PlayerTime {
+
+        private String name;
+        private double time;
+
+        public PlayerTime(String name, double time) {
+            this.name = name;
+            this.time = time;
+        }
+
+        @Override
+        public String toString() {
+            return name + " - " + time + "s";
+        }
     }
 }

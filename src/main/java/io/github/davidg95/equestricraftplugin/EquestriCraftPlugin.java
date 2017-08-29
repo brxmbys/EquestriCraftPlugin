@@ -526,7 +526,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     }
                     sender.sendMessage("Race entrants:");
                     for(Player p: race.getPlayers()){
-                        sender.sendMessage(p.getName());
+                        sender.sendMessage("- " + p.getName());
                     }
                     sender.sendMessage("Total entrants: " + race.getPlayers().size());
                 } else{
