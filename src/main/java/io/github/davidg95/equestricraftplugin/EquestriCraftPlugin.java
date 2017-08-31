@@ -557,8 +557,33 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                 }
             }
             return true;
+        } else if (cmd.getName().equalsIgnoreCase("eqh")) {
+            if (args.length >= 1) {
+                String arg = args[0];
+                if (arg.equalsIgnoreCase("kill")) {
+                    if (sender instanceof Player) {
+                        final Player player = (Player) sender;
+                        if (player.isOp()) {
+                            MyHorse mh;
+                            if (player.getVehicle() != null && player.getVehicle() instanceof Horse) {
+                                final Horse horse = (Horse) player.getVehicle();
+                                mh = container.getHorse(horse.getUniqueId());
+                            } else {
+                                mh = container.getHorse(UUID.fromString(player.getMetadata("horse").get(0).asString()));
+                            }
+                            if (mh == null) {
+                                sender.sendMessage("No horse selected");
+                                return true;
+                            }
+                            mh.kill();
+                            return true;
+                        }
+                        return true;
+                    }
+                }
+            }
+            return true;
         }
-
         return false;
     }
 

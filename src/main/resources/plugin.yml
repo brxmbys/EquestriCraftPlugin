@@ -56,3 +56,6 @@ commands:
     race:
         description: Race commands.
         usage: /race <options>
+    eqh:
+        decription: general command
+        usage: /eqh
