@@ -3,17 +3,12 @@
  */
 package io.github.davidg95.equestricraftplugin.race;
 
-import io.github.davidg95.equestricraftplugin.EquestriCraftPlugin;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.HandlerList;
-import org.bukkit.event.player.PlayerQuitEvent;
 
 /**
  *
