@@ -203,14 +203,17 @@ public class Race implements Listener {
         return laps;
     }
 
+    /**
+     * When a player leaves, withdraw them from the race.
+     *
+     * @param evt PlayerQuitEvent.
+     */
     @EventHandler
     public void onPlayerLeave(PlayerQuitEvent evt) {
-        EquestriCraftPlugin.LOG.log(Level.INFO, "Player " + evt.getPlayer().getName() + " has left, checking to see if they were in the race...");
         for (int i = 0; i < players.size(); i++) {
             if (players.get(i).getPlayer().getName().equals(evt.getPlayer().getName())) {
                 withdraw(evt.getPlayer());
                 Bukkit.broadcastMessage(ChatColor.BOLD + evt.getPlayer().getName() + " has withdrawn from the race!");
-                EquestriCraftPlugin.LOG.log(Level.INFO, evt.getPlayer().getName() + " has withdrawn from the race!");
                 return;
             }
         }
