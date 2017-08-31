@@ -7,9 +7,14 @@ import io.github.davidg95.equestricraftplugin.EquestriCraftPlugin;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.HandlerList;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.metadata.FixedMetadataValue;
 
 /**
@@ -17,7 +22,7 @@ import org.bukkit.metadata.FixedMetadataValue;
  *
  * @author David
  */
-public class Race {
+public class Race implements Listener {
 
     private final List<RacePlayer> players; //The players entering the race.
     private final List<RacePlayer> complete; //The name and the times of the players who have completed the race.
@@ -37,6 +42,7 @@ public class Race {
         complete = new LinkedList<>();
         started = false;
         finnished = false;
+        Bukkit.getServer().getPluginManager().registerEvents(this, EquestriCraftPlugin.plugin);
     }
 
     /**
@@ -57,6 +63,7 @@ public class Race {
         if (complete.isEmpty()) {
             return;
         }
+        HandlerList.unregisterAll(this);
         Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "RACE COMPLETE!");
         Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.AQUA + "Rankings-");
         for (int i = 0; i < complete.size(); i++) {
@@ -194,5 +201,18 @@ public class Race {
      */
     public int laps() {
         return laps;
+    }
+
+    @EventHandler
+    public void onPlayerLeave(PlayerQuitEvent evt) {
+        EquestriCraftPlugin.LOG.log(Level.INFO, "Player " + evt.getPlayer().getName() + " has left, checking to see if they were in the race...");
+        for (int i = 0; i < players.size(); i++) {
+            if (players.get(i).getPlayer().getName().equals(evt.getPlayer().getName())) {
+                withdraw(evt.getPlayer());
+                Bukkit.broadcastMessage(ChatColor.BOLD + evt.getPlayer().getName() + " has withdrawn from the race!");
+                EquestriCraftPlugin.LOG.log(Level.INFO, evt.getPlayer().getName() + " has withdrawn from the race!");
+                return;
+            }
+        }
     }
 }

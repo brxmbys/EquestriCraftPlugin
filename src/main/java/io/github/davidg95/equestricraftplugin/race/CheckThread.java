@@ -3,6 +3,7 @@
  */
 package io.github.davidg95.equestricraftplugin.race;
 
+import io.github.davidg95.equestricraftplugin.EquestriCraftPlugin;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
@@ -11,15 +12,14 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 /**
  *
  * @author David
  */
-public class CheckThread extends Thread implements Listener {
+public class CheckThread extends Thread {
 
     private final List<RacePlayer> players;
     private final Race race;
@@ -69,16 +69,5 @@ public class CheckThread extends Thread implements Listener {
 
     public void stopRun() {
         run = false;
-    }
-
-    @EventHandler
-    public void onPlayerLeave(PlayerQuitEvent evt) {
-        for (int i = 0; i < players.size(); i++) {
-            if (players.get(i).getPlayer().getName().equals(evt.getPlayer().getName())) {
-                race.withdraw(evt.getPlayer());
-                Bukkit.broadcastMessage(ChatColor.BOLD + evt.getPlayer().getName() + " has withdrawn from the race!");
-                return;
-            }
-        }
     }
 }
