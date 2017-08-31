@@ -7,14 +7,19 @@ import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 
 /**
  *
  * @author David
  */
-public class CheckThread extends Thread {
+public class CheckThread extends Thread implements Listener {
 
     private final List<RacePlayer> players;
     private final Race race;
@@ -64,5 +69,16 @@ public class CheckThread extends Thread {
 
     public void stopRun() {
         run = false;
+    }
+
+    @EventHandler
+    public void onPlayerLeave(PlayerQuitEvent evt) {
+        for (int i = 0; i < players.size(); i++) {
+            if (players.get(i).getPlayer().getName().equals(evt.getPlayer().getName())) {
+                race.withdraw(evt.getPlayer());
+                Bukkit.broadcastMessage(ChatColor.BOLD + evt.getPlayer().getName() + " has withdrawn from the race!");
+                return;
+            }
+        }
     }
 }
