@@ -39,7 +39,6 @@ public class CheckThread extends Thread {
         int x1 = fc.getInt("x1");
         int x2 = fc.getInt("x2");
         int yl = fc.getInt("yl");
-        Bukkit.broadcastMessage("Finish line coords: " + z1 + "," + z2 + "," + x1 + "," + x2 + "," + yl);
         while (run) {
             for (int i = 0; i < players.size(); i++) {
                 final Player player = players.get(i).getPlayer();
