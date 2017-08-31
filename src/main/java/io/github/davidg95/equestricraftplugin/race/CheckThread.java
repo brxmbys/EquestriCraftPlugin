@@ -3,11 +3,14 @@
  */
 package io.github.davidg95.equestricraftplugin.race;
 
+import io.github.davidg95.equestricraftplugin.EquestriCraftPlugin;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 
 /**
@@ -30,13 +33,20 @@ public class CheckThread extends Thread {
 
     @Override
     public void run() {
+        FileConfiguration fc = EquestriCraftPlugin.plugin.getConfig();
+        int z1 = fc.getInt("z1");
+        int z2 = fc.getInt("z2");
+        int x1 = fc.getInt("x1");
+        int x2 = fc.getInt("x2");
+        int yl = fc.getInt("yl");
+        Bukkit.broadcastMessage("Finish line coords: " + z1 + "," + z2 + "," + x1 + "," + x2 + "," + yl);
         while (run) {
             for (int i = 0; i < players.size(); i++) {
                 final Player player = players.get(i).getPlayer();
                 int z = player.getLocation().getBlockZ();
                 int x = player.getLocation().getBlockX();
                 int y = player.getLocation().getBlockY();
-                if (z < 11135 && z > 11130 && x >= -2124 && x <= -2093 && y <= 20) {
+                if (z < z1 && z > z2 && x >= x1 && x <= x2 && y <= yl) {
                     final RacePlayer rp = players.get(i);
                     if (rp.getLap() > 0 && new Date().getTime() - rp.getLastCrossTime() < 5000L) {
                         continue;

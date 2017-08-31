@@ -23,6 +23,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Horse;
@@ -77,12 +78,35 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         if (!this.getDataFolder().exists()) {
             this.getDataFolder().mkdir();
         }
+        try {
+            getConfig().load(getDataFolder() + File.separator + "race.yml");
+        } catch (IOException | InvalidConfigurationException ex) {
+            LOG.log(Level.SEVERE, "Error loading race.yml", ex);
+        }
         properties = new Properties();
         loadProperties();
         container = DataContainer.getInstance();
         checkerThread = new HorseCheckerThread();
         checkerThread.start();
         getServer().getPluginManager().registerEvents(this, this);
+    }
+
+    private void initRaceConfig() {
+        int z1 = 11135;
+        int z2 = 11130;
+        int x1 = -2124;
+        int x2 = -2093;
+        int yl = 20;
+        getConfig().set("z1", z1);
+        getConfig().set("z2", z2);
+        getConfig().set("x1", x1);
+        getConfig().set("x2", x2);
+        getConfig().set("yl", yl);
+        try {
+            getConfig().save(getDataFolder().getAbsolutePath() + File.separator + "race.yml");
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, "Error saving race.yml", ex);
+        }
     }
 
     @Override
@@ -504,7 +528,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                             player.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "Race already started");
                         } else if (result == 3) {
                             player.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "Max players already reached.");
-                        } else if(result == 4){
+                        } else if (result == 4) {
                             player.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "You are already in the race.");
                         } else {
                             player.sendMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "You are in the race!");
