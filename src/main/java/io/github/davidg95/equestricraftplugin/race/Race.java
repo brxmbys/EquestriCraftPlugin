@@ -54,17 +54,25 @@ public class Race {
      */
     public void finish() {
         finnished = true;
+        if (complete.isEmpty()) {
+            return;
+        }
         Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "RACE COMPLETE!");
         Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.AQUA + "Rankings-");
         for (int i = 0; i < complete.size(); i++) {
-            if (i == 0) {
-                Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GOLD + "1st- " + ChatColor.RESET + "" + ChatColor.BOLD + complete.get(i).toString());
-            } else if (i == 1) {
-                Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GRAY + "2nd- " + ChatColor.RESET + "" + ChatColor.BOLD + complete.get(i).toString());
-            } else if (i == 2) {
-                Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.YELLOW + "3rd- " + ChatColor.RESET + "" + ChatColor.BOLD + complete.get(i).toString());
-            } else {
-                Bukkit.broadcastMessage(ChatColor.BOLD + "" + (i + 1) + "th- " + complete.get(i).toString());
+            switch (i) {
+                case 0:
+                    Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GOLD + "1st- " + ChatColor.RESET + "" + ChatColor.BOLD + complete.get(i).toString());
+                    break;
+                case 1:
+                    Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GRAY + "2nd- " + ChatColor.RESET + "" + ChatColor.BOLD + complete.get(i).toString());
+                    break;
+                case 2:
+                    Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.YELLOW + "3rd- " + ChatColor.RESET + "" + ChatColor.BOLD + complete.get(i).toString());
+                    break;
+                default:
+                    Bukkit.broadcastMessage(ChatColor.BOLD + "" + (i + 1) + "th- " + complete.get(i).toString());
+                    break;
             }
         }
     }
@@ -84,15 +92,24 @@ public class Race {
      * Add a player to the race.
      *
      * @param p the player to add.
-     * @return true if the race has not yet started, false if the race has
-     * started already. If the race has stared, the player will not be added.
+     * @return 1 if the player was added, 2 if the race has started and the
+     * player is not added, 3 if the max player count has been reached and the
+     * player is not added. 4 if the player is already in the race.
      */
-    public boolean addPlayer(Player p) {
+    public int addPlayer(Player p) {
         if (started) {
-            return false;
+            return 2;
+        }
+        if (players.size() >= 11) {
+            return 3;
+        }
+        for (int i = 0; i < players.size(); i++) {
+            if (players.get(i).getPlayer().getName().equals(p.getName())) {
+                return 4;
+            }
         }
         players.add(new RacePlayer(p));
-        return true;
+        return 1;
     }
 
     /**
