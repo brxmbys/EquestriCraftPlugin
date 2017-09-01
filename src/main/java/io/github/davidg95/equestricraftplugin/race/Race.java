@@ -4,6 +4,7 @@
 package io.github.davidg95.equestricraftplugin.race;
 
 import io.github.davidg95.equestricraftplugin.EquestriCraftPlugin;
+import static io.github.davidg95.equestricraftplugin.EquestriCraftPlugin.plugin;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -81,6 +82,7 @@ public class Race implements Listener {
                     break;
             }
         }
+        terminate();
     }
 
     /**
@@ -91,6 +93,7 @@ public class Race implements Listener {
         if (thread != null) {
             thread.stopRun();
         }
+        HandlerList.unregisterAll(this);
         Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.RED + "RACE HAS BEEN TERMINATED!");
     }
 
