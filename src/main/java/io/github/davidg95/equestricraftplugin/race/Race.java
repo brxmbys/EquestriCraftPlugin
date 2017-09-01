@@ -175,6 +175,10 @@ public class Race implements Listener {
         return false;
     }
 
+    public void clearAll() {
+        players.clear();
+    }
+
     /**
      * Check if the race has finished.
      *
