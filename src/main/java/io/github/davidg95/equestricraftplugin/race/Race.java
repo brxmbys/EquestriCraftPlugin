@@ -136,7 +136,7 @@ public class Race implements Listener {
     public void completePlayer(RacePlayer p) {
         final long time = new Date().getTime();
         final long raceTime = time - startTime;
-        final double seconds = raceTime / 1000;
+        final double seconds = raceTime / 1000D;
         final int position = complete.size() + 1;
         p.setTime(seconds);
         for (RacePlayer rp : complete) {
