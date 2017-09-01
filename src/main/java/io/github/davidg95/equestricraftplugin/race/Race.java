@@ -4,7 +4,6 @@
 package io.github.davidg95.equestricraftplugin.race;
 
 import io.github.davidg95.equestricraftplugin.EquestriCraftPlugin;
-import static io.github.davidg95.equestricraftplugin.EquestriCraftPlugin.plugin;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -69,13 +68,13 @@ public class Race implements Listener {
         for (int i = 0; i < complete.size(); i++) {
             switch (i) {
                 case 0:
-                    Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GOLD + "1st- " + ChatColor.RESET + "" + ChatColor.BOLD + complete.get(i).toString());
+                    Bukkit.broadcastMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "1st- " + ChatColor.RESET + "" + ChatColor.BOLD + complete.get(i).toString());
                     break;
                 case 1:
-                    Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GRAY + "2nd- " + ChatColor.RESET + "" + ChatColor.BOLD + complete.get(i).toString());
+                    Bukkit.broadcastMessage(ChatColor.GRAY + "" + ChatColor.BOLD + "2nd- " + ChatColor.RESET + "" + ChatColor.BOLD + complete.get(i).toString());
                     break;
                 case 2:
-                    Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.YELLOW + "3rd- " + ChatColor.RESET + "" + ChatColor.BOLD + complete.get(i).toString());
+                    Bukkit.broadcastMessage(ChatColor.YELLOW + "" + ChatColor.BOLD + "3rd- " + ChatColor.RESET + "" + ChatColor.BOLD + complete.get(i).toString());
                     break;
                 default:
                     Bukkit.broadcastMessage(ChatColor.BOLD + "" + (i + 1) + "th- " + complete.get(i).toString());
