@@ -93,6 +93,8 @@ public class HorseCheckerThread extends Thread {
 
     private volatile boolean run;
 
+    public static boolean SHOW_TIME = false;
+
     public HorseCheckerThread() {
         super("Horse_Checker_Thread");
         bales = new LinkedList<>();
@@ -193,6 +195,8 @@ public class HorseCheckerThread extends Thread {
     public void run() {
         init(); //Start the secondary threads.
         while (run) {
+            final long start = new Date().getTime();
+            int horsesChecked = 0;
             try {
                 Iterator it = container.getAllHorses().iterator();
                 while (it.hasNext()) {
@@ -322,9 +326,17 @@ public class HorseCheckerThread extends Thread {
                             }
                         }.runTask(EquestriCraftPlugin.plugin);
                     }
+                    horsesChecked++;
                 }
             } catch (Exception e) {
                 EquestriCraftPlugin.LOG.log(Level.WARNING, "Error", e);
+            }
+            final long end = new Date().getTime();
+            final long time = end - start;
+            double s = time / 1000D;
+            if (SHOW_TIME) {
+                EquestriCraftPlugin.LOG.log(Level.INFO, "Thread run time: " + s + "s");
+                EquestriCraftPlugin.LOG.log(Level.INFO, "Horses checked: " + horsesChecked);
             }
             try {
                 Thread.sleep(MAIN_THREAD_INTERVAL); //Wait
@@ -381,7 +393,7 @@ public class HorseCheckerThread extends Thread {
                 try {
                     for (int i = 0; i < container.getAllHorses().size(); i++) {
                         MyHorse horse = container.getAllHorses().get(i);
-                        if(horse.getAgeInMonths() < 12){
+                        if (horse.getAgeInMonths() < 12) {
                             continue;
                         }
                         final double r = Math.random();

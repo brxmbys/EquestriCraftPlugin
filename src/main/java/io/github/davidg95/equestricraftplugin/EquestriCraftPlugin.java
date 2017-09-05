@@ -618,6 +618,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         }
                         return true;
                     }
+                } else if (args[0].equalsIgnoreCase("times")) {
+                    HorseCheckerThread.SHOW_TIME = !HorseCheckerThread.SHOW_TIME;
                 }
             }
             return true;
