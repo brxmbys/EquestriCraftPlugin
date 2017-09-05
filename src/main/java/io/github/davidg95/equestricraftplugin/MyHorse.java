@@ -558,6 +558,13 @@ public class MyHorse implements Serializable {
      */
     public void setBreed(HorseBreed br) {
         this.breed = br;
+        if (br == HorseBreed.Donkey) {
+            this.horse.setVariant(Variant.DONKEY);
+        } else if (br == HorseBreed.Mule) {
+            this.horse.setVariant(Variant.MULE);
+        } else {
+            this.horse.setVariant(Variant.HORSE);
+        }
     }
 
     /**

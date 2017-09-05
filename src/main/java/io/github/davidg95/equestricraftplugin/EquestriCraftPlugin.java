@@ -280,8 +280,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                 return false;
             }
             return true;
-        } else if (cmd.getName()
-                .equalsIgnoreCase("savehorses")) {   //savehorses command
+        } else if (cmd.getName().equalsIgnoreCase("savehorses")) {   //savehorses command
             if ((sender instanceof Player && ((Player) sender).isOp()) || !(sender instanceof Player)) {
                 sender.sendMessage("Saving horses...");
                 container.saveHorses();
@@ -290,8 +289,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                 sender.sendMessage("Only ops can use this command");
             }
             return true;
-        } else if (cmd.getName()
-                .equalsIgnoreCase("setbreed")) {   //setbreed command
+        } else if (cmd.getName().equalsIgnoreCase("setbreed")) {   //setbreed command
             if (args.length == 1) {
                 if (sender instanceof Player) {
                     final Player player = (Player) sender;
@@ -321,8 +319,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                 return false;
             }
             return true;
-        } else if (cmd.getName()
-                .equalsIgnoreCase("setpersonality")) {   //setpersonality command
+        } else if (cmd.getName().equalsIgnoreCase("setpersonality")) {   //setpersonality command
             if (args.length == 2) {
                 if (sender instanceof Player) {
                     final Player player = (Player) sender;
@@ -364,8 +361,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                 return false;
             }
             return true;
-        } else if (cmd.getName()
-                .equalsIgnoreCase("showbreeds")) {   //showbreeds command
+        } else if (cmd.getName().equalsIgnoreCase("showbreeds")) {   //showbreeds command
             String breeds = "";
             for (HorseBreed br : HorseBreed.values()) {
                 breeds += br.toString() + ", ";
