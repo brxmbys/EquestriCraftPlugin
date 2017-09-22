@@ -524,8 +524,6 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                             player.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "Race already started");
                         } else if (result == 3) {
                             player.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "Max players already reached.");
-                        } else if (result == 4) {
-                            player.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "You are already in the race.");
                         } else {
                             player.sendMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "You are in the race!");
                             Bukkit.broadcastMessage(player.getName() + " is in the race!");
