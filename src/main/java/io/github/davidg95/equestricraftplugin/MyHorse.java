@@ -43,7 +43,8 @@ public class MyHorse implements Serializable {
     private long wellSince;
     private long lastBreed;
     private boolean defecateSinceEat;
-    private HorseBreed[] breed;
+    private HorseBreed breed;
+    private HorseBreed[] breedArr;
     private long birthTime;
     private final Personality[] personality;
     private int dieat;
@@ -80,12 +81,12 @@ public class MyHorse implements Serializable {
         this.lastBreed = getCurrentTime();
         this.defecateSinceEat = true;
         this.uuid = h.getUniqueId();
-        this.breed = new HorseBreed[1];
-        this.breed[0] = HorseBreed.randomType();
+        this.breedArr = new HorseBreed[1];
+        this.breedArr[0] = HorseBreed.randomType();
         if (h.getVariant() == Variant.DONKEY) {
-            breed[0] = HorseBreed.Donkey;
+            breedArr[0] = HorseBreed.Donkey;
         } else if (h.getVariant() == Variant.MULE) {
-            breed[0] = HorseBreed.Mule;
+            breedArr[0] = HorseBreed.Mule;
         }
         this.birthTime = getCurrentTime();
         Personality p1 = Personality.randomType();
@@ -549,7 +550,7 @@ public class MyHorse implements Serializable {
      * @return the HorseBreed.
      */
     public HorseBreed[] getBreed() {
-        return breed;
+        return breedArr;
     }
 
     /**
@@ -558,7 +559,7 @@ public class MyHorse implements Serializable {
      * @param br the HorseBreed.
      */
     public void setBreed(HorseBreed[] br) {
-        this.breed = br;
+        this.breedArr = br;
         if (br[0] == HorseBreed.Donkey) {
             this.horse.setVariant(Variant.DONKEY);
         } else if (br[0] == HorseBreed.Mule) {
