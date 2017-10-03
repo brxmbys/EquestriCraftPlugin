@@ -400,14 +400,16 @@ public class HorseCheckerThread extends Thread {
                         if (r <= BREED_PROBABILITY) { //If the breed probability is met.
                             final long timeSinceLast = horse.getDurationSinceLastBreed(); //Get the time since the horse last bred.
                             if (timeSinceLast > BREED_INTERVAL) { //Check if it is greater then the breed inverval.
-                                if (MyHorse.nearMate(horse)) { //Check if the horse is near a valid mate.
+                                HorseBreed br = MyHorse.nearMate(horse);
+                                if (br != null) { //Check if the horse is near a valid mate.
                                     horse.setLastBreed();
                                     new BukkitRunnable() {
                                         @Override
                                         public void run() {
                                             final Horse h = horse.getHorse().getWorld().spawn(horse.getHorse().getLocation(), Horse.class); //Spawn a new horse.
                                             h.setStyle(horse.getHorse().getStyle()); //Copy the parent style.
-                                            h.setMetadata("breed", new FixedMetadataValue(EquestriCraftPlugin.plugin, horse.getBreed().name()));
+                                            h.setMetadata("breed1", new FixedMetadataValue(EquestriCraftPlugin.plugin, horse.getBreed()[0].name()));
+                                            h.setMetadata("breed2", new FixedMetadataValue(EquestriCraftPlugin.plugin, br.name()));
                                         }
                                     }.runTask(EquestriCraftPlugin.plugin);
                                 }
