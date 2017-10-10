@@ -19,6 +19,7 @@ import java.util.concurrent.locks.StampedLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -262,7 +263,7 @@ public class DataContainer {
      *
      * @param p the Doctor to add.
      */
-    public void addDoctor(Player p) {
+    public void addDoctor(OfflinePlayer p) {
         doctors.add(p.getUniqueId());
     }
 
@@ -273,13 +274,45 @@ public class DataContainer {
      * @return the yHorse object which contains the horse. Null if it doesn't
      * exists.
      */
-    public boolean isDoctor(Player p) {
+    public boolean isDoctor(OfflinePlayer p) {
         for (UUID u : doctors) {
             if (u.equals(p.getUniqueId())) {
                 return true;
             }
         }
         return false;
+    }
+
+    /**
+     * Remove a doctor from the list.
+     *
+     * @param p the doctor to remove.
+     * @return false if the doctor was not found, true of they were.
+     */
+    public boolean removeDoctor(OfflinePlayer p) {
+        for (int i = 0; i < doctors.size(); i++) {
+            if (doctors.get(i).equals(p.getUniqueId())) {
+                doctors.remove(i);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Clears all doctors.
+     */
+    public void resetDoctors() {
+        doctors.clear();
+    }
+
+    /**
+     * Get a list of all doctor UUIDs.
+     *
+     * @return UUIDs as a list.
+     */
+    public List<UUID> getAllDoctors() {
+        return doctors;
     }
 
     public List<MyHorse> getAllHorses() {

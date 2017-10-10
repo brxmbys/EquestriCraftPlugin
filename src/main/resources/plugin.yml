@@ -20,9 +20,9 @@ commands:
     vaccination:
         description: Spawns the vaccination tool.
         usage: /vaccination
-    adddoctor:
-        description: Make a player a doctor.
-        usage: /adddoctor <playername>
+    doctor:
+        description: doctor commands.
+        usage: /doctor <add|remove> [playername]
     doctortool:
         description: Spawn the tool to check a horses health.
         usage: /doctortool
