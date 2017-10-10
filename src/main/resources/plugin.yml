@@ -22,7 +22,7 @@ commands:
         usage: /vaccination
     doctor:
         description: doctor commands.
-        usage: /doctor <add|remove|list> [playername]
+        usage: /doctor <add|remove|reset|list> [playername]
     doctortool:
         description: Spawn the tool to check a horses health.
         usage: /doctortool
