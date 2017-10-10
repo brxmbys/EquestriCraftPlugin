@@ -285,8 +285,9 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                             message += player.getName();
                         }
                         sender.sendMessage(message);
+                    } else {
+                        sender.sendMessage(ChatColor.BOLD + "No doctors");
                     }
-                    sender.sendMessage(ChatColor.BOLD + "No doctors");
                     return true;
                 }
             }
@@ -693,8 +694,9 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                             message += player.getName();
                         }
                         sender.sendMessage(message);
+                    } else {
+                        sender.sendMessage(ChatColor.BOLD + "No farriers");
                     }
-                    sender.sendMessage(ChatColor.BOLD + "No farriers");
                     return true;
                 } else if (args[0].equalsIgnoreCase("reset")) {
                     if (sender.isOp() || !(sender instanceof Player)) {
