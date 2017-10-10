@@ -21,6 +21,7 @@ import java.util.logging.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.InvalidConfigurationException;
@@ -226,23 +227,45 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                 sender.sendMessage("Only a player can use this command");
             }
             return true;
-        } else if (cmd.getName().equalsIgnoreCase("adddoctor")) {   //adddoctor command
-            if (args.length == 1) {
+        } else if (cmd.getName().equalsIgnoreCase("doctor")) {   //adddoctor command
+            if (args.length == 2) {
                 if ((sender instanceof Player && ((Player) sender).isOp()) || !(sender instanceof Player)) {
-                    final Player player = Bukkit.getPlayer(args[0]);
+                    final OfflinePlayer player = Bukkit.getOfflinePlayer(args[1]);
                     if (player == null) {
+                        sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "Player not found");
                         return true;
                     }
-                    container.addDoctor(player);
-                    sender.sendMessage(ChatColor.BOLD + "" + ChatColor.GREEN + args[0] + " is now a doctor");
-                    player.sendMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "You are now a doctor!");
+                    if (args[0].equalsIgnoreCase("add")) {
+                        container.addDoctor(player);
+                        sender.sendMessage(ChatColor.BOLD + "" + ChatColor.GREEN + args[1] + " is now a doctor");
+                        if (player.isOnline()) {
+                            Player pl = (Player) player;
+                            pl.sendMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "You are now a doctor!");
+                        }
+                        return true;
+                    } else if (args[0].equalsIgnoreCase("remove")) {
+                        if (container.removeDoctor(player)) {
+                            sender.sendMessage(ChatColor.BOLD + "" + ChatColor.GREEN + args[1] + " is no longer a doctor");
+                            if (player.isOnline()) {
+                                Player pl = (Player) player;
+                                pl.sendMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "You are no longer a doctor!");
+                            }
+                        } else {
+                            sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "Player not found");
+                        }
+                        return true;
+                    }
                 } else {
-                    sender.sendMessage("Only ops can use this command");
+                    sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "Only ops can use this command");
                 }
-            } else {
-                sender.sendMessage("Usage- /adddoctor <player>");
+            } else if(args.length == 1){
+                if(args[0].equalsIgnoreCase("reset")){
+                    container.resetDoctors();
+                    sender.sendMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "Doctors have been reset");
+                    return true;
+                }
             }
-            return true;
+            return false;
         } else if (cmd.getName().equalsIgnoreCase("changegender")) {   //changegender command
             if (args.length == 1) {
                 if (sender instanceof Player) {
@@ -461,7 +484,9 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                 sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "/doctortool - " + ChatColor.RESET + "spawn the doctor tool for checking a horses health");
             }
             if (op || console) {
-                sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/adddoctor <player> - " + ChatColor.RESET + "make a player a doctor");
+                sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/doctor add <player> - " + ChatColor.RESET + "make a player a doctor");
+                sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/doctor remove <player> - " + ChatColor.RESET + "remove a doctor");
+                sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/doctor reset - " + ChatColor.RESET + "reset the doctors");
             }
             if (op) {
                 sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/changegender <stallion|gelding|mare> - " + ChatColor.RESET + "set the gender of a horse. Must be on the horse");
