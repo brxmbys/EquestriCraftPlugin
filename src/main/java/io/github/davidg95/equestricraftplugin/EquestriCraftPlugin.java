@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
@@ -258,10 +259,29 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                 } else {
                     sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "Only ops can use this command");
                 }
-            } else if(args.length == 1){
-                if(args[0].equalsIgnoreCase("reset")){
+            } else if (args.length == 1) {
+                if (args[0].equalsIgnoreCase("reset")) {
                     container.resetDoctors();
                     sender.sendMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "Doctors have been reset");
+                    return true;
+                } else if (args[0].equalsIgnoreCase("list")) {
+                    List<UUID> d = container.getAllDoctors();
+                    if (!d.isEmpty()) {
+                        List<OfflinePlayer> doctors = new LinkedList<>();
+                        for (UUID uuid : d) {
+                            for (OfflinePlayer pl : Bukkit.getOfflinePlayers()) {
+                                if (pl.getUniqueId().equals(uuid)) {
+                                    doctors.add(pl);
+                                }
+                            }
+                        }
+                        String message = ChatColor.BOLD + "Doctors-\n";
+                        for (OfflinePlayer player : doctors) {
+                            message += player.getName();
+                        }
+                        sender.sendMessage(message);
+                    }
+                    sender.sendMessage(ChatColor.BOLD + "No doctors");
                     return true;
                 }
             }
