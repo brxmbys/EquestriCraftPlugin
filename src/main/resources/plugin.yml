@@ -59,3 +59,6 @@ commands:
     eqh:
         decription: general command
         usage: /eqh
+    farrier:
+        description: farrier commands.
+        usage: /farrier <add|remove|list|reset|tool> [playername].
