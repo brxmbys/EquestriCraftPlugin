@@ -513,6 +513,14 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                 sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/doctor remove <player> - " + ChatColor.RESET + "remove a doctor");
                 sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/doctor reset - " + ChatColor.RESET + "reset the doctors");
             }
+            sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/doctor list - " + ChatColor.RESET + "list all doctors");
+            if (op || console) {
+                sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/farrier add <player> - " + ChatColor.RESET + "make a player a farrier");
+                sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/farrier remove <player> - " + ChatColor.RESET + "remove a farrier");
+                sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/farrier reset - " + ChatColor.RESET + "reset the farriers");
+            }
+            sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/farrier list - " + ChatColor.RESET + "list all farriers");
+            sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/farrier tool - " + ChatColor.RESET + "equip the farriers tool (farriers only)");
             if (op) {
                 sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/changegender <stallion|gelding|mare> - " + ChatColor.RESET + "set the gender of a horse. Must be on the horse");
                 sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/setbreed <breed> - " + ChatColor.RESET + "set the breed of the horse");
