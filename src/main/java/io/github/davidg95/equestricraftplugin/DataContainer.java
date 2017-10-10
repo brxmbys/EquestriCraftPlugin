@@ -36,7 +36,7 @@ public class DataContainer {
     private List<MyHorse> horses;
 
     private List<UUID> doctors;
-    
+
     private List<UUID> farriers;
 
     private Thread saveThread;
@@ -307,35 +307,35 @@ public class DataContainer {
     public void resetDoctors() {
         doctors.clear();
     }
-    
-    public void addFarrier(OfflinePlayer player){
+
+    public void addFarrier(OfflinePlayer player) {
         farriers.add(player.getUniqueId());
     }
-    
-    public boolean removeFarrier(OfflinePlayer player){
-        for(int i = 0; i < farriers.size(); i++){
-            if(farriers.get(i).equals(player.getUniqueId())){
+
+    public boolean removeFarrier(OfflinePlayer player) {
+        for (int i = 0; i < farriers.size(); i++) {
+            if (farriers.get(i).equals(player.getUniqueId())) {
                 farriers.remove(i);
                 return true;
             }
         }
         return false;
     }
-    
-    public boolean isFarrier(OfflinePlayer player){
-        for(UUID uuid: farriers){
-            if(uuid.equals(player.getUniqueId())){
+
+    public boolean isFarrier(OfflinePlayer player) {
+        for (UUID uuid : farriers) {
+            if (uuid.equals(player.getUniqueId())) {
                 return true;
             }
         }
         return false;
     }
-    
-    public void resetFarriers(){
+
+    public void resetFarriers() {
         farriers.clear();
     }
-    
-    public List<UUID> getAllFarriers(){
+
+    public List<UUID> getAllFarriers() {
         return farriers;
     }
 
@@ -372,6 +372,7 @@ public class DataContainer {
                 final ObjectOutputStream oo = new ObjectOutputStream(os);
                 oo.writeObject(horses);
                 oo.writeObject(doctors);
+                oo.writeObject(farriers);
             } catch (FileNotFoundException ex) {
                 EquestriCraftPlugin.plugin.getLogger().log(Level.SEVERE, null, ex);
             } catch (IOException ex) {
@@ -393,6 +394,7 @@ public class DataContainer {
             horses = (List<MyHorse>) oi.readObject();
             pairHorses();
             doctors = (List<UUID>) oi.readObject();
+            farriers = (List<UUID>) oi.readObject();
         } catch (FileNotFoundException ex) {
             throw ex;
         } catch (IOException | ClassNotFoundException ex) {
