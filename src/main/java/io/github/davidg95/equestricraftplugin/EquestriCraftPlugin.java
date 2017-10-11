@@ -891,7 +891,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                             String thirstSince = durToString(horse.getThristDuration());
                             final String thirstStr = ChatColor.BOLD + "Thirst: " + ChatColor.RESET + "" + (thirst ? ChatColor.RED + "Thirsty" + ChatColor.RESET + " for " + thirstSince : ChatColor.GREEN + "Not Thirsty");
                             final String vaccinationStr = ChatColor.BOLD + "Vaccinated: " + ChatColor.RESET + "" + (vaccination ? ChatColor.GREEN + "Yes" : ChatColor.RED + "No");
-                            final String shodStr = ChatColor.BOLD + "Shod: " + ChatColor.RESET + "" + (shod ? ChatColor.GREEN + "Yes" : ChatColor.RED + "No");
+                            final String shodStr = ChatColor.BOLD + "Shoed: " + ChatColor.RESET + "" + (shod ? ChatColor.GREEN + "Yes" : ChatColor.RED + "No");
                             player.sendMessage(">------------------------------<");
                             player.sendMessage(genderStr);
                             player.sendMessage(breedStr);
