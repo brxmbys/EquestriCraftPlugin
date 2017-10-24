@@ -554,6 +554,10 @@ public class MyHorse implements Serializable {
     public HorseBreed[] getBreed() {
         return breedArr;
     }
+    
+    public HorseBreed getOldBreed(){
+        return breed;
+    }
 
     /**
      * Set the breed of the horse.

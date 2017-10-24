@@ -340,7 +340,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             }
             return true;
         } else if (cmd.getName().equalsIgnoreCase("setbreed")) {   //setbreed command
-            if (args.length == 1) {
+            if (args.length >= 1) {
                 if (sender instanceof Player) {
                     final Player player = (Player) sender;
                     if (!OP_REQ || player.isOp()) {
@@ -354,11 +354,30 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                             player.sendMessage("No horse selected");
                             return true;
                         }
-                        for (HorseBreed br : HorseBreed.values()) {
-                            if (br.name().equalsIgnoreCase(args[0])) {
-                                horse.setBreed(new HorseBreed[]{br});
-                                break;
+                        HorseBreed br1 = null;
+                        HorseBreed br2 = null;
+                        switch (args.length) {
+                            case 2: {
+                                for (HorseBreed br : HorseBreed.values()) {
+                                    if (br.name().equalsIgnoreCase(args[1])) {
+                                        br2 = br;
+                                        break;
+                                    }
+                                }
                             }
+                            case 1: {
+                                for (HorseBreed br : HorseBreed.values()) {
+                                    if (br.name().equalsIgnoreCase(args[0])) {
+                                        br1 = br;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        if (br2 == null) {
+                            horse.setBreed(new HorseBreed[]{br1, br1});
+                        } else {
+                            horse.setBreed(new HorseBreed[]{br1, br2});
                         }
                         sender.sendMessage(ChatColor.BOLD + "Breed set to " + horse.getBreed()[0].toString());
                     }
@@ -895,10 +914,14 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                             }
                             final String name = ChatColor.BOLD + "Name: " + ChatColor.RESET + (horse.getHorse().getCustomName() == null ? "No name" : horse.getHorse().getCustomName());
                             String brStr;
-                            if(horse.getBreed().length == 1){
+                            if (horse.getBreed().length == 1) {
                                 brStr = horse.getBreed()[0].toString();
-                            } else{
-                                brStr = horse.getBreed()[0] + " X " + horse.getBreed()[1];
+                            } else {
+                                if (horse.getBreed()[0] == horse.getBreed()[1]) {
+                                    brStr = horse.getBreed()[0] + "";
+                                } else {
+                                    brStr = horse.getBreed()[0] + " X " + horse.getBreed()[1];
+                                }
                             }
                             final String breedStr = ChatColor.BOLD + "Breed: " + ChatColor.RESET + brStr;
                             final String personalityStr = ChatColor.BOLD + "Personalites: " + ChatColor.RESET + horse.getPersonalities()[0].toString() + ", " + horse.getPersonalities()[1].toString();

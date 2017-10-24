@@ -311,6 +311,10 @@ public class HorseCheckerThread extends Thread {
                         }
                     }
 
+                    if (horse.getBreed() == null) {
+                        horse.setBreed(new HorseBreed[]{horse.getOldBreed(), horse.getOldBreed()});
+                    }
+
                     if (horse.getAgeInMonths() >= 12) { //Check if the horse can become an adult
                         new BukkitRunnable() {
                             @Override
