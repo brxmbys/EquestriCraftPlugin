@@ -37,6 +37,7 @@ import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -773,6 +774,17 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             }
         }
         return false;
+    }
+
+    @EventHandler
+    public void onLeave(PlayerQuitEvent evt) {
+        Player player = evt.getPlayer();
+        Entity e = player.getVehicle();
+        if (e == null || !(e instanceof Horse)) {
+            return;
+        }
+        Horse h = (Horse) e;
+        h.eject();
     }
 
     /**
