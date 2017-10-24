@@ -49,6 +49,7 @@ public class MyHorse implements Serializable {
     private final Personality[] personality;
     private int dieat;
     private Illness illness;
+    private boolean shod;
 
     private transient Horse horse;
 
@@ -103,6 +104,7 @@ public class MyHorse implements Serializable {
         this.illness = null;
         h.setBaby();
         h.setAgeLock(true);
+        shod = false;
     }
 
     public static long getCurrentTime() {
@@ -673,6 +675,14 @@ public class MyHorse implements Serializable {
      */
     public void setIllness(Illness illness) {
         this.illness = illness;
+    }
+
+    public boolean isShod() {
+        return shod;
+    }
+
+    public void setShod(boolean shod) {
+        this.shod = shod;
     }
 
     @Override
