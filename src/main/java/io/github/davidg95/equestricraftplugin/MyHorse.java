@@ -44,6 +44,7 @@ public class MyHorse implements Serializable {
     private long lastBreed;
     private boolean defecateSinceEat;
     private HorseBreed breed;
+    private HorseBreed[] breedArr;
     private long birthTime;
     private final Personality[] personality;
     private int dieat;
@@ -81,11 +82,12 @@ public class MyHorse implements Serializable {
         this.lastBreed = getCurrentTime();
         this.defecateSinceEat = true;
         this.uuid = h.getUniqueId();
-        this.breed = HorseBreed.randomType();
+        this.breedArr = new HorseBreed[1];
+        this.breedArr[0] = HorseBreed.randomType();
         if (h.getVariant() == Variant.DONKEY) {
-            breed = HorseBreed.Donkey;
+            breedArr[0] = HorseBreed.Donkey;
         } else if (h.getVariant() == Variant.MULE) {
-            breed = HorseBreed.Mule;
+            breedArr[0] = HorseBreed.Mule;
         }
         this.birthTime = getCurrentTime();
         Personality p1 = Personality.randomType();
@@ -223,9 +225,9 @@ public class MyHorse implements Serializable {
      * @param horse the horse.
      * @return true if they are near a mate, false if they are not.
      */
-    public static boolean nearMate(MyHorse horse) {
+    public static HorseBreed nearMate(MyHorse horse) {
         if (horse.getGender() != MARE) { //If it is not a mare, return false.
-            return false;
+            return null;
         }
         final List<Entity> nearby = horse.getHorse().getNearbyEntities(1.5, 1.5, 1.5); //Get entites withing a 1.5 block radius.
         for (Entity e : nearby) {
@@ -233,14 +235,14 @@ public class MyHorse implements Serializable {
                 final Horse h = (Horse) e;
                 final MyHorse mh = DataContainer.getInstance().getHorse(h.getUniqueId());
                 if (horse.getGender() != STALLION) { //If it is a gelding, return false.
-                    return false;
+                    return null;
                 }
                 if (horse.getGender() != mh.getGender()) { //If it is the opposite gender, return true.
-                    return true;
+                    return mh.getBreed()[0];
                 }
             }
         }
-        return false;
+        return null;
     }
 
     /**
@@ -549,8 +551,8 @@ public class MyHorse implements Serializable {
      *
      * @return the HorseBreed.
      */
-    public HorseBreed getBreed() {
-        return breed;
+    public HorseBreed[] getBreed() {
+        return breedArr;
     }
 
     /**
@@ -558,11 +560,11 @@ public class MyHorse implements Serializable {
      *
      * @param br the HorseBreed.
      */
-    public void setBreed(HorseBreed br) {
-        this.breed = br;
-        if (br == HorseBreed.Donkey) {
+    public void setBreed(HorseBreed[] br) {
+        this.breedArr = br;
+        if (br[0] == HorseBreed.Donkey) {
             this.horse.setVariant(Variant.DONKEY);
-        } else if (br == HorseBreed.Mule) {
+        } else if (br[0] == HorseBreed.Mule) {
             this.horse.setVariant(Variant.MULE);
         } else {
             this.horse.setVariant(Variant.HORSE);

@@ -356,11 +356,11 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         }
                         for (HorseBreed br : HorseBreed.values()) {
                             if (br.name().equalsIgnoreCase(args[0])) {
-                                horse.setBreed(br);
+                                horse.setBreed(new HorseBreed[]{br});
                                 break;
                             }
                         }
-                        sender.sendMessage(ChatColor.BOLD + "Breed set to " + horse.getBreed().toString());
+                        sender.sendMessage(ChatColor.BOLD + "Breed set to " + horse.getBreed()[0].toString());
                     }
                 } else {
                     sender.sendMessage("Only ops can use this command");
@@ -893,7 +893,14 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                                     genderStr = genderStr + "None";
                                     break;
                             }
-                            final String breedStr = ChatColor.BOLD + "Breed: " + ChatColor.RESET + horse.getBreed().toString();
+                            final String name = ChatColor.BOLD + "Name: " + ChatColor.RESET + (horse.getHorse().getCustomName() == null ? "No name" : horse.getHorse().getCustomName());
+                            String brStr;
+                            if(horse.getBreed().length == 1){
+                                brStr = horse.getBreed()[0].toString();
+                            } else{
+                                brStr = horse.getBreed()[0] + " X " + horse.getBreed()[1];
+                            }
+                            final String breedStr = ChatColor.BOLD + "Breed: " + ChatColor.RESET + brStr;
                             final String personalityStr = ChatColor.BOLD + "Personalites: " + ChatColor.RESET + horse.getPersonalities()[0].toString() + ", " + horse.getPersonalities()[1].toString();
                             final String ageStr = ChatColor.BOLD + "Age: " + durToStringYears(horse.getAgeInMonths()) + " old";
                             String sickSince = durToString(horse.getIllDuration());
@@ -1088,7 +1095,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             if (evt.getEntity().getMetadata("breed").size() > 1) {
                 String breed = evt.getEntity().getMetadata("breed").get(0).asString();
                 HorseBreed br = HorseBreed.valueOf(breed);
-                mh.setBreed(br);
+                mh.setBreed(new HorseBreed[]{br});
             }
             container.addHorse(mh);
         }
