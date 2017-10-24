@@ -795,6 +795,11 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         return false;
     }
 
+    /**
+     * This method ejects players from horses when they leave.
+     *
+     * @param evt the PlayerQuitEvent.
+     */
     @EventHandler
     public void onLeave(PlayerQuitEvent evt) {
         Player player = evt.getPlayer();
@@ -1119,6 +1124,18 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                 String breed = evt.getEntity().getMetadata("breed").get(0).asString();
                 HorseBreed br = HorseBreed.valueOf(breed);
                 mh.setBreed(new HorseBreed[]{br});
+                if (br == HorseBreed.Donkey) {
+                    horse.setVariant(Horse.Variant.DONKEY);
+                } else if (br == HorseBreed.Mule) {
+                    horse.setVariant(Horse.Variant.MULE);
+                } else if (br == HorseBreed.FjordHorse) {
+                    double d = Math.random();
+                    if (d > 0.5) {
+                        horse.setVariant(Horse.Variant.SKELETON_HORSE);
+                    } else {
+                        horse.setVariant(Horse.Variant.UNDEAD_HORSE);
+                    }
+                }
             }
             container.addHorse(mh);
         }

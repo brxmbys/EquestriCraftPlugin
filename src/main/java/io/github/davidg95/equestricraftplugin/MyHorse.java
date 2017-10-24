@@ -554,8 +554,8 @@ public class MyHorse implements Serializable {
     public HorseBreed[] getBreed() {
         return breedArr;
     }
-    
-    public HorseBreed getOldBreed(){
+
+    public HorseBreed getOldBreed() {
         return breed;
     }
 
@@ -570,6 +570,13 @@ public class MyHorse implements Serializable {
             this.horse.setVariant(Variant.DONKEY);
         } else if (br[0] == HorseBreed.Mule) {
             this.horse.setVariant(Variant.MULE);
+        } else if (br[0] == HorseBreed.FjordHorse) {
+            double d = Math.random();
+            if (d > 0.5) {
+                this.horse.setVariant(Variant.SKELETON_HORSE);
+            } else {
+                this.horse.setVariant(Variant.UNDEAD_HORSE);
+            }
         } else {
             this.horse.setVariant(Variant.HORSE);
         }
