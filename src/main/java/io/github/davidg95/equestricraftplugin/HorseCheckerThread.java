@@ -298,11 +298,6 @@ public class HorseCheckerThread extends Thread {
                         }
                     }
 
-                    final double r = Math.random();
-                    if (r <= BUCK_PROBABILITY) { //Check if a horse can buck.
-                        horse.buck();
-                    }
-
                     if (horse.getAgeInMonths() > horse.getDieAt() && horse.getDieAt() > 300) { //Check if the horse is too old.
                         if (horse.getAgeInMonths() > 300) {
                             EquestriCraftPlugin.LOG.log(Level.INFO, "A horse died at the age of " + horse.getAgeInMonths() + " months old");
