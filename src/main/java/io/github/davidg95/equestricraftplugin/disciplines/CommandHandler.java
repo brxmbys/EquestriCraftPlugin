@@ -143,10 +143,10 @@ public class CommandHandler implements CommandExecutor, Listener {
                     List<Membership> memberships = cont.getAll();
                     String output = ChatColor.BOLD + "Discipline memberships-" + ChatColor.RESET;
                     for (Discipline d : Discipline.values()) {
-                        output += ChatColor.GREEN + "\n" + "-" + d.toString() + "-" + ChatColor.RESET;
+                        output += ChatColor.GREEN + "\n" + "-" + d.toString() + ChatColor.RESET;
                         for (Membership m : memberships) {
                             if (m.getDiscipline().equals(d)) {
-                                output += "\n--" + Bukkit.getPlayer(m.getPlayer()).getName();
+                                output += "\n -" + Bukkit.getPlayer(m.getPlayer()).getName();
                             }
                         }
                     }
