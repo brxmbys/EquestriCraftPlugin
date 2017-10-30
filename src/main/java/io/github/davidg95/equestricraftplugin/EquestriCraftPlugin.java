@@ -3,6 +3,7 @@
  */
 package io.github.davidg95.equestricraftplugin;
 
+import io.github.davidg95.equestricraftplugin.disciplines.CommandHandler;
 import io.github.davidg95.equestricraftplugin.race.Race;
 import io.github.davidg95.equestricraftplugin.race.RacePlayer;
 import java.io.File;
@@ -93,6 +94,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         checkerThread = new HorseCheckerThread();
         checkerThread.start();
         getServer().getPluginManager().registerEvents(this, this);
+        this.getCommand("disciplines").setExecutor(new CommandHandler(this));
     }
 
     private void initRaceConfig() {
@@ -791,6 +793,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     return true;
                 }
             }
+        } else if (cmd.getName().equalsIgnoreCase("setlevel")) {
+
         }
         return false;
     }

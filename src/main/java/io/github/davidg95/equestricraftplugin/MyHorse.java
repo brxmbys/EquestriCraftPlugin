@@ -50,6 +50,7 @@ public class MyHorse implements Serializable {
     private int dieat;
     private Illness illness;
     private boolean shod;
+    private int trainingLevel;
 
     private transient Horse horse;
 
@@ -105,6 +106,7 @@ public class MyHorse implements Serializable {
         h.setBaby();
         h.setAgeLock(true);
         shod = false;
+        trainingLevel = 1;
     }
 
     public static long getCurrentTime() {
