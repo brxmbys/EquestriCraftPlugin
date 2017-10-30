@@ -167,8 +167,9 @@ public class CommandHandler implements CommandExecutor, Listener {
                     }
                     sender.sendMessage(output);
                 }
+                return true;
             } else if (args[0].equalsIgnoreCase("refund-all")) {
-
+                return true;
             }
         }
         return false;
@@ -231,6 +232,10 @@ public class CommandHandler implements CommandExecutor, Listener {
         } else if (v == -2) {
             player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "You are already in two disciplines");
         } else {
+            if (economy.getBalance(player) < v) {
+                player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "You do not have enough funds. Required $" + new DecimalFormat("0.00").format(v));
+                return;
+            }
             EconomyResponse r = economy.withdrawPlayer(player, v);
             if (r.transactionSuccess()) {
                 player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "You are in the " + d.toString() + " discipline!");
