@@ -49,10 +49,14 @@ public class DisciplinesController {
         int count = 0;
         for (Membership m : memberships) {
             if (m.getPlayer().equals(p.getUniqueId())) {
-                if (m.getDiscipline().equals(d)) {
-                    return -1;
-                } else {
+                if (d == null) {
                     count++;
+                } else {
+                    if (m.getDiscipline().equals(d)) {
+                        return -1;
+                    } else {
+                        count++;
+                    }
                 }
             }
         }
@@ -77,6 +81,25 @@ public class DisciplinesController {
     public void addMembership(Player p, Discipline d) {
         memberships.add(new Membership(p.getUniqueId(), d));
         save();
+    }
+
+    public double removeMembership(Player p, Discipline d) {
+        boolean found = false;
+        for (int i = 0; i < memberships.size(); i++) {
+            Membership m = memberships.get(i);
+            if (m.getPlayer().equals(p.getUniqueId())) {
+                if (m.getDiscipline().equals(d)) {
+                    memberships.remove(i);
+                    found = true;
+                    break;
+                }
+            }
+        }
+        if (!found) {
+            return -1;
+        }
+        double v = checkMembership(p, null);
+        return v;
     }
 
     /**

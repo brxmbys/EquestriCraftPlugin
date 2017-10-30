@@ -178,6 +178,29 @@ public class CommandHandler implements CommandExecutor, Listener {
                     sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Discipline " + dStr + " not found");
                 }
                 return true;
+            } else if (args[0].equalsIgnoreCase("leave")) {
+                if (!(sender instanceof Player)) {
+                    sender.sendMessage("Only players can use this command");
+                    return true;
+                }
+                Player player = (Player) sender;
+                String dStr = "";
+                for (int i = 1; i < args.length; i++) {
+                    dStr += args[i];
+                }
+                try {
+                    Discipline d = Discipline.valueOf(dStr);
+                    double v = cont.removeMembership(player, d);
+                    if (v == -1) {
+                        player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "You are not in that discipline!");
+                        return true;
+                    }
+                    economy.depositPlayer(player, v);
+                    player.sendMessage("You have withdrawn from " + d.toString() + " and have been refunded $" + new DecimalFormat("0.00").format(v));
+                } catch (Exception e) {
+                    sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Discipline " + dStr + " not found");
+                }
+                return true;
             }
         }
         return false;
@@ -241,7 +264,9 @@ public class CommandHandler implements CommandExecutor, Listener {
         }
 
         if (v == -1) {
-            player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "You are already in that discipline");
+            double refund = cont.removeMembership(player, d);
+            economy.depositPlayer(player, refund);
+            player.sendMessage("You have withdrawn from " + d.toString() + " and have been refunded $" + new DecimalFormat("0.00").format(refund));
         } else if (v == -2) {
             player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "You are already in two disciplines");
         } else {
