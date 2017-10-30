@@ -151,6 +151,15 @@ public class DisciplinesController {
         save();
     }
 
+    public void reset(Discipline d) {
+        for (int i = 0; i < memberships.size(); i++) {
+            Membership m = memberships.get(i);
+            if (m.getDiscipline().equals(d)) {
+                memberships.remove(i);
+            }
+        }
+    }
+
     /**
      * Persist memberships to file.
      */

@@ -158,6 +158,9 @@ public class CommandHandler implements CommandExecutor, Listener {
             }
         } else {
             if (args[0].equalsIgnoreCase("view")) {
+                if (!serverOrOp(sender)) {
+                    return true;
+                }
                 String dStr = "";
                 for (int i = 1; i < args.length; i++) {
                     dStr += args[i];
@@ -197,6 +200,22 @@ public class CommandHandler implements CommandExecutor, Listener {
                     }
                     economy.depositPlayer(player, v);
                     player.sendMessage("You have withdrawn from " + d.toString() + " and have been refunded $" + new DecimalFormat("0.00").format(v));
+                } catch (Exception e) {
+                    sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Discipline " + dStr + " not found");
+                }
+                return true;
+            } else if (args[0].equalsIgnoreCase("reset")) {
+                if (!serverOrOp(sender)) {
+                    return true;
+                }
+                String dStr = "";
+                for (int i = 1; i < args.length; i++) {
+                    dStr += args[i];
+                }
+                try {
+                    Discipline d = Discipline.valueOf(dStr);
+                    cont.reset(d);
+                    Bukkit.broadcastMessage(ChatColor.RED + "" + ChatColor.BOLD + d.toString() + " has benn reset!");
                 } catch (Exception e) {
                     sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Discipline " + dStr + " not found");
                 }
