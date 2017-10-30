@@ -32,8 +32,8 @@ public class DisciplinesController {
         this.memberships = new LinkedList<>();
         load();
     }
-
-    public double addMembership(Player p, Discipline d) {
+    
+    public double checkMembership(Player p, Discipline d){
         int count = 0;
         for (Membership m : memberships) {
             if (m.getPlayer().equals(p.getUniqueId())) {
@@ -47,7 +47,6 @@ public class DisciplinesController {
         if (count == 2) {
             return -2;
         }
-        memberships.add(new Membership(p.getUniqueId(), d));
         save();
         if (count == 0) {
             return 1000;
@@ -55,6 +54,11 @@ public class DisciplinesController {
             return 5000;
         }
         return -2;
+    }
+
+    public void addMembership(Player p, Discipline d) {
+        memberships.add(new Membership(p.getUniqueId(), d));
+        save();
     }
 
     public List<Discipline> getMemberships(Player p) {

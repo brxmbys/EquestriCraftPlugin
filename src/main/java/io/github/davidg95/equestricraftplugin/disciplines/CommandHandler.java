@@ -190,39 +190,39 @@ public class CommandHandler implements CommandExecutor, Listener {
         if (clicked.getType() == Material.DIAMOND) {
             //Pole Bending
             d = Discipline.PoleBending;
-            v = cont.addMembership(player, Discipline.PoleBending);
+            v = cont.checkMembership(player, Discipline.PoleBending);
         } else if (clicked.getType() == Material.IRON_INGOT) {
             //Barrel Racing
             d = Discipline.BarrelRacing;
-            v = cont.addMembership(player, Discipline.BarrelRacing);
+            v = cont.checkMembership(player, Discipline.BarrelRacing);
         } else if (clicked.getType() == Material.GOLD_INGOT) {
             //Western Plesure
             d = Discipline.WesternPlesure;
-            v = cont.addMembership(player, Discipline.WesternPlesure);
+            v = cont.checkMembership(player, Discipline.WesternPlesure);
         } else if (clicked.getType() == Material.SADDLE) {
             //Hunt Seat
             d = Discipline.HuntSeat;
-            v = cont.addMembership(player, Discipline.HuntSeat);
+            v = cont.checkMembership(player, Discipline.HuntSeat);
         } else if (clicked.getType() == Material.GOLD_BARDING) {
             //Show Jumping
             d = Discipline.ShowJumping;
-            v = cont.addMembership(player, Discipline.ShowJumping);
+            v = cont.checkMembership(player, Discipline.ShowJumping);
         } else if (clicked.getType() == Material.FEATHER) {
             //Dressage
             d = Discipline.Dressage;
-            v = cont.addMembership(player, Discipline.Dressage);
+            v = cont.checkMembership(player, Discipline.Dressage);
         } else if (clicked.getType() == Material.BRICK) {
             //Cross Country
             d = Discipline.CrossCountry;
-            v = cont.addMembership(player, Discipline.CrossCountry);
+            v = cont.checkMembership(player, Discipline.CrossCountry);
         } else if (clicked.getType() == Material.FISHING_ROD) {
             //Racing
             d = Discipline.Racing;
-            v = cont.addMembership(player, Discipline.Racing);
+            v = cont.checkMembership(player, Discipline.Racing);
         } else if (clicked.getType() == Material.PAPER) {
             //Steeple Chase
             d = Discipline.SteepleChase;
-            v = cont.addMembership(player, Discipline.SteepleChase);
+            v = cont.checkMembership(player, Discipline.SteepleChase);
         } else {
             return;
         }
@@ -238,6 +238,7 @@ public class CommandHandler implements CommandExecutor, Listener {
             }
             EconomyResponse r = economy.withdrawPlayer(player, v);
             if (r.transactionSuccess()) {
+                cont.addMembership(player, d);
                 player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "You are in the " + d.toString() + " discipline!");
                 player.sendMessage("You have been charged " + ChatColor.AQUA + "$" + new DecimalFormat("0.00").format(v));
             } else {
