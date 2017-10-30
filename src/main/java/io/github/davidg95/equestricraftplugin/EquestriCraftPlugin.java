@@ -20,6 +20,7 @@ import java.util.Properties;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -45,6 +46,7 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -76,6 +78,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
 
     private Race race;
 
+    public static Economy economy;
+
     @Override
     public void onEnable() {
         plugin = this;
@@ -94,7 +98,23 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         checkerThread = new HorseCheckerThread();
         checkerThread.start();
         getServer().getPluginManager().registerEvents(this, this);
-        this.getCommand("disciplines").setExecutor(new CommandHandler(this));
+        if (!setupEconomy()) {
+            LOG.log(Level.SEVERE, "Vault not detected, Disciplines has been disabled");
+        } else {
+            this.getCommand("disciplines").setExecutor(new CommandHandler(this));
+        }
+    }
+
+    private boolean setupEconomy() {
+        if (getServer().getPluginManager().getPlugin("Vault") == null) {
+            return false;
+        }
+        RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
+        if (rsp == null) {
+            return false;
+        }
+        economy = rsp.getProvider();
+        return economy != null;
     }
 
     private void initRaceConfig() {

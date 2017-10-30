@@ -4,8 +4,11 @@
 package io.github.davidg95.equestricraftplugin.disciplines;
 
 import io.github.davidg95.equestricraftplugin.EquestriCraftPlugin;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
+import net.milkbowl.vault.economy.Economy;
+import net.milkbowl.vault.economy.EconomyResponse;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -31,6 +34,8 @@ public class CommandHandler implements CommandExecutor, Listener {
     private static Inventory menu = Bukkit.createInventory(null, 9, "Disciplines");
 
     private final DisciplinesController cont;
+
+    private Economy economy;
 
     static {
         ItemStack i1 = new ItemStack(Material.DIAMOND, 1);
@@ -108,6 +113,7 @@ public class CommandHandler implements CommandExecutor, Listener {
         this.plugin = plugin;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         cont = new DisciplinesController();
+        economy = EquestriCraftPlugin.economy;
     }
 
     @Override
@@ -161,6 +167,8 @@ public class CommandHandler implements CommandExecutor, Listener {
                     }
                     sender.sendMessage(output);
                 }
+            } else if (args[0].equalsIgnoreCase("refund-all")) {
+
             }
         }
         return false;
@@ -223,8 +231,13 @@ public class CommandHandler implements CommandExecutor, Listener {
         } else if (v == -2) {
             player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "You are already in two disciplines");
         } else {
-            player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "You are in the " + d.toString() + " discipline!");
-            player.sendMessage("You have been charged " + ChatColor.AQUA + "$" + v);
+            EconomyResponse r = economy.withdrawPlayer(player, v);
+            if (r.transactionSuccess()) {
+                player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "You are in the " + d.toString() + " discipline!");
+                player.sendMessage("You have been charged " + ChatColor.AQUA + "$" + new DecimalFormat("0.00").format(v));
+            } else {
+                player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + r.errorMessage);
+            }
         }
     }
 
