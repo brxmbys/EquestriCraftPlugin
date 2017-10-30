@@ -10,8 +10,10 @@ import java.util.List;
 import java.util.concurrent.locks.StampedLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Horse;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.metadata.MetadataValue;
@@ -85,7 +87,7 @@ public class HorseCheckerThread extends Thread {
     private final StampedLock baleLock;
     private final StampedLock cauldronLock;
 
-    public static long BREED_THREAD_INTERVAL = 500;
+    public static long BREED_THREAD_INTERVAL = 20000;
 
     public static long MAIN_THREAD_INTERVAL = 2000;
 
@@ -131,7 +133,7 @@ public class HorseCheckerThread extends Thread {
                         baleLock.unlockRead(bstamp);
                     }
                     try {
-                        Thread.sleep(5000);
+                        Thread.sleep(10000);
                     } catch (Exception ex) {
                         Logger.getLogger(HorseCheckerThread.class.getName()).log(Level.SEVERE, null, ex);
                     }
@@ -153,7 +155,7 @@ public class HorseCheckerThread extends Thread {
                         cauldronLock.unlockRead(cstamp);
                     }
                     try {
-                        Thread.sleep(5000);
+                        Thread.sleep(10000);
                     } catch (Exception ex) {
                         Logger.getLogger(HorseCheckerThread.class.getName()).log(Level.SEVERE, null, ex);
                     }
@@ -174,7 +176,7 @@ public class HorseCheckerThread extends Thread {
                     } catch (Exception e) {
                     }
                     try {
-                        Thread.sleep(10000);
+                        Thread.sleep(20000);
                     } catch (Exception ex) {
                         Logger.getLogger(HorseCheckerThread.class.getName()).log(Level.SEVERE, null, ex);
                     }
@@ -217,19 +219,19 @@ public class HorseCheckerThread extends Thread {
                                     setFirstEat(cauldron);
                                 }
                                 horse.setThirst(false);
-                            }
-                            final Runnable caulAdd = new Runnable() {
-                                @Override
-                                public void run() {
-                                    final long cstamp = cauldronLock.writeLock();
-                                    try {
-                                        cauldrons.add(cauldron);
-                                    } finally {
-                                        cauldronLock.unlockWrite(cstamp);
+                                final Runnable caulAdd = new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        final long cstamp = cauldronLock.writeLock();
+                                        try {
+                                            cauldrons.add(cauldron);
+                                        } finally {
+                                            cauldronLock.unlockWrite(cstamp);
+                                        }
                                     }
-                                }
-                            };
-                            new Thread(caulAdd, "Caul_Add").start();
+                                };
+                                new Thread(caulAdd, "Caul_Add").start();
+                            }
                         }
                     }.runTask(EquestriCraftPlugin.plugin);
 
@@ -242,19 +244,19 @@ public class HorseCheckerThread extends Thread {
                                     setFirstEat(bale);
                                 }
                                 horse.setHunger(false);
-                            }
-                            final Runnable baleAdd = new Runnable() {
-                                @Override
-                                public void run() {
-                                    final long bstamp = baleLock.writeLock();
-                                    try {
-                                        bales.add(bale);
-                                    } finally {
-                                        baleLock.unlockWrite(bstamp);
+                                final Runnable baleAdd = new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        final long bstamp = baleLock.writeLock();
+                                        try {
+                                            bales.add(bale);
+                                        } finally {
+                                            baleLock.unlockWrite(bstamp);
+                                        }
                                     }
-                                }
-                            };
-                            new Thread(baleAdd, "Bale_Add").start();
+                                };
+                                new Thread(baleAdd, "Bale_Add").start();
+                            }
                         }
                     }.runTask(EquestriCraftPlugin.plugin);
 
