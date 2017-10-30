@@ -171,6 +171,21 @@ public class CommandHandler implements CommandExecutor, Listener {
             } else if (args[0].equalsIgnoreCase("refund-all")) {
                 return true;
             }
+        } else {
+            if (args[0].equalsIgnoreCase("view")) {
+                String dStr = "";
+                for (int i = 1; i < args.length; i++) {
+                    dStr += args[i];
+                }
+                Discipline d = Discipline.valueOf(dStr);
+                List<Player> members = cont.getDisciplineMembers(d);
+                String output = "Members of " + d.toString() + "-";
+                for (Player p : members) {
+                    output += "\n-" + p.getName();
+                }
+                sender.sendMessage(output);
+                return true;
+            }
         }
         return false;
     }

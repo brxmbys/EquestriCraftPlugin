@@ -16,6 +16,7 @@ import java.io.OutputStream;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 /**
@@ -32,8 +33,8 @@ public class DisciplinesController {
         this.memberships = new LinkedList<>();
         load();
     }
-    
-    public double checkMembership(Player p, Discipline d){
+
+    public double checkMembership(Player p, Discipline d) {
         int count = 0;
         for (Membership m : memberships) {
             if (m.getPlayer().equals(p.getUniqueId())) {
@@ -73,6 +74,16 @@ public class DisciplinesController {
 
     public List<Membership> getAll() {
         return memberships;
+    }
+
+    public List<Player> getDisciplineMembers(Discipline d) {
+        List<Player> players = new LinkedList<>();
+        for (Membership m : memberships) {
+            if (m.getDiscipline().equals(d)) {
+                players.add(Bukkit.getPlayer(m.getPlayer()));
+            }
+        }
+        return players;
     }
 
     public void reset() {
