@@ -62,3 +62,9 @@ commands:
     farrier:
         description: farrier commands.
         usage: /farrier <add|remove|list|reset|tool> [playername].
+    disciplines:
+        description: disciplines commands.
+        usage: /disciplines
+    setlevel:
+        description: sets a horses training level.
+        udage: /setlevel <1-10>

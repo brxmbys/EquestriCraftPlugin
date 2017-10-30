@@ -3,6 +3,7 @@
  */
 package io.github.davidg95.equestricraftplugin;
 
+import io.github.davidg95.equestricraftplugin.disciplines.CommandHandler;
 import io.github.davidg95.equestricraftplugin.race.Race;
 import io.github.davidg95.equestricraftplugin.race.RacePlayer;
 import java.io.File;
@@ -19,6 +20,7 @@ import java.util.Properties;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -44,6 +46,7 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -75,6 +78,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
 
     private Race race;
 
+    public static Economy economy;
+
     @Override
     public void onEnable() {
         plugin = this;
@@ -93,6 +98,23 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         checkerThread = new HorseCheckerThread();
         checkerThread.start();
         getServer().getPluginManager().registerEvents(this, this);
+        if (!setupEconomy()) {
+            LOG.log(Level.SEVERE, "Vault not detected, Disciplines has been disabled");
+        } else {
+            this.getCommand("disciplines").setExecutor(new CommandHandler(this));
+        }
+    }
+
+    private boolean setupEconomy() {
+        if (getServer().getPluginManager().getPlugin("Vault") == null) {
+            return false;
+        }
+        RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
+        if (rsp == null) {
+            return false;
+        }
+        economy = rsp.getProvider();
+        return economy != null;
     }
 
     private void initRaceConfig() {
@@ -791,6 +813,41 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     return true;
                 }
             }
+        } else if (cmd.getName().equalsIgnoreCase("setlevel")) {
+            if (args.length == 1) {
+                if (sender instanceof Player) {
+                    final Player player = (Player) sender;
+                    if (!OP_REQ || player.isOp()) {
+                        MyHorse mh;
+                        if (player.getVehicle() != null && player.getVehicle() instanceof Horse) {
+                            final Horse horse = (Horse) player.getVehicle();
+                            mh = container.getHorse(horse.getUniqueId());
+                        } else {
+                            mh = container.getHorse(UUID.fromString(player.getMetadata("horse").get(0).asString()));
+                        }
+                        if (mh == null) {
+                            sender.sendMessage("No horse selected");
+                            return true;
+                        }
+                        try {
+                            int level = Integer.parseInt(args[0]);
+                            if (level < 1 || level > 10) {
+                                player.sendMessage("Level must be between 1 and 10");
+                                return true;
+                            }
+                            mh.setTrainingLevel(level);
+                            player.sendMessage("Leve set");
+                        } catch (NumberFormatException ex) {
+                            player.sendMessage("Must enter a number for months");
+                        }
+                        return true;
+                    }
+                    return false;
+                }
+                sender.sendMessage("Only ops can use this command");
+                return true;
+            }
+            return false;
         }
         return false;
     }
@@ -939,6 +996,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                             final String thirstStr = ChatColor.BOLD + "Thirst: " + ChatColor.RESET + "" + (thirst ? ChatColor.RED + "Thirsty" + ChatColor.RESET + " for " + thirstSince : ChatColor.GREEN + "Not Thirsty");
                             final String vaccinationStr = ChatColor.BOLD + "Vaccinated: " + ChatColor.RESET + "" + (vaccination ? ChatColor.GREEN + "Yes" : ChatColor.RED + "No");
                             final String shodStr = ChatColor.BOLD + "Shoed: " + ChatColor.RESET + "" + (shod ? ChatColor.GREEN + "Yes" : ChatColor.RED + "No");
+                            final String levelStr = ChatColor.BOLD + "Training Level: " + ChatColor.RESET + horse.getTrainingLevel();
                             player.sendMessage(">------------------------------<");
                             player.sendMessage(genderStr);
                             player.sendMessage(breedStr);
@@ -949,6 +1007,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                             player.sendMessage(thirstStr);
                             player.sendMessage(vaccinationStr);
                             player.sendMessage(shodStr);
+                            player.sendMessage(levelStr);
                             player.sendMessage(">------------------------------<");
                         } else {
                             player.sendMessage("You must click on a horse");
