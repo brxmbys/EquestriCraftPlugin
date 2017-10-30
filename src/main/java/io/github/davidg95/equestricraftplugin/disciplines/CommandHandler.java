@@ -5,7 +5,6 @@ package io.github.davidg95.equestricraftplugin.disciplines;
 
 import io.github.davidg95.equestricraftplugin.EquestriCraftPlugin;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
 import java.util.List;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
@@ -24,71 +23,64 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 /**
+ * Command handler for the /disciplines command.
  *
  * @author David
  */
 public class CommandHandler implements CommandExecutor, Listener {
 
-    private final EquestriCraftPlugin plugin;
-
-    private static Inventory menu = Bukkit.createInventory(null, 9, "Disciplines");
+    /**
+     * The discipline menu.
+     */
+    private static final Inventory menu = Bukkit.createInventory(null, 9, "Disciplines");
 
     private final DisciplinesController cont;
 
-    private Economy economy;
+    private final Economy economy;
 
     static {
         ItemStack i1 = new ItemStack(Material.DIAMOND, 1);
         ItemMeta m1 = i1.getItemMeta();
-        //m1.setLore(toLore("Pole Bending"));
         m1.setDisplayName("Pole Bending");
         i1.setItemMeta(m1);
 
         ItemStack i2 = new ItemStack(Material.IRON_INGOT, 1);
         ItemMeta m2 = i1.getItemMeta();
-        //m2.setLore(toLore("Barrel Racing"));
         m2.setDisplayName("Barrel Racing");
         i2.setItemMeta(m2);
 
         ItemStack i3 = new ItemStack(Material.GOLD_INGOT, 1);
         ItemMeta m3 = i1.getItemMeta();
-        //m3.setLore(toLore("Western Plesure"));
         m3.setDisplayName("Western Plesure");
         i3.setItemMeta(m3);
 
         ItemStack i4 = new ItemStack(Material.SADDLE, 1);
         ItemMeta m4 = i1.getItemMeta();
-        //m4.setLore(toLore("Hunt Seat"));
         m4.setDisplayName("Hunt Seat");
         i4.setItemMeta(m4);
 
         ItemStack i5 = new ItemStack(Material.GOLD_BARDING, 1);
         ItemMeta m5 = i1.getItemMeta();
-        //m5.setLore(toLore("Show Jumping"));
         m5.setDisplayName("Show Jumping");
         i5.setItemMeta(m5);
 
         ItemStack i6 = new ItemStack(Material.FEATHER, 1);
         ItemMeta m6 = i1.getItemMeta();
-        //m6.setLore(toLore("Dressage"));
         m6.setDisplayName("Dressage");
         i6.setItemMeta(m6);
 
         ItemStack i7 = new ItemStack(Material.BRICK, 1);
         ItemMeta m7 = i1.getItemMeta();
-        //m7.setLore(toLore("Cross Country"));
         m7.setDisplayName("Cross Country");
         i7.setItemMeta(m7);
 
         ItemStack i8 = new ItemStack(Material.FISHING_ROD, 1);
         ItemMeta m8 = i1.getItemMeta();
-        //m8.setLore(toLore("Racing"));
         m8.setDisplayName("Racing");
         i8.setItemMeta(m8);
 
         ItemStack i9 = new ItemStack(Material.PAPER, 1);
         ItemMeta m9 = i1.getItemMeta();
-        //m9.setLore(toLore("Steeple Chase"));
         m9.setDisplayName("Steeple Chase");
         i9.setItemMeta(m9);
 
@@ -103,14 +95,7 @@ public class CommandHandler implements CommandExecutor, Listener {
         menu.setItem(8, i9);
     }
 
-    private static List<String> toLore(String text) {
-        List<String> comments = new ArrayList<>();
-        comments.add(text);
-        return comments;
-    }
-
     public CommandHandler(EquestriCraftPlugin plugin) {
-        this.plugin = plugin;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         cont = new DisciplinesController();
         economy = EquestriCraftPlugin.economy;
@@ -198,6 +183,11 @@ public class CommandHandler implements CommandExecutor, Listener {
         return false;
     }
 
+    /**
+     * Will check if they player clicked on a Disciplines inventory item.
+     *
+     * @param event the event.
+     */
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
         Player player = (Player) event.getWhoClicked();
@@ -270,6 +260,12 @@ public class CommandHandler implements CommandExecutor, Listener {
         }
     }
 
+    /**
+     * Checks if the sender is the console or an op.
+     *
+     * @param sender the sender.
+     * @return true if they are console or op, false otherwise.
+     */
     private boolean serverOrOp(CommandSender sender) {
         if (sender instanceof Player) {
             return ((Player) sender).isOp();

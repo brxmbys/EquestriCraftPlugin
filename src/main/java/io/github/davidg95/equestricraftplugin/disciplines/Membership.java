@@ -7,6 +7,7 @@ import java.io.Serializable;
 import java.util.UUID;
 
 /**
+ * Class which models a membership.
  *
  * @author David
  */
@@ -20,10 +21,20 @@ public class Membership implements Serializable {
         this.discipline = discipline;
     }
 
+    /**
+     * The UUID of the player.
+     *
+     * @return the UUID.
+     */
     public UUID getPlayer() {
         return player;
     }
 
+    /**
+     * The discipline they are part of.
+     *
+     * @return the Discipline.
+     */
     public Discipline getDiscipline() {
         return discipline;
     }

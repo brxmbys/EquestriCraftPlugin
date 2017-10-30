@@ -20,6 +20,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 /**
+ * Controller for discipline membership.
  *
  * @author David
  */
@@ -34,6 +35,16 @@ public class DisciplinesController {
         load();
     }
 
+    /**
+     * check are players membership. Will return 1000 if they are not in a
+     * discipline, 5000 if they are in one, -1 if they are already in the
+     * discipline they wish to join, and -2 if they are already in 2
+     * disciplines.
+     *
+     * @param p the player.
+     * @param d the discipline.
+     * @return the result.
+     */
     public double checkMembership(Player p, Discipline d) {
         int count = 0;
         for (Membership m : memberships) {
@@ -57,11 +68,23 @@ public class DisciplinesController {
         return -2;
     }
 
+    /**
+     * Add a player to a discipline.
+     *
+     * @param p the player.
+     * @param d the discipline.
+     */
     public void addMembership(Player p, Discipline d) {
         memberships.add(new Membership(p.getUniqueId(), d));
         save();
     }
 
+    /**
+     * Get a players discipline membership.
+     *
+     * @param p the player.
+     * @return the disciplines they are in.
+     */
     public List<Discipline> getMemberships(Player p) {
         List<Discipline> ds = new LinkedList<>();
         for (Membership m : memberships) {
@@ -72,10 +95,21 @@ public class DisciplinesController {
         return ds;
     }
 
+    /**
+     * Get all memberships.
+     *
+     * @return the memberships as a list.
+     */
     public List<Membership> getAll() {
         return memberships;
     }
 
+    /**
+     * Get players in a discipline.
+     *
+     * @param d the discipline.
+     * @return a list of players.
+     */
     public List<Player> getDisciplineMembers(Discipline d) {
         List<Player> players = new LinkedList<>();
         for (Membership m : memberships) {
@@ -86,13 +120,16 @@ public class DisciplinesController {
         return players;
     }
 
+    /**
+     * Clear all memberships.
+     */
     public void reset() {
         memberships.clear();
         save();
     }
 
     /**
-     * Persist horses to file.
+     * Persist memberships to file.
      */
     public final void save() {
         final File file = new File(DISCIPLINES_FILE);
@@ -115,7 +152,7 @@ public class DisciplinesController {
     }
 
     /**
-     * Load horses from file
+     * Load memberships from file
      */
     private void load() {
         try (InputStream is = new FileInputStream(DISCIPLINES_FILE)) {

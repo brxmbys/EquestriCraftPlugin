@@ -4,6 +4,7 @@
 package io.github.davidg95.equestricraftplugin.disciplines;
 
 /**
+ * Enum for the disciplines.
  *
  * @author David
  */
