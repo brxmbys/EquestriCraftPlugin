@@ -177,13 +177,21 @@ public class CommandHandler implements CommandExecutor, Listener {
                 for (int i = 1; i < args.length; i++) {
                     dStr += args[i];
                 }
-                Discipline d = Discipline.valueOf(dStr);
-                List<Player> members = cont.getDisciplineMembers(d);
-                String output = "Members of " + d.toString() + "-";
-                for (Player p : members) {
-                    output += "\n-" + p.getName();
+                try {
+                    Discipline d = Discipline.valueOf(dStr);
+                    List<Player> members = cont.getDisciplineMembers(d);
+                    if (members.isEmpty()) {
+                        sender.sendMessage("No entrants to " + d.toString());
+                        return true;
+                    }
+                    String output = "Members of " + d.toString() + "-";
+                    for (Player p : members) {
+                        output += "\n-" + p.getName();
+                    }
+                    sender.sendMessage(output);
+                } catch (Exception e) {
+                    sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Discipline " + dStr + " not found");
                 }
-                sender.sendMessage(output);
                 return true;
             }
         }
