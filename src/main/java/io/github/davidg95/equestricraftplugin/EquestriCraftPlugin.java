@@ -794,7 +794,40 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                 }
             }
         } else if (cmd.getName().equalsIgnoreCase("setlevel")) {
-
+            if (args.length == 1) {
+                if (sender instanceof Player) {
+                    final Player player = (Player) sender;
+                    if (!OP_REQ || player.isOp()) {
+                        MyHorse mh;
+                        if (player.getVehicle() != null && player.getVehicle() instanceof Horse) {
+                            final Horse horse = (Horse) player.getVehicle();
+                            mh = container.getHorse(horse.getUniqueId());
+                        } else {
+                            mh = container.getHorse(UUID.fromString(player.getMetadata("horse").get(0).asString()));
+                        }
+                        if (mh == null) {
+                            sender.sendMessage("No horse selected");
+                            return true;
+                        }
+                        try {
+                            int level = Integer.parseInt(args[0]);
+                            if (level < 1 || level > 10) {
+                                player.sendMessage("Level must be between 1 and 10");
+                                return true;
+                            }
+                            mh.setTrainingLevel(level);
+                            player.sendMessage("Leve set");
+                        } catch (NumberFormatException ex) {
+                            player.sendMessage("Must enter a number for months");
+                        }
+                        return true;
+                    }
+                    return false;
+                }
+                sender.sendMessage("Only ops can use this command");
+                return true;
+            }
+            return false;
         }
         return false;
     }
@@ -943,6 +976,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                             final String thirstStr = ChatColor.BOLD + "Thirst: " + ChatColor.RESET + "" + (thirst ? ChatColor.RED + "Thirsty" + ChatColor.RESET + " for " + thirstSince : ChatColor.GREEN + "Not Thirsty");
                             final String vaccinationStr = ChatColor.BOLD + "Vaccinated: " + ChatColor.RESET + "" + (vaccination ? ChatColor.GREEN + "Yes" : ChatColor.RED + "No");
                             final String shodStr = ChatColor.BOLD + "Shoed: " + ChatColor.RESET + "" + (shod ? ChatColor.GREEN + "Yes" : ChatColor.RED + "No");
+                            final String levelStr = ChatColor.BOLD + "Training Level: " + ChatColor.RESET + horse.getTrainingLevel();
                             player.sendMessage(">------------------------------<");
                             player.sendMessage(genderStr);
                             player.sendMessage(breedStr);
@@ -953,6 +987,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                             player.sendMessage(thirstStr);
                             player.sendMessage(vaccinationStr);
                             player.sendMessage(shodStr);
+                            player.sendMessage(levelStr);
                             player.sendMessage(">------------------------------<");
                         } else {
                             player.sendMessage("You must click on a horse");

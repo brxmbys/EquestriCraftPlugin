@@ -210,77 +210,77 @@ public class HorseCheckerThread extends Thread {
                         continue;
                     }
 
-                    new BukkitRunnable() {
-                        @Override
-                        public void run() {
-                            final Block cauldron = MyHorse.getNearCauldron(horse); //Get the nearby cauldron if there is one.
-                            if (cauldron != null) { //Check if they are next to a cauldron.
-                                if (getFirstEat(cauldron) == -1) {
-                                    setFirstEat(cauldron);
-                                }
-                                horse.setThirst(false);
-                                final Runnable caulAdd = new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        final long cstamp = cauldronLock.writeLock();
-                                        try {
-                                            cauldrons.add(cauldron);
-                                        } finally {
-                                            cauldronLock.unlockWrite(cstamp);
-                                        }
-                                    }
-                                };
-                                new Thread(caulAdd, "Caul_Add").start();
-                            }
-                        }
-                    }.runTask(EquestriCraftPlugin.plugin);
+//                    new BukkitRunnable() {
+//                        @Override
+//                        public void run() {
+//                            final Block cauldron = MyHorse.getNearCauldron(horse); //Get the nearby cauldron if there is one.
+//                            if (cauldron != null) { //Check if they are next to a cauldron.
+//                                if (getFirstEat(cauldron) == -1) {
+//                                    setFirstEat(cauldron);
+//                                }
+//                                horse.setThirst(false);
+//                                final Runnable caulAdd = new Runnable() {
+//                                    @Override
+//                                    public void run() {
+//                                        final long cstamp = cauldronLock.writeLock();
+//                                        try {
+//                                            cauldrons.add(cauldron);
+//                                        } finally {
+//                                            cauldronLock.unlockWrite(cstamp);
+//                                        }
+//                                    }
+//                                };
+//                                new Thread(caulAdd, "Caul_Add").start();
+//                            }
+//                        }
+//                    }.runTask(EquestriCraftPlugin.plugin);
+//
+//                    new BukkitRunnable() {
+//                        @Override
+//                        public void run() {
+//                            final Block bale = MyHorse.getNearHayBale(horse); //Get the nearby hay bale if there is one.
+//                            if (bale != null) { //Check if they are next to a hay bale.
+//                                if (getFirstEat(bale) == -1) {
+//                                    setFirstEat(bale);
+//                                }
+//                                horse.setHunger(false);
+//                                final Runnable baleAdd = new Runnable() {
+//                                    @Override
+//                                    public void run() {
+//                                        final long bstamp = baleLock.writeLock();
+//                                        try {
+//                                            bales.add(bale);
+//                                        } finally {
+//                                            baleLock.unlockWrite(bstamp);
+//                                        }
+//                                    }
+//                                };
+//                                new Thread(baleAdd, "Bale_Add").start();
+//                            }
+//                        }
+//                    }.runTask(EquestriCraftPlugin.plugin);
 
-                    new BukkitRunnable() {
-                        @Override
-                        public void run() {
-                            final Block bale = MyHorse.getNearHayBale(horse); //Get the nearby hay bale if there is one.
-                            if (bale != null) { //Check if they are next to a hay bale.
-                                if (getFirstEat(bale) == -1) {
-                                    setFirstEat(bale);
-                                }
-                                horse.setHunger(false);
-                                final Runnable baleAdd = new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        final long bstamp = baleLock.writeLock();
-                                        try {
-                                            bales.add(bale);
-                                        } finally {
-                                            baleLock.unlockWrite(bstamp);
-                                        }
-                                    }
-                                };
-                                new Thread(baleAdd, "Bale_Add").start();
-                            }
-                        }
-                    }.runTask(EquestriCraftPlugin.plugin);
-
-                    if (horse.getDurationSinceLastDrink() > DRINK_LIMIT) { //Check if the horse is thirsty.
-                        horse.setThirst(true);
-                    }
-                    if (horse.getDurationSinceLastEat() > EAT_LIMIT) { //Check if the horse is hungry.
-                        horse.setHunger(true);
-                    }
+//                    if (horse.getDurationSinceLastDrink() > DRINK_LIMIT) { //Check if the horse is thirsty.
+//                        horse.setThirst(true);
+//                    }
+//                    if (horse.getDurationSinceLastEat() > EAT_LIMIT) { //Check if the horse is hungry.
+//                        horse.setHunger(true);
+//                    }
                     if (horse.isSick() && horse.getIllDuration() > SICK_LIMIT) { //Check if the horse has been sick fo too long.
                         EquestriCraftPlugin.LOG.log(Level.INFO, "A horse died of illness");
                         horse.kill();
                         it.remove();
                     }
-                    if (horse.isHungry() && horse.getHungerDuration() > SICK_LIMIT) { //Kill the horse if it has been hungry longer than the limit.
-                        EquestriCraftPlugin.LOG.log(Level.INFO, "A horse died of hunger");
-                        horse.kill();
-                        it.remove();
-                    }
-                    if (horse.isThirsty() && horse.getThristDuration() > SICK_LIMIT) { //Kill the horse if it has been thirsty longer than the limit.
-                        EquestriCraftPlugin.LOG.log(Level.INFO, "A horse died of thirst");
-                        horse.kill();
-                        it.remove();
-                    }
+//                    if (horse.isHungry() && horse.getHungerDuration() > SICK_LIMIT) { //Kill the horse if it has been hungry longer than the limit.
+//                        EquestriCraftPlugin.LOG.log(Level.INFO, "A horse died of hunger");
+//                        horse.kill();
+//                        it.remove();
+//                    }
+//                    if (horse.isThirsty() && horse.getThristDuration() > SICK_LIMIT) { //Kill the horse if it has been thirsty longer than the limit.
+//                        EquestriCraftPlugin.LOG.log(Level.INFO, "A horse died of thirst");
+//                        horse.kill();
+//                        it.remove();
+//                    }
                     if (horse.getDurationSinceLastEat() > DEFECATE_INTERVAL) { //Check if the horse needs to defecate.
                         if (!horse.hasDefecate()) {
                             horse.defecate();

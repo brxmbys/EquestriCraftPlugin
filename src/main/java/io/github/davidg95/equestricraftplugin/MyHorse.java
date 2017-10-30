@@ -698,6 +698,14 @@ public class MyHorse implements Serializable {
         this.shod = shod;
     }
 
+    public int getTrainingLevel() {
+        return trainingLevel;
+    }
+
+    public void setTrainingLevel(int trainingLevel) {
+        this.trainingLevel = trainingLevel;
+    }
+
     @Override
     public String toString() {
         return "Horse";
