@@ -5,8 +5,6 @@ package io.github.davidg95.equestricraftplugin.disciplines;
 
 import io.github.davidg95.equestricraftplugin.EquestriCraftPlugin;
 import java.text.DecimalFormat;
-import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
@@ -132,9 +130,12 @@ public class DisciplinesHandler implements CommandExecutor, Listener {
                 if (sender instanceof Player) {
                     Player player = (Player) sender;
                     List<Discipline> ds = cont.getMemberships(player);
-                    String output = "Disciplines you have signed up for-";
+                    String output = ChatColor.BOLD + "Disciplines you have signed up for-" + ChatColor.RESET + ChatColor.GREEN;
                     for (Discipline d : ds) {
-                        output += "\n" + d.toString();
+                        output += "\n-" + d.toString();
+                    }
+                    if (ds.isEmpty()) {
+                        output += "\n" + ChatColor.RED + "You have not yet signed up for any";
                     }
                     player.sendMessage(output);
                 } else {
@@ -308,7 +309,7 @@ public class DisciplinesHandler implements CommandExecutor, Listener {
             bm.setAuthor("EquestriCraft");
             bm.setTitle("Disciplines");
             book.setItemMeta(bm);
-            
+
             player.getInventory().addItem(book);
             return;
         } else {
