@@ -143,11 +143,18 @@ public class DisciplinesHandler implements CommandExecutor, Listener {
                     List<Membership> memberships = cont.getAll();
                     String output = ChatColor.BOLD + "Discipline memberships-" + ChatColor.RESET;
                     for (Discipline d : Discipline.values()) {
-                        output += ChatColor.GREEN + "\n" + "-" + d.toString() + ChatColor.RESET;
+                        output += ChatColor.AQUA + "\n" + ">" + d.toString() + ChatColor.RESET;
+                        int count = 0;
                         for (Membership m : memberships) {
                             if (m.getDiscipline().equals(d)) {
-                                output += "\n  >" + Bukkit.getOfflinePlayer(m.getPlayer()).getName();
+                                output += "\n  -" + Bukkit.getOfflinePlayer(m.getPlayer()).getName();
+                                count++;
                             }
+                        }
+                        if (count == 0) {
+                            output += "\n  " + ChatColor.RED + "No entrants" + ChatColor.RESET;
+                        } else {
+                            output += "\n  " + ChatColor.GREEN + count + (count > 1 ? " entrants" : " entrant") + ChatColor.RESET;
                         }
                     }
                     sender.sendMessage(output);

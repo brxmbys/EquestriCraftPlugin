@@ -32,6 +32,7 @@ public class DisciplinesController {
 
     private static final double FIRST_DISCIPLINE = 1000;
     private static final double SECOND_DISCIPLINE = 5000;
+    private static final double REFUND_PERCENT = 50;
 
     public DisciplinesController() {
         this.memberships = new LinkedList<>();
@@ -102,7 +103,7 @@ public class DisciplinesController {
             return -1;
         }
         double v = checkMembership(p, null);
-        return v / 2;
+        return v / 100 * REFUND_PERCENT;
     }
 
     /**
