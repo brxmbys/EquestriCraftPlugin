@@ -193,14 +193,7 @@ public class CommandHandler implements CommandExecutor, Listener {
                 }
                 try {
                     Discipline d = Discipline.valueOf(dStr);
-                    double v = cont.removeMembership(player, d);
-                    if (v == -1) {
-                        player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "You are not in that discipline!");
-                        return true;
-                    }
-                    v = v / 2;
-                    economy.depositPlayer(player, v);
-                    player.sendMessage("You have withdrawn from " + d.toString() + " and have been refunded $" + new DecimalFormat("0.00").format(v));
+                    withdraw(player, d);
                 } catch (Exception e) {
                     sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Discipline " + dStr + " not found");
                 }
@@ -224,6 +217,17 @@ public class CommandHandler implements CommandExecutor, Listener {
             }
         }
         return false;
+    }
+
+    private void withdraw(Player p, Discipline d) {
+        double v = cont.removeMembership(p, d);
+        if (v == -1) {
+            p.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "You are not in that discipline!");
+            return;
+        }
+        v = v / 2;
+        economy.depositPlayer(p, v);
+        p.sendMessage("You have withdrawn from " + d.toString() + " and have been refunded " + ChatColor.AQUA + "$" + new DecimalFormat("0").format(v));
     }
 
     /**
@@ -284,9 +288,7 @@ public class CommandHandler implements CommandExecutor, Listener {
         }
 
         if (v == -1) {
-            double refund = cont.removeMembership(player, d) / 2;
-            economy.depositPlayer(player, refund);
-            player.sendMessage("You have withdrawn from " + d.toString() + " and have been refunded $" + new DecimalFormat("0.00").format(refund));
+            withdraw(player, d);
         } else if (v == -2) {
             player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "You are already in two disciplines");
         } else {
@@ -298,7 +300,7 @@ public class CommandHandler implements CommandExecutor, Listener {
             if (r.transactionSuccess()) {
                 cont.addMembership(player, d);
                 player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "You are in the " + d.toString() + " discipline!");
-                player.sendMessage("You have been charged " + ChatColor.AQUA + "$" + new DecimalFormat("0.00").format(v));
+                player.sendMessage("You have been charged " + ChatColor.AQUA + "$" + new DecimalFormat("0").format(v));
             } else {
                 player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + r.errorMessage);
             }
