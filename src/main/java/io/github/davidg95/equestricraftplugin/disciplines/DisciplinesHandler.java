@@ -27,7 +27,7 @@ import org.bukkit.inventory.meta.ItemMeta;
  *
  * @author David
  */
-public class CommandHandler implements CommandExecutor, Listener {
+public class DisciplinesHandler implements CommandExecutor, Listener {
 
     /**
      * The discipline menu.
@@ -95,7 +95,7 @@ public class CommandHandler implements CommandExecutor, Listener {
         menu.setItem(8, i9);
     }
 
-    public CommandHandler(EquestriCraftPlugin plugin) {
+    public DisciplinesHandler(EquestriCraftPlugin plugin) {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         cont = new DisciplinesController();
         economy = EquestriCraftPlugin.economy;

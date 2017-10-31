@@ -3,7 +3,7 @@
  */
 package io.github.davidg95.equestricraftplugin;
 
-import io.github.davidg95.equestricraftplugin.disciplines.*;
+import io.github.davidg95.equestricraftplugin.disciplines.DisciplinesHandler;
 import io.github.davidg95.equestricraftplugin.race.*;
 import java.io.*;
 import java.text.DecimalFormat;
@@ -76,7 +76,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         if (!setupEconomy()) {
             LOG.log(Level.SEVERE, "Vault not detected, Disciplines has been disabled");
         } else {
-            this.getCommand("disciplines").setExecutor(new CommandHandler(this));
+            this.getCommand("disciplines").setExecutor(new DisciplinesHandler(this));
         }
     }
 
