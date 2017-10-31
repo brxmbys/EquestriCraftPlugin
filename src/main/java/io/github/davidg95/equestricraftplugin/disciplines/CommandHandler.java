@@ -214,6 +214,19 @@ public class CommandHandler implements CommandExecutor, Listener {
                     sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Discipline " + dStr + " not found");
                 }
                 return true;
+            } else if (args[0].equalsIgnoreCase("joined")) {
+//                if (!serverOrOp(sender)) {
+//                    return true;
+//                }
+//                String pStr = args[1];
+//                OfflinePlayer p = Bukkit.getOfflinePlayer(pStr);
+//                List<Discipline> ds = cont.getMemberships(p);
+//                String output = "Disciplines " + p.getName() + " has signed up for-";
+//                for (Discipline d : ds) {
+//                    output += "\n" + d.toString();
+//                }
+//                sender.sendMessage(output);
+//                return true;
             }
         }
         return false;
@@ -225,7 +238,6 @@ public class CommandHandler implements CommandExecutor, Listener {
             p.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "You are not in that discipline!");
             return;
         }
-        v = v / 2;
         economy.depositPlayer(p, v);
         p.sendMessage("You have withdrawn from " + d.toString() + " and have been refunded " + ChatColor.AQUA + "$" + new DecimalFormat("0").format(v));
     }

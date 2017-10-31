@@ -30,6 +30,9 @@ public class DisciplinesController {
 
     private static final String DISCIPLINES_FILE = "disciplines.dat";
 
+    private static final double FIRST_DISCIPLINE = 1000;
+    private static final double SECOND_DISCIPLINE = 5000;
+
     public DisciplinesController() {
         this.memberships = new LinkedList<>();
         load();
@@ -65,9 +68,9 @@ public class DisciplinesController {
         }
         save();
         if (count == 0) {
-            return 1000;
+            return FIRST_DISCIPLINE;
         } else if (count == 1) {
-            return 5000;
+            return SECOND_DISCIPLINE;
         }
         return -2;
     }
@@ -99,7 +102,7 @@ public class DisciplinesController {
             return -1;
         }
         double v = checkMembership(p, null);
-        return v;
+        return v / 2;
     }
 
     /**
