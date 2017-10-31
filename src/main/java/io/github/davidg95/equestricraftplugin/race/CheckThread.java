@@ -50,8 +50,12 @@ public class CheckThread extends Thread {
                         continue;
                     }
                     rp.setLastCrossTime(new Date().getTime());
+                    if (rp.getLap() > race.laps()) {
+                        continue;
+                    }
                     if (rp.getLap() == race.laps()) {
                         race.completePlayer(rp);
+                        rp.nextLap();
                         continue;
                     }
                     rp.nextLap();

@@ -39,9 +39,11 @@ public class Race implements Listener {
 
     private final Economy economy;
 
-    private final double prize;
+    private final double prize1;
+    private final double prize2;
+    private final double prize3;
 
-    public Race(int laps, double prize) {
+    public Race(int laps, double prize1, double prize2, double prize3) {
         this.laps = laps;
         players = new LinkedList<>();
         complete = new LinkedList<>();
@@ -49,7 +51,9 @@ public class Race implements Listener {
         finnished = false;
         Bukkit.getServer().getPluginManager().registerEvents(this, EquestriCraftPlugin.plugin);
         economy = EquestriCraftPlugin.economy;
-        this.prize = prize;
+        this.prize1 = prize1;
+        this.prize2 = prize2;
+        this.prize3 = prize3;
     }
 
     /**
@@ -148,9 +152,15 @@ public class Race implements Listener {
         final long raceTime = time - startTime;
         final double seconds = raceTime / 1000D;
         final int position = complete.size() + 1;
-        if (position == 1 && prize > 0) {
-            economy.depositPlayer(p.getPlayer(), prize);
-            p.getPlayer().sendMessage("You have won " + ChatColor.AQUA + "$" + new DecimalFormat("0").format(prize) + "!");
+        if (position == 1 && prize1 > 0) {
+            economy.depositPlayer(p.getPlayer(), prize1);
+            p.getPlayer().sendMessage("You have won " + ChatColor.AQUA + "$" + new DecimalFormat("0").format(prize1) + "!");
+        } else if (position == 2 && prize2 > 0) {
+            economy.depositPlayer(p.getPlayer(), prize2);
+            p.getPlayer().sendMessage("You have won " + ChatColor.AQUA + "$" + new DecimalFormat("0").format(prize2) + "!");
+        } else if (position == 3 && prize3 > 0) {
+            economy.depositPlayer(p.getPlayer(), prize3);
+            p.getPlayer().sendMessage("You have won " + ChatColor.AQUA + "$" + new DecimalFormat("0").format(prize3) + "!");
         }
         p.setTime(seconds);
         for (RacePlayer rp : complete) {

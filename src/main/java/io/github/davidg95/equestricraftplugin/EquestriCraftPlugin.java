@@ -568,21 +568,23 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         } else if (cmd.getName().equalsIgnoreCase("race")) {
             if (args.length >= 1) {
                 if (args[0].equalsIgnoreCase("open")) {
-                    if (args.length >= 3) {
+                    if (args.length >= 5) {
                         try {
                             int laps = Integer.parseInt(args[1]);
                             if (laps < 1) {
-                                sender.sendMessage("Must be 1 or greater");
+                                sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Must be 1 or greater");
                                 return true;
                             }
-                            double prize = Double.parseDouble(args[2]);
-                            race = new Race(laps, prize);
-                            Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "***" + laps + " lap race is now open for entries" + (prize > 0 ? ". $" + new DecimalFormat("0").format(prize) + " reward" : "") + "***");
+                            double prize1 = Double.parseDouble(args[2]);
+                            double prize2 = Double.parseDouble(args[3]);
+                            double prize3 = Double.parseDouble(args[4]);
+                            race = new Race(laps, prize1, prize2, prize3);
+                            Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "***" + laps + " lap race is now open for entries" + (prize1 > 0 ? ". $" + new DecimalFormat("0").format(prize1) + " reward for first place!" : "") + "***");
                         } catch (NumberFormatException ex) {
-                            sender.sendMessage("You must specify the number of laps");
+                            sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Must specify a number value");
                         }
                     } else {
-                        sender.sendMessage("You must specify the number of laps");
+                        sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "You must specify the number of laps, and the prizes for 1st, 2nd and 3rd place");
                     }
                     return true;
                 } else if (args[0].equalsIgnoreCase("add")) {
