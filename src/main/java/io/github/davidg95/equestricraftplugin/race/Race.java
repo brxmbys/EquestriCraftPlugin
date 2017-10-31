@@ -4,9 +4,11 @@
 package io.github.davidg95.equestricraftplugin.race;
 
 import io.github.davidg95.equestricraftplugin.EquestriCraftPlugin;
+import java.text.DecimalFormat;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -35,13 +37,19 @@ public class Race implements Listener {
 
     private final int laps; //The number of laps.
 
-    public Race(int laps) {
+    private final Economy economy;
+
+    private final double prize;
+
+    public Race(int laps, double prize) {
         this.laps = laps;
         players = new LinkedList<>();
         complete = new LinkedList<>();
         started = false;
         finnished = false;
         Bukkit.getServer().getPluginManager().registerEvents(this, EquestriCraftPlugin.plugin);
+        economy = EquestriCraftPlugin.economy;
+        this.prize = prize;
     }
 
     /**
@@ -140,6 +148,10 @@ public class Race implements Listener {
         final long raceTime = time - startTime;
         final double seconds = raceTime / 1000D;
         final int position = complete.size() + 1;
+        if (position == 1 && prize > 0) {
+            economy.depositPlayer(p.getPlayer(), prize);
+            p.getPlayer().sendMessage("You have won " + ChatColor.AQUA + "$" + new DecimalFormat("0").format(prize) + "!");
+        }
         p.setTime(seconds);
         for (RacePlayer rp : complete) {
             if (rp.getPlayer().getName().equals(p.getPlayer().getName())) {

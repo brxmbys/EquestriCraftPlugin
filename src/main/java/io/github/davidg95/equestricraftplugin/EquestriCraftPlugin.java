@@ -13,6 +13,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -600,8 +601,9 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                                 sender.sendMessage("Must be 1 or greater");
                                 return true;
                             }
-                            race = new Race(laps);
-                            Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "***" + laps + " lap race is now open for entries***");
+                            double prize = Double.parseDouble(args[2]);
+                            race = new Race(laps, prize);
+                            Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "***" + laps + " lap race is now open for entries" + (prize > 0 ? ". $" + new DecimalFormat("0").format(prize) + " reward" : "") + "***");
                         } catch (NumberFormatException ex) {
                             sender.sendMessage("You must specify the number of laps");
                         }
