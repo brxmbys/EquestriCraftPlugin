@@ -814,7 +814,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                                 return true;
                             }
                             mh.setTrainingLevel(level);
-                            player.sendMessage("Leve set");
+                            player.sendMessage("Level set");
                         } catch (NumberFormatException ex) {
                             player.sendMessage("Must enter a number for months");
                         }
