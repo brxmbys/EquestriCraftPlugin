@@ -594,7 +594,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         } else if (cmd.getName().equalsIgnoreCase("race")) {
             if (args.length >= 1) {
                 if (args[0].equalsIgnoreCase("open")) {
-                    if (args.length >= 2) {
+                    if (args.length >= 3) {
                         try {
                             int laps = Integer.parseInt(args[1]);
                             if (laps < 1) {
