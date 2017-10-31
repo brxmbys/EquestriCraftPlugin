@@ -251,7 +251,7 @@ public class DisciplinesHandler implements CommandExecutor, Listener {
         }
         event.setCancelled(true);
         player.closeInventory();
-        double v = 0;
+        double v;
         Discipline d;
         if (clicked.getType() == Material.DIAMOND) {
             //Pole Bending
