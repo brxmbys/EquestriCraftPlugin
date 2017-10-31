@@ -146,7 +146,7 @@ public class CommandHandler implements CommandExecutor, Listener {
                         output += ChatColor.GREEN + "\n" + "-" + d.toString() + ChatColor.RESET;
                         for (Membership m : memberships) {
                             if (m.getDiscipline().equals(d)) {
-                                output += "\n -" + Bukkit.getPlayer(m.getPlayer()).getName();
+                                output += "\n  >" + Bukkit.getOfflinePlayer(m.getPlayer()).getName();
                             }
                         }
                     }
@@ -198,6 +198,7 @@ public class CommandHandler implements CommandExecutor, Listener {
                         player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "You are not in that discipline!");
                         return true;
                     }
+                    v = v / 2;
                     economy.depositPlayer(player, v);
                     player.sendMessage("You have withdrawn from " + d.toString() + " and have been refunded $" + new DecimalFormat("0.00").format(v));
                 } catch (Exception e) {
@@ -283,7 +284,7 @@ public class CommandHandler implements CommandExecutor, Listener {
         }
 
         if (v == -1) {
-            double refund = cont.removeMembership(player, d);
+            double refund = cont.removeMembership(player, d) / 2;
             economy.depositPlayer(player, refund);
             player.sendMessage("You have withdrawn from " + d.toString() + " and have been refunded $" + new DecimalFormat("0.00").format(refund));
         } else if (v == -2) {
