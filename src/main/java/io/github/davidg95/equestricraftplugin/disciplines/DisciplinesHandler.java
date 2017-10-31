@@ -5,6 +5,8 @@ package io.github.davidg95.equestricraftplugin.disciplines;
 
 import io.github.davidg95.equestricraftplugin.EquestriCraftPlugin;
 import java.text.DecimalFormat;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
@@ -20,6 +22,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 
 /**
@@ -32,7 +35,7 @@ public class DisciplinesHandler implements CommandExecutor, Listener {
     /**
      * The discipline menu.
      */
-    private static final Inventory menu = Bukkit.createInventory(null, 9, "Disciplines");
+    private static final Inventory menu = Bukkit.createInventory(null, 27, "Disciplines");
 
     private final DisciplinesController cont;
 
@@ -84,6 +87,11 @@ public class DisciplinesHandler implements CommandExecutor, Listener {
         m9.setDisplayName("Steeple Chase");
         i9.setItemMeta(m9);
 
+        ItemStack i19 = new ItemStack(Material.BOOK, 1);
+        ItemMeta m19 = i19.getItemMeta();
+        m19.setDisplayName("Disciplines Information");
+        i19.setItemMeta(m19);
+
         menu.setItem(0, i1);
         menu.setItem(1, i2);
         menu.setItem(2, i3);
@@ -93,6 +101,7 @@ public class DisciplinesHandler implements CommandExecutor, Listener {
         menu.setItem(6, i7);
         menu.setItem(7, i8);
         menu.setItem(8, i9);
+        menu.setItem(18, i19);
     }
 
     public DisciplinesHandler(EquestriCraftPlugin plugin) {
@@ -289,6 +298,19 @@ public class DisciplinesHandler implements CommandExecutor, Listener {
             //Steeple Chase
             d = Discipline.SteepleChase;
             v = cont.checkMembership(player, Discipline.SteepleChase);
+        } else if (clicked.getType() == Material.BOOK) {
+            ItemStack book = new ItemStack(Material.WRITTEN_BOOK, 1);
+            BookMeta bm = (BookMeta) book.getItemMeta();
+            String text = "***PRICE INFORMATION***\n\nFirst Discipline - $1000\nSecond Discipline - $5000\n\nRefunds - 50% of entry fee.\n\nMaximum 2 disciplines.";
+
+            bm.addPage("1");
+            bm.setPage(1, text);
+            bm.setAuthor("EquestriCraft");
+            bm.setTitle("Disciplines");
+            book.setItemMeta(bm);
+            
+            player.getInventory().addItem(book);
+            return;
         } else {
             return;
         }
