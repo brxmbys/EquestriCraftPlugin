@@ -214,19 +214,6 @@ public class CommandHandler implements CommandExecutor, Listener {
                     sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Discipline " + dStr + " not found");
                 }
                 return true;
-            } else if (args[0].equalsIgnoreCase("joined")) {
-//                if (!serverOrOp(sender)) {
-//                    return true;
-//                }
-//                String pStr = args[1];
-//                OfflinePlayer p = Bukkit.getOfflinePlayer(pStr);
-//                List<Discipline> ds = cont.getMemberships(p);
-//                String output = "Disciplines " + p.getName() + " has signed up for-";
-//                for (Discipline d : ds) {
-//                    output += "\n" + d.toString();
-//                }
-//                sender.sendMessage(output);
-//                return true;
             }
         }
         return false;
