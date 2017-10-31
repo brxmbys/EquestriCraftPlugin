@@ -66,7 +66,7 @@ public class CheckThread extends Thread {
                 run = false;
             }
             try {
-                Thread.sleep(50);
+                Thread.sleep(35);
             } catch (InterruptedException ex) {
                 Logger.getLogger(CheckThread.class.getName()).log(Level.SEVERE, null, ex);
             }
