@@ -68,3 +68,6 @@ commands:
     setlevel:
         description: sets a horses training level.
         udage: /setlevel <1-10>
+    navigator:
+        description: Spawns the navigator.
+        udage: /navigator

@@ -16,6 +16,7 @@ import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.entity.*;
 import org.bukkit.event.*;
 import org.bukkit.event.entity.*;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.inventory.*;
@@ -47,6 +48,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     public static final String VACCINE_NAME = "Vaccination";
     public static final String DOCTOR_TOOL = "Doctor's Tool";
     public static final String FARRIER_TOOL = "Farrier's Tool";
+    public static final String NAVIGATOR_TOOL = "Navigator";
 
     public static boolean OP_REQ = true;
     public static boolean BLOCK_HUNGER = true;
@@ -54,6 +56,59 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     private Race race;
 
     public static Economy economy;
+
+    private static final Inventory navigator = Bukkit.createInventory(null, 45, "Navigator");
+
+    static {
+        ItemStack spawn = new ItemStack(Material.MONSTER_EGG, 1);
+        ItemMeta m1 = spawn.getItemMeta();
+        m1.setDisplayName("Spawn");
+        spawn.setItemMeta(m1);
+
+        ItemStack leaseBarn = new ItemStack(Material.BOOK, 1);
+        ItemMeta m2 = leaseBarn.getItemMeta();
+        m2.setDisplayName("Lease Barn");
+        leaseBarn.setItemMeta(m2);
+
+        ItemStack raceTrack = new ItemStack(Material.SADDLE, 1);
+        ItemMeta m3 = raceTrack.getItemMeta();
+        m3.setDisplayName("Race Track");
+        raceTrack.setItemMeta(m3);
+
+        ItemStack rescue = new ItemStack(Material.GOLD_BARDING, 1);
+        ItemMeta m4 = rescue.getItemMeta();
+        m4.setDisplayName("Rescue");
+        rescue.setItemMeta(m4);
+
+        ItemStack town = new ItemStack(Material.WOOD, 1);
+        ItemMeta m5 = town.getItemMeta();
+        m5.setDisplayName("Town");
+        town.setItemMeta(m5);
+
+        ItemStack trails = new ItemStack(Material.MAP, 1);
+        ItemMeta m6 = trails.getItemMeta();
+        m6.setDisplayName("Trails");
+        trails.setItemMeta(m6);
+
+        ItemStack showgrounds = new ItemStack(Material.FISHING_ROD, 1);
+        ItemMeta m7 = showgrounds.getItemMeta();
+        m7.setDisplayName("Showgrounds");
+        showgrounds.setItemMeta(m7);
+
+        ItemStack dentist = new ItemStack(Material.SHEARS, 1);
+        ItemMeta m8 = dentist.getItemMeta();
+        m8.setDisplayName("Dentist");
+        dentist.setItemMeta(m8);
+
+        navigator.setItem(22, spawn);
+        navigator.setItem(4, leaseBarn);
+        navigator.setItem(40, raceTrack);
+        navigator.setItem(24, rescue);
+        navigator.setItem(20, town);
+        navigator.setItem(30, trails);
+        navigator.setItem(31, showgrounds);
+        navigator.setItem(32, dentist);
+    }
 
     @Override
     public void onEnable() {
@@ -826,6 +881,23 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                 return true;
             }
             return false;
+        } else if (cmd.getName().equalsIgnoreCase("navigator")) {
+            final Player player = (Player) sender;
+            player.openInventory(navigator);
+//            if (sender instanceof Player) {
+//                final Player player = (Player) sender;
+//                final PlayerInventory inventory = player.getInventory();
+//                final ItemStack navi = new ItemStack(Material.COMPASS, 1);
+//                final ItemMeta im = navi.getItemMeta();
+//                im.setDisplayName(NAVIGATOR_TOOL);
+//                final List<String> comments = new ArrayList<>();
+//                comments.add("Navigate Equestricraft");
+//                im.setLore(comments);
+//                navi.setItemMeta(im);
+//                inventory.addItem(navi);
+//            } else {
+//                sender.sendMessage("Only players may use this command");
+//            }
         }
         return false;
     }
@@ -907,8 +979,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     if (!inHand.getItemMeta().getDisplayName().equals(SHEARS_NAME)) { //Check the shears are the Gelding Shears.
                         return;
                     }
+                    event.setCancelled(true);
                     if (event.getEntity() instanceof Horse) { //Check it was a horse they are hitting.
-                        event.setCancelled(true);
                         final MyHorse horse = container.getHorse(event.getEntity().getUniqueId()); //Get the Horse instance.
                         if (horse.getGender() != MyHorse.STALLION) { //Check it was a stallion.
                             player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "This horse is not a stallion");
@@ -924,8 +996,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         return;
                     }
                     if (inHand.getItemMeta().getDisplayName().equals(STICK_NAME)) { //Check the stick is the horse wand.
+                        event.setCancelled(true);
                         if (event.getEntity() instanceof Horse) {
-                            event.setCancelled(true);
                             MyHorse horse = container.getHorse(event.getEntity().getUniqueId()); //Get the horse that was clicked on.
                             if (horse == null) {
                                 player.sendMessage("This horse has no details assigned");
@@ -1034,8 +1106,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     if (!inHand.getItemMeta().getDisplayName().equals(VACCINE_NAME)) {
                         return;
                     }
+                    event.setCancelled(true);
                     if (event.getEntity() instanceof Horse) {
-                        event.setCancelled(true);
                         final MyHorse horse = container.getHorse(event.getEntity().getUniqueId());
                         horse.setVaccinated(true);
                         player.sendMessage(ChatColor.BOLD + "Horse has been vaccinated");
@@ -1049,8 +1121,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     if (!inHand.getItemMeta().getDisplayName().equals(POTION_NAME)) {
                         return;
                     }
+                    event.setCancelled(true);
                     if (event.getEntity() instanceof Horse) {
-                        event.setCancelled(true);
                         final MyHorse horse = container.getHorse(event.getEntity().getUniqueId());
                         horse.setSick(false);
                         player.sendMessage(ChatColor.BOLD + "Horse has been cured");
@@ -1063,8 +1135,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     if (!inHand.getItemMeta().getDisplayName().equals(FARRIER_TOOL)) {
                         return;
                     }
+                    event.setCancelled(true);
                     if (event.getEntity() instanceof Horse) {
-                        event.setCancelled(true);
                         final MyHorse horse = container.getHorse(event.getEntity().getUniqueId());
                         horse.setShod(true);
                         player.sendMessage(ChatColor.BOLD + "Horse has been shod");
@@ -1079,9 +1151,6 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     @EventHandler
     public void playerUse(PlayerInteractEntityEvent event) {
         final Player player = event.getPlayer();
-        if (!(event.getRightClicked() instanceof Horse)) {
-            return;
-        }
         final ItemStack inHand = player.getItemInHand(); //Get the item in hand.
         if (inHand == null) {
             return;
@@ -1089,6 +1158,9 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         if (null != inHand.getType()) {
             switch (inHand.getType()) {
                 case STICK: //Horse wand
+                    if (!(event.getRightClicked() instanceof Horse)) {
+                        return;
+                    }
                     //Horse checking stick
                     if (!inHand.getItemMeta().hasDisplayName()) { //Check the shears have a display name.
                         return;
@@ -1114,6 +1186,31 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
 //                    }
                     }
                     event.setCancelled(true);
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    @EventHandler
+    public void onPlayerClick(PlayerInteractEvent event) {
+        final Player player = event.getPlayer();
+        final ItemStack inHand = player.getItemInHand(); //Get the item in hand.
+        if (inHand == null) {
+            return;
+        }
+        if (null != inHand.getType()) {
+            switch (inHand.getType()) {
+                case COMPASS:
+                    if (!inHand.getItemMeta().hasDisplayName()) {
+                        return;
+                    }
+                    if (!inHand.getItemMeta().getDisplayName().equals(NAVIGATOR_TOOL)) {
+                        return;
+                    }
+                    event.setCancelled(true);
+                    player.openInventory(navigator);
                     break;
                 default:
                     break;
@@ -1176,6 +1273,57 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             }
             container.addHorse(mh);
         }
+    }
+
+    @EventHandler
+    public void onInventoryClick(InventoryClickEvent event) {
+        Player player = (Player) event.getWhoClicked();
+        ItemStack clicked = event.getCurrentItem();
+        Inventory inventory = event.getInventory();
+        if (!inventory.getName().equals(navigator.getName())) {
+            return;
+        }
+        event.setCancelled(true);
+        player.closeInventory();
+        World w = Bukkit.getWorld("Equestricraft");
+        Location l;
+        if (clicked.getType() == Material.MONSTER_EGG) {
+            //Spawn
+            l = new Location(w, 4111, 5, -2264);
+            player.sendMessage("Teleporting to Spawn...");
+        } else if (clicked.getType() == Material.BOOK) {
+            //Lease Barn
+            l = new Location(w, 621, 5, 2078);
+            player.sendMessage("Teleporting to the Lease Barn...");
+        } else if (clicked.getType() == Material.SADDLE) {
+            //Race Track
+            l = new Location(w, -2268, 5, 10966);
+            player.sendMessage("Teleporting to the Race Track...");
+        } else if (clicked.getType() == Material.GOLD_BARDING) {
+            //Rescue
+            l = new Location(w, -856, 5, 473);
+            player.sendMessage("Teleporting to the Rescue...");
+        } else if (clicked.getType() == Material.WOOD) {
+            //Town
+            l = new Location(w, 161, 5, 1460);
+            player.sendMessage("Teleporting to the Town...");
+        } else if (clicked.getType() == Material.MAP) {
+            //Trails
+            l = new Location(w, -3199, 5, 4800);
+            player.sendMessage("Teleporting to the Trails...");
+        } else if (clicked.getType() == Material.FISHING_ROD) {
+            //Showgrounds
+            l = new Location(w, 653, 5, 1501);
+            player.sendMessage("Teleporting to the Showgrounds...");
+        } else if (clicked.getType() == Material.SHEARS) {
+            //Dentist
+            l = new Location(w, -93, 5, 1166);
+            player.sendMessage("Teleporting to the Dentist...");
+        } else {
+            return;
+        }
+
+        player.teleport(l);
     }
 
     private void loadProperties() {
