@@ -20,6 +20,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.inventory.*;
+import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.*;
@@ -65,7 +66,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         m1.setDisplayName("Spawn");
         spawn.setItemMeta(m1);
 
-        ItemStack leaseBarn = new ItemStack(Material.BOOK, 1);
+        ItemStack leaseBarn = new ItemStack(Material.NAME_TAG, 1);
         ItemMeta m2 = leaseBarn.getItemMeta();
         m2.setDisplayName("Lease Barn");
         leaseBarn.setItemMeta(m2);
@@ -100,6 +101,11 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         m8.setDisplayName("Dentist");
         dentist.setItemMeta(m8);
 
+        ItemStack rules = new ItemStack(Material.BOOK, 1);
+        ItemMeta m9 = rules.getItemMeta();
+        m9.setDisplayName("Rules");
+        rules.setItemMeta(m9);
+
         navigator.setItem(22, spawn);
         navigator.setItem(4, leaseBarn);
         navigator.setItem(40, raceTrack);
@@ -108,6 +114,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         navigator.setItem(30, trails);
         navigator.setItem(31, showgrounds);
         navigator.setItem(32, dentist);
+        navigator.setItem(44, rules);
     }
 
     @Override
@@ -1300,7 +1307,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             //Spawn
             l = new Location(w, 4111, 5, -2264, 180, 0);
             player.sendMessage("Teleporting to Spawn...");
-        } else if (clicked.getType() == Material.BOOK) {
+        } else if (clicked.getType() == Material.NAME_TAG) {
             //Lease Barn
             l = new Location(w, 621, 4.8, 2078);
             player.sendMessage("Teleporting to the Lease Barn...");
@@ -1328,6 +1335,25 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             //Dentist
             l = new Location(w, -93, 4.8, 1166);
             player.sendMessage("Teleporting to the Dentist...");
+        } else if (clicked.getType() == Material.BOOK) {
+            ItemStack book = new ItemStack(Material.WRITTEN_BOOK, 1);
+            BookMeta bm = (BookMeta) book.getItemMeta();
+            String text = "EQUESTRICRAFT\n\n"
+                    + "[1] Do not log off on horses.\n"
+                    + "[2] Do not use strong language.\n"
+                    + "[3] Respect others.\n"
+                    + "[4] Griefing is not tolerated\n"
+                    + "[5] Breeding is not aloud until advanced+\n"
+                    + "[6] You can not Spawn or take horses from the wild.";
+
+            bm.addPage("1");
+            bm.setPage(1, text);
+            bm.setAuthor("EquestriCraft");
+            bm.setTitle("Rules");
+            book.setItemMeta(bm);
+
+            player.getInventory().addItem(book);
+            return;
         } else {
             return;
         }
