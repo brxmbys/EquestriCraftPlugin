@@ -882,22 +882,13 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             }
             return false;
         } else if (cmd.getName().equalsIgnoreCase("navigator")) {
+            if (!(sender instanceof Player)) {
+                sender.sendMessage("Only players can use this command");
+                return true;
+            }
             final Player player = (Player) sender;
             player.openInventory(navigator);
-//            if (sender instanceof Player) {
-//                final Player player = (Player) sender;
-//                final PlayerInventory inventory = player.getInventory();
-//                final ItemStack navi = new ItemStack(Material.COMPASS, 1);
-//                final ItemMeta im = navi.getItemMeta();
-//                im.setDisplayName(NAVIGATOR_TOOL);
-//                final List<String> comments = new ArrayList<>();
-//                comments.add("Navigate Equestricraft");
-//                im.setLore(comments);
-//                navi.setItemMeta(im);
-//                inventory.addItem(navi);
-//            } else {
-//                sender.sendMessage("Only players may use this command");
-//            }
+            return true;
         }
         return false;
     }
@@ -1215,6 +1206,14 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                 default:
                     break;
             }
+        }
+    }
+
+    @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        Player player = event.getPlayer();
+        if (player.getLastPlayed() == 0) {
+            player.openInventory(navigator);
         }
     }
 
