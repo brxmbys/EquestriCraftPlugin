@@ -1288,35 +1288,35 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         Location l;
         if (clicked.getType() == Material.MONSTER_EGG) {
             //Spawn
-            l = new Location(w, 4111, 5, -2264);
+            l = new Location(w, 4111, 4.8, -2264, 180, 0);
             player.sendMessage("Teleporting to Spawn...");
         } else if (clicked.getType() == Material.BOOK) {
             //Lease Barn
-            l = new Location(w, 621, 5, 2078);
+            l = new Location(w, 621, 4.8, 2078);
             player.sendMessage("Teleporting to the Lease Barn...");
         } else if (clicked.getType() == Material.SADDLE) {
             //Race Track
-            l = new Location(w, -2268, 5, 10966);
+            l = new Location(w, -2268, 4.8, 10966);
             player.sendMessage("Teleporting to the Race Track...");
         } else if (clicked.getType() == Material.GOLD_BARDING) {
             //Rescue
-            l = new Location(w, -856, 5, 473);
+            l = new Location(w, -856, 4.8, 473, 90, 0);
             player.sendMessage("Teleporting to the Rescue...");
         } else if (clicked.getType() == Material.WOOD) {
             //Town
-            l = new Location(w, 161, 5, 1460);
+            l = new Location(w, 161, 4.8, 1460, 180, 0);
             player.sendMessage("Teleporting to the Town...");
         } else if (clicked.getType() == Material.MAP) {
             //Trails
-            l = new Location(w, -3199, 5, 4800);
+            l = new Location(w, -3199, 4.8, 4800);
             player.sendMessage("Teleporting to the Trails...");
         } else if (clicked.getType() == Material.FISHING_ROD) {
             //Showgrounds
-            l = new Location(w, 653, 5, 1501);
+            l = new Location(w, 653, 4.8, 1501);
             player.sendMessage("Teleporting to the Showgrounds...");
         } else if (clicked.getType() == Material.SHEARS) {
             //Dentist
-            l = new Location(w, -93, 5, 1166);
+            l = new Location(w, -93, 4.8, 1166);
             player.sendMessage("Teleporting to the Dentist...");
         } else {
             return;
