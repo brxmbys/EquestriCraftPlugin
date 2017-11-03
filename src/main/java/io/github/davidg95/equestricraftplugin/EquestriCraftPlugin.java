@@ -64,46 +64,55 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         ItemStack spawn = new ItemStack(Material.MONSTER_EGG, 1);
         ItemMeta m1 = spawn.getItemMeta();
         m1.setDisplayName("Spawn");
+        m1.setLore(createLore("Go to the world spawn"));
         spawn.setItemMeta(m1);
 
         ItemStack leaseBarn = new ItemStack(Material.NAME_TAG, 1);
         ItemMeta m2 = leaseBarn.getItemMeta();
         m2.setDisplayName("Lease Barn");
+        m2.setLore(createLore("Lease a horse"));
         leaseBarn.setItemMeta(m2);
 
         ItemStack raceTrack = new ItemStack(Material.SADDLE, 1);
         ItemMeta m3 = raceTrack.getItemMeta();
         m3.setDisplayName("Race Track");
+        m3.setLore(createLore("Participate in races"));
         raceTrack.setItemMeta(m3);
 
         ItemStack rescue = new ItemStack(Material.GOLD_BARDING, 1);
         ItemMeta m4 = rescue.getItemMeta();
         m4.setDisplayName("Rescue");
+        m4.setLore(createLore("Go to the horse rescue"));
         rescue.setItemMeta(m4);
 
         ItemStack town = new ItemStack(Material.WOOD, 1);
         ItemMeta m5 = town.getItemMeta();
         m5.setDisplayName("Town");
+        m5.setLore(createLore("Go to the town"));
         town.setItemMeta(m5);
 
         ItemStack trails = new ItemStack(Material.MAP, 1);
         ItemMeta m6 = trails.getItemMeta();
         m6.setDisplayName("Trails");
+        m6.setLore(createLore("Go to the trails area"));
         trails.setItemMeta(m6);
 
         ItemStack showgrounds = new ItemStack(Material.FISHING_ROD, 1);
         ItemMeta m7 = showgrounds.getItemMeta();
         m7.setDisplayName("Showgrounds");
+        m7.setLore(createLore("Go to the showgrounds"));
         showgrounds.setItemMeta(m7);
 
         ItemStack dentist = new ItemStack(Material.SHEARS, 1);
         ItemMeta m8 = dentist.getItemMeta();
         m8.setDisplayName("Dentist");
+        m8.setLore(createLore("Go to the dentist"));
         dentist.setItemMeta(m8);
 
         ItemStack rules = new ItemStack(Material.BOOK, 1);
         ItemMeta m9 = rules.getItemMeta();
         m9.setDisplayName("Rules");
+        m9.setLore(createLore("View the server rules"));
         rules.setItemMeta(m9);
 
         navigator.setItem(22, spawn);
@@ -115,6 +124,12 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         navigator.setItem(31, showgrounds);
         navigator.setItem(32, dentist);
         navigator.setItem(44, rules);
+    }
+    
+    private static List<String> createLore(String lore){
+        List<String> list = new LinkedList<>();
+        list.add(lore);
+        return list;
     }
 
     @Override
