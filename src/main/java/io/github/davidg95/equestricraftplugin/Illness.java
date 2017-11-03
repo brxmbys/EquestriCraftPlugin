@@ -15,11 +15,11 @@ public enum Illness {
     MudFever,
     SkinCancer,
     RainRot,
-    WhiteLineDisease,
+    WhiteLineDisease, //Farrier
     Strangles,
     GrassSickness,
-    MareReproductiveLoss, //If this could be for only mares?
-    HoofWallSeparation,
+    MareReproductiveLoss, //Mares only
+    HoofWallSeparation, //Farrier
     WobblerDisease,
     WestNileFever,
     TripleE,
@@ -31,7 +31,7 @@ public enum Illness {
     KidneyInflammation,
     Trauma,
     Concussion,
-    Corns,
+    Corns, //Farrier
     Curb,
     BrokenBloodVessels;
 

@@ -116,7 +116,7 @@ public class Race implements Listener {
      * player is not added, 3 if the max player count has been reached and the
      * player is not added. 4 if the player is already in the race.
      */
-    public int addPlayer(Player p) {
+    public synchronized int addPlayer(Player p) {
         if (started) {
             return 2;
         }

@@ -216,7 +216,7 @@ public class HorseCheckerThread extends Thread {
 //                                if (getFirstEat(cauldron) == -1) {
 //                                    setFirstEat(cauldron);
 //                                }
-//                                horse.setThirst(false);
+                                horse.setThirst(false);
 //                                final Runnable caulAdd = new Runnable() {
 //                                    @Override
 //                                    public void run() {
@@ -241,7 +241,7 @@ public class HorseCheckerThread extends Thread {
 //                                if (getFirstEat(bale) == -1) {
 //                                    setFirstEat(bale);
 //                                }
-//                                horse.setHunger(false);
+                                horse.setHunger(false);
 //                                final Runnable baleAdd = new Runnable() {
 //                                    @Override
 //                                    public void run() {

@@ -33,7 +33,7 @@ public class DisciplinesHandler implements CommandExecutor, Listener {
     /**
      * The discipline menu.
      */
-    private static final Inventory menu = Bukkit.createInventory(null, 27, "Disciplines");
+    private static final Inventory menu = Bukkit.createInventory(null, 9, "Disciplines");
 
     private final DisciplinesController cont;
 
@@ -99,7 +99,7 @@ public class DisciplinesHandler implements CommandExecutor, Listener {
         menu.setItem(6, i7);
         menu.setItem(7, i8);
         menu.setItem(8, i9);
-        menu.setItem(18, i19);
+//        menu.setItem(18, i19);
     }
 
     public DisciplinesHandler(EquestriCraftPlugin plugin) {
