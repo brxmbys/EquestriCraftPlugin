@@ -46,7 +46,7 @@ public class CheckThread extends Thread {
                 int y = player.getLocation().getBlockY();
                 if (z < z1 && z > z2 && x >= x1 && x <= x2 && y <= yl) {
                     final RacePlayer rp = players.get(i);
-                    if (rp.getLap() > 0 && new Date().getTime() - rp.getLastCrossTime() < 5000L) {
+                    if (rp.getLap() > 0 && new Date().getTime() - rp.getLastCrossTime() < 10000L) {
                         continue;
                     }
                     rp.setLastCrossTime(new Date().getTime());
