@@ -125,8 +125,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         navigator.setItem(32, dentist);
         navigator.setItem(44, rules);
     }
-    
-    private static List<String> createLore(String lore){
+
+    private static List<String> createLore(String lore) {
         List<String> list = new LinkedList<>();
         list.add(lore);
         return list;
@@ -921,6 +921,39 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             final Player player = (Player) sender;
             player.openInventory(navigator);
             return true;
+        } else if (cmd.getName().equalsIgnoreCase("build")) {
+            if (!(sender instanceof Player)) {
+                sender.sendMessage("Only players can use this command");
+                return true;
+            }
+            final Player player = (Player) sender;
+            if (args.length < 3) {
+                return false;
+            }
+            try {
+                String op = args[0];
+                int width = Integer.parseInt(args[1]);
+                int height = Integer.parseInt(args[2]);
+                if (width <= 0 || height <= 0) {
+                    player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Must be a value greater than 0");
+                    return true;
+                }
+                double value = width * height;
+                if (op.equalsIgnoreCase("pay")) {
+                    if (!economy.has(player, value)) {
+                        player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "You do not have enough money");
+                        return true;
+                    }
+                    economy.withdrawPlayer(player, value);
+                    player.sendMessage(ChatColor.AQUA + "$" + new DecimalFormat("0").format(value) + ChatColor.GREEN + " has been withdrawn for a build");
+                    Bukkit.getLogger().log(Level.INFO, player.getName() + " has paid $" + new DecimalFormat("0").format(value) + " for a build");
+                } else if (op.equalsIgnoreCase("enq")) {
+                    player.sendMessage(ChatColor.GREEN + "This build will cost " + ChatColor.AQUA + "$" + new DecimalFormat("0").format(value) + ChatColor.GREEN + ". /build pay " + width + " " + height + " to pay");
+                }
+            } catch (NumberFormatException e) {
+                player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Must enter a numerical value");
+            }
+            return true;
         }
         return false;
     }
@@ -931,7 +964,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
      * @param evt the PlayerQuitEvent.
      */
     @EventHandler
-    public void onLeave(PlayerQuitEvent evt) {
+    public void onLeave(PlayerQuitEvent evt
+    ) {
         Player player = evt.getPlayer();
         Entity e = player.getVehicle();
         if (e == null || !(e instanceof Horse)) {
@@ -948,7 +982,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
      * @param event
      */
     @EventHandler
-    public void onChunkLoad(ChunkLoadEvent event) {
+    public void onChunkLoad(ChunkLoadEvent event
+    ) {
         new BukkitRunnable() {
             @Override
             public void run() {
@@ -971,7 +1006,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     }
 
     @EventHandler
-    public void onFoodChangeEvent(FoodLevelChangeEvent evt) {
+    public void onFoodChangeEvent(FoodLevelChangeEvent evt
+    ) {
         if (BLOCK_HUNGER) {
             evt.setCancelled(true);
         }
@@ -983,7 +1019,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
      * @param event
      */
     @EventHandler
-    public void onPlayerUse(EntityDamageByEntityEvent event) {
+    public void onPlayerUse(EntityDamageByEntityEvent event
+    ) {
         if (!(event.getDamager() instanceof Player)) { //Check the damager is a player.
             return;
         }
@@ -1172,7 +1209,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     }
 
     @EventHandler
-    public void playerUse(PlayerInteractEntityEvent event) {
+    public void playerUse(PlayerInteractEntityEvent event
+    ) {
         final Player player = event.getPlayer();
         final ItemStack inHand = player.getItemInHand(); //Get the item in hand.
         if (inHand == null) {
@@ -1217,7 +1255,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     }
 
     @EventHandler
-    public void onPlayerClick(PlayerInteractEvent event) {
+    public void onPlayerClick(PlayerInteractEvent event
+    ) {
         final Player player = event.getPlayer();
         final ItemStack inHand = player.getItemInHand(); //Get the item in hand.
         if (inHand == null) {
@@ -1242,7 +1281,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     }
 
     @EventHandler
-    public void onPlayerJoin(PlayerJoinEvent event) {
+    public void onPlayerJoin(PlayerJoinEvent event
+    ) {
         Player player = event.getPlayer();
         if (player.getLastPlayed() == 0) {
             player.openInventory(navigator);
