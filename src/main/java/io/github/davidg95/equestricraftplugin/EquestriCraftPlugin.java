@@ -1288,7 +1288,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         Location l;
         if (clicked.getType() == Material.MONSTER_EGG) {
             //Spawn
-            l = new Location(w, 4111, 4.8, -2264, 180, 0);
+            l = new Location(w, 4111, 5, -2264, 180, 0);
             player.sendMessage("Teleporting to Spawn...");
         } else if (clicked.getType() == Material.BOOK) {
             //Lease Barn
