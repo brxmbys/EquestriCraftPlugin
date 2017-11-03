@@ -1338,7 +1338,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         } else if (clicked.getType() == Material.BOOK) {
             ItemStack book = new ItemStack(Material.WRITTEN_BOOK, 1);
             BookMeta bm = (BookMeta) book.getItemMeta();
-            String text = "EQUESTRICRAFT\n\n"
+            String page1 = "EQUESTRICRAFT\n\n"
                     + "[1] Do not log off on horses.\n"
                     + "[2] Do not use strong language.\n"
                     + "[3] Respect others.\n"
@@ -1347,7 +1347,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     + "[6] You can not Spawn or take horses from the wild.";
 
             bm.addPage("1");
-            bm.setPage(1, text);
+            bm.setPage(1, page1);
             bm.setAuthor("EquestriCraft");
             bm.setTitle("Rules");
             book.setItemMeta(bm);
