@@ -642,9 +642,19 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "You must specify the number of laps, and the prizes for 1st, 2nd and 3rd place");
                     }
                     return true;
-                } else if (args[0].equalsIgnoreCase("add")) {
-                    if (args.length == 2) {
-                        final Player player = Bukkit.getPlayer(args[1]);
+                } else if (args[0].equalsIgnoreCase("join")) {
+                    if (args.length >= 1) {
+                        Player player;
+                        if (args.length == 2) {
+                            player = Bukkit.getPlayer(args[1]);
+                        } else {
+                            if (sender instanceof Player) {
+                                player = (Player) sender;
+                            } else {
+                                sender.sendMessage("Must enter player name");
+                                return true;
+                            }
+                        }
                         if (player == null) {
                             sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "Player not found");
                             return true;
