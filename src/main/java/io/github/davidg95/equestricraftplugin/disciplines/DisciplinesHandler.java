@@ -231,6 +231,27 @@ public class DisciplinesHandler implements CommandExecutor, Listener {
                     sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Discipline " + dStr + " not found");
                 }
                 return true;
+            } else if (args[0].equalsIgnoreCase("send")) {
+                if (args.length <= 2) {
+                    sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Must include messgae body");
+                    return true;
+                }
+                String dStr = args[1];
+                String message = "";
+                for (int i = 2; i < args.length; i++) {
+                    message += args[i] + " ";
+                }
+                try {
+                    Discipline d = Discipline.valueOf(dStr);
+                    List<Player> players = cont.getDisciplineMembers(d);
+                    for (Player p : players) {
+                        Bukkit.dispatchCommand(sender, "mail send " + p.getName() + " " + message);
+                    }
+                    Bukkit.broadcastMessage(ChatColor.GREEN + "Message sent to all players of the " + d.toString() + " discipline");
+                } catch (Exception e) {
+                    sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Discipline " + dStr + " not found");
+                }
+                return true;
             }
         }
         return false;
