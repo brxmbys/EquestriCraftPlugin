@@ -26,7 +26,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.*;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitRunnable;
 
 /**
  *
@@ -60,6 +59,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     public static Economy economy;
 
     private static final Inventory navigator = Bukkit.createInventory(null, 45, "Navigator");
+
+    public static String motd = "";
 
     static {
         ItemStack spawn = new ItemStack(Material.MONSTER_EGG, 1);
@@ -788,6 +789,21 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     }
                 } else if (args[0].equalsIgnoreCase("times")) {
                     HorseCheckerThread.SHOW_TIME = !HorseCheckerThread.SHOW_TIME;
+                } else if (args[0].equalsIgnoreCase("motd")) {
+                    motd = ChatColor.RESET + "";
+                    for (int i = 1; i < args.length; i++) {
+                        motd += args[i] + " ";
+                    }
+                    for (int i = 0; i < motd.length(); i++) {
+                        char c = motd.charAt(i);
+                        if (c == '&') {
+                            char code = motd.charAt(i + 1);
+                            ChatColor color = ChatColor.getByChar(code);
+                            String s = new String(new char[]{c, code});
+                            motd = motd.replaceAll(s, color.toString());
+                        }
+                    }
+                    sender.sendMessage("MOTD set to-\n" + motd);
                 }
             }
             return true;
@@ -1300,10 +1316,11 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         }
     }
 
-//    @EventHandler
-//    public void onPing(ServerListPingEvent event){
-//        event.setMotd(ChatColor.LIGHT_PURPLE + "        ---Equestricraft---\n    " + ChatColor.GREEN + "Welcome!" + ChatColor.WHITE + " | " + ChatColor.YELLOW + "Disciplines!");
-//    }
+    @EventHandler
+    public void onPing(ServerListPingEvent event) {
+        event.setMotd(event.getMotd() + motd);
+    }
+
     /**
      * Convert a long durations in ms to a string displaying the days and hours.
      *
