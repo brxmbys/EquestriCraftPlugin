@@ -32,6 +32,7 @@ public class Race implements Listener {
 
     private final List<RacePlayer> players; //The players entering the race.
     private final List<RacePlayer> complete; //The name and the times of the players who have completed the race.
+    private final List<Player> spectators;
 
     private CheckThread thread; //CheckerThread.
 
@@ -51,12 +52,12 @@ public class Race implements Listener {
     private Scoreboard board;
     private Team team;
     private Objective objective;
-    private Score playerCountScore;
 
     public Race(int laps, double prize1, double prize2, double prize3) {
         this.laps = laps;
         players = new LinkedList<>();
         complete = new LinkedList<>();
+        spectators = new LinkedList<>();
         started = false;
         finnished = false;
         Bukkit.getServer().getPluginManager().registerEvents(this, EquestriCraftPlugin.plugin);
@@ -69,11 +70,12 @@ public class Race implements Listener {
 
     private void initScoreboard() {
         board = Bukkit.getScoreboardManager().getNewScoreboard();
-        team = board.registerNewTeam("Race");
+        team = board.registerNewTeam(ChatColor.GREEN + "" + ChatColor.UNDERLINE + "Race");
         objective = board.registerNewObjective("Race", "Win the race");
         objective.setDisplaySlot(DisplaySlot.SIDEBAR);
-        playerCountScore = objective.getScore(ChatColor.LIGHT_PURPLE + "Total Laps:");
-        playerCountScore.setScore(laps);
+        objective.setDisplayName(ChatColor.UNDERLINE + "" + ChatColor.GREEN + "Race");
+        Score lapsS = objective.getScore(ChatColor.LIGHT_PURPLE + "Total Laps:");
+        lapsS.setScore(laps);
     }
 
     /**
@@ -123,6 +125,9 @@ public class Race implements Listener {
         for (RacePlayer p : players) {
             p.getPlayer().setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
         }
+        for (Player p : spectators) {
+            p.setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
+        }
         finnished = true;
         if (thread != null) {
             thread.stopRun();
@@ -154,7 +159,6 @@ public class Race implements Listener {
         team.addPlayer(p);
         players.add(new RacePlayer(p, objective.getScore("Lap:")));
         p.setScoreboard(board);
-        playerCountScore.setScore(players.size());
         return 1;
     }
 
@@ -219,11 +223,15 @@ public class Race implements Listener {
         for (int i = 0; i < players.size(); i++) {
             if (players.get(i).getPlayer().getName().equals(player.getName())) {
                 players.remove(i);
-                playerCountScore.setScore(players.size());
                 return true;
             }
         }
         return false;
+    }
+
+    public void addSpectator(Player p) {
+        p.setScoreboard(board);
+        spectators.add(p);
     }
 
     public void clearAll() {
