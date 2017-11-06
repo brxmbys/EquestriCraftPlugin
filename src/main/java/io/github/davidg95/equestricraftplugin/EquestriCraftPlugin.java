@@ -694,7 +694,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                             player.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "Max players already reached.");
                         } else {
                             player.sendMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "You are in the race!");
-                            Bukkit.broadcastMessage(player.getName() + " is in the race!");
+                            Bukkit.broadcastMessage(player.getDisplayName() + " is in the race!");
                         }
                     }
                 } else if (args[0].equalsIgnoreCase("start")) {

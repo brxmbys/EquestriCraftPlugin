@@ -26,13 +26,13 @@ public class RacePlayer {
         this.score = score;
         score.setScore(1);
     }
-    
-    public void nextLap(){
+
+    public void nextLap() {
         lap++;
         score.setScore(lap);
     }
-    
-    public int getLap(){
+
+    public int getLap() {
         return lap;
     }
 
@@ -55,9 +55,9 @@ public class RacePlayer {
     public void setLastCrossTime(long lastCrossTime) {
         this.lastCrossTime = lastCrossTime;
     }
-    
+
     @Override
-    public String toString(){
-        return player.getName() + " - " + time + "s";
+    public String toString() {
+        return player.getDisplayName() + " - " + time + "s";
     }
 }

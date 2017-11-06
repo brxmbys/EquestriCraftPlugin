@@ -50,7 +50,9 @@ public class Race implements Listener {
     private final double prize3;
 
     private Scoreboard board;
+    private Team infoTeam;
     private Team team;
+    private Objective infoObjective;
     private Objective objective;
 
     public Race(int laps, double prize1, double prize2, double prize3) {
@@ -70,12 +72,18 @@ public class Race implements Listener {
 
     private void initScoreboard() {
         board = Bukkit.getScoreboardManager().getNewScoreboard();
-        team = board.registerNewTeam(ChatColor.GREEN + "" + ChatColor.UNDERLINE + "Race");
+
+        team = board.registerNewTeam(ChatColor.GREEN + "Race");
         objective = board.registerNewObjective("Race", "Win the race");
         objective.setDisplaySlot(DisplaySlot.SIDEBAR);
-        objective.setDisplayName(ChatColor.UNDERLINE + "" + ChatColor.GREEN + "Race");
-        Score lapsS = objective.getScore(ChatColor.LIGHT_PURPLE + "Total Laps:");
-        lapsS.setScore(laps);
+        objective.setDisplayName(ChatColor.GREEN + "Race");
+//        
+//        infoObjective = board.registerNewObjective("Info", "Race Info");
+//        infoObjective.setDisplaySlot(DisplaySlot.SIDEBAR);
+//        infoObjective.setDisplayName(ChatColor.GREEN + "Info");
+//
+//        Score lapsS = infoObjective.getScore(ChatColor.LIGHT_PURPLE + "Total Laps:");
+//        lapsS.setScore(laps);
     }
 
     /**
@@ -157,7 +165,7 @@ public class Race implements Listener {
             }
         }
         team.addPlayer(p);
-        players.add(new RacePlayer(p, objective.getScore("Lap:")));
+        players.add(new RacePlayer(p, objective.getScore(p)));
         p.setScoreboard(board);
         return 1;
     }
