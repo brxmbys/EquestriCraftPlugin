@@ -18,6 +18,7 @@ import org.bukkit.event.*;
 import org.bukkit.event.entity.*;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.*;
+import org.bukkit.event.server.ServerListPingEvent;
 import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.BookMeta;
@@ -1291,6 +1292,11 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             inventory.addItem(navTool);
         }
     }
+    
+//    @EventHandler
+//    public void onPing(ServerListPingEvent event){
+//        event.setMotd(ChatColor.LIGHT_PURPLE + "        ---Equestricraft---\n    " + ChatColor.GREEN + "Welcome!" + ChatColor.WHITE + " | " + ChatColor.YELLOW + "Disciplines!");
+//    }
 
     /**
      * Convert a long durations in ms to a string displaying the days and hours.

@@ -4,6 +4,7 @@
 package io.github.davidg95.equestricraftplugin.race;
 
 import org.bukkit.entity.Player;
+import org.bukkit.scoreboard.Score;
 
 /**
  *
@@ -15,16 +16,20 @@ public class RacePlayer {
     private double time;
     private int lap;
     private long lastCrossTime;
+    private final Score score;
 
-    public RacePlayer(Player player) {
+    public RacePlayer(Player player, Score score) {
         this.player = player;
         this.time = 0;
         this.lap = 1;
         lastCrossTime = 0L;
+        this.score = score;
+        score.setScore(1);
     }
     
     public void nextLap(){
         lap++;
+        score.setScore(lap);
     }
     
     public int getLap(){

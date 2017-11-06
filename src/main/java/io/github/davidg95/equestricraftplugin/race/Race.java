@@ -17,6 +17,11 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.scoreboard.DisplaySlot;
+import org.bukkit.scoreboard.Objective;
+import org.bukkit.scoreboard.Score;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.Team;
 
 /**
  * Class which models a race.
@@ -43,6 +48,11 @@ public class Race implements Listener {
     private final double prize2;
     private final double prize3;
 
+    private Scoreboard board;
+    private Team team;
+    private Objective objective;
+    private Score playerCountScore;
+
     public Race(int laps, double prize1, double prize2, double prize3) {
         this.laps = laps;
         players = new LinkedList<>();
@@ -54,6 +64,16 @@ public class Race implements Listener {
         this.prize1 = prize1;
         this.prize2 = prize2;
         this.prize3 = prize3;
+        initScoreboard();
+    }
+
+    private void initScoreboard() {
+        board = Bukkit.getScoreboardManager().getNewScoreboard();
+        team = board.registerNewTeam("Race");
+        objective = board.registerNewObjective("Race", "Win the race");
+        objective.setDisplaySlot(DisplaySlot.SIDEBAR);
+        playerCountScore = objective.getScore(ChatColor.LIGHT_PURPLE + "Total Laps:");
+        playerCountScore.setScore(laps);
     }
 
     /**
@@ -100,6 +120,9 @@ public class Race implements Listener {
      * Ends the race session immediately.
      */
     public void terminate() {
+        for (RacePlayer p : players) {
+            p.getPlayer().setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
+        }
         finnished = true;
         if (thread != null) {
             thread.stopRun();
@@ -128,7 +151,10 @@ public class Race implements Listener {
                 return 4;
             }
         }
-        players.add(new RacePlayer(p));
+        team.addPlayer(p);
+        players.add(new RacePlayer(p, objective.getScore("Lap:")));
+        p.setScoreboard(board);
+        playerCountScore.setScore(players.size());
         return 1;
     }
 
@@ -193,6 +219,7 @@ public class Race implements Listener {
         for (int i = 0; i < players.size(); i++) {
             if (players.get(i).getPlayer().getName().equals(player.getName())) {
                 players.remove(i);
+                playerCountScore.setScore(players.size());
                 return true;
             }
         }
