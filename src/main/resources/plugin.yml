@@ -71,6 +71,6 @@ commands:
     navigator:
         description: Spawns the navigator.
         udage: /navigator
-    build:
-        description: Pay for a build.
-        udage: /build <pay|enq> <width> <height>
+    #build:
+    #    description: Pay for a build.
+    #    udage: /build <pay|enq> <width> <height>

@@ -916,10 +916,17 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         } else if (cmd.getName().equalsIgnoreCase("navigator")) {
             if (!(sender instanceof Player)) {
                 sender.sendMessage("Only players can use this command");
-                return true;
             }
-            final Player player = (Player) sender;
-            player.openInventory(navigator);
+            Player player = (Player) sender;
+            final PlayerInventory inventory = player.getInventory();
+            final ItemStack navTool = new ItemStack(Material.COMPASS, 1);
+            final ItemMeta im = navTool.getItemMeta();
+            im.setDisplayName(NAVIGATOR_TOOL);
+            final List<String> comments = new ArrayList<>();
+            comments.add("Used to navigate Equestricraft");
+            im.setLore(comments);
+            navTool.setItemMeta(im);
+            inventory.addItem(navTool);
             return true;
         } else if (cmd.getName().equalsIgnoreCase("build")) {
             if (!(sender instanceof Player)) {
@@ -964,8 +971,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
      * @param evt the PlayerQuitEvent.
      */
     @EventHandler
-    public void onLeave(PlayerQuitEvent evt
-    ) {
+    public void onLeave(PlayerQuitEvent evt) {
         Player player = evt.getPlayer();
         Entity e = player.getVehicle();
         if (e == null || !(e instanceof Horse)) {
@@ -982,32 +988,25 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
      * @param event
      */
     @EventHandler
-    public void onChunkLoad(ChunkLoadEvent event
-    ) {
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                try {
-                    for (final Entity e : event.getChunk().getEntities()) {
-                        if (e.getType() == EntityType.HORSE) {
-                            final MyHorse mh = container.getHorse(e.getUniqueId());
-                            if (mh == null) {
-                                container.addHorse(mh);
-                            } else {
-                                container.getHorse(e.getUniqueId()).setHorse((Horse) e);
-                            }
-                        }
+    public void onChunkLoad(ChunkLoadEvent event) {
+        try {
+            for (final Entity e : event.getChunk().getEntities()) {
+                if (e.getType() == EntityType.HORSE) {
+                    final MyHorse mh = container.getHorse(e.getUniqueId());
+                    if (mh == null) {
+                        container.addHorse(mh);
+                    } else {
+                        container.getHorse(e.getUniqueId()).setHorse((Horse) e);
                     }
-                } catch (Exception e) {
-                    LOG.log(Level.SEVERE, "Error on chunk load", e);
                 }
             }
-        }.runTask(plugin);
+        } catch (Exception e) {
+            LOG.log(Level.SEVERE, "Error on chunk load", e);
+        }
     }
 
     @EventHandler
-    public void onFoodChangeEvent(FoodLevelChangeEvent evt
-    ) {
+    public void onFoodChangeEvent(FoodLevelChangeEvent evt) {
         if (BLOCK_HUNGER) {
             evt.setCancelled(true);
         }
@@ -1019,8 +1018,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
      * @param event
      */
     @EventHandler
-    public void onPlayerUse(EntityDamageByEntityEvent event
-    ) {
+    public void onPlayerUse(EntityDamageByEntityEvent event) {
         if (!(event.getDamager() instanceof Player)) { //Check the damager is a player.
             return;
         }
@@ -1209,8 +1207,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     }
 
     @EventHandler
-    public void playerUse(PlayerInteractEntityEvent event
-    ) {
+    public void playerUse(PlayerInteractEntityEvent event) {
         final Player player = event.getPlayer();
         final ItemStack inHand = player.getItemInHand(); //Get the item in hand.
         if (inHand == null) {
@@ -1255,8 +1252,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     }
 
     @EventHandler
-    public void onPlayerClick(PlayerInteractEvent event
-    ) {
+    public void onPlayerClick(PlayerInteractEvent event) {
         final Player player = event.getPlayer();
         final ItemStack inHand = player.getItemInHand(); //Get the item in hand.
         if (inHand == null) {
@@ -1281,11 +1277,18 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     }
 
     @EventHandler
-    public void onPlayerJoin(PlayerJoinEvent event
-    ) {
+    public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         if (player.getLastPlayed() == 0) {
-            player.openInventory(navigator);
+            final PlayerInventory inventory = player.getInventory();
+            final ItemStack navTool = new ItemStack(Material.COMPASS, 1);
+            final ItemMeta im = navTool.getItemMeta();
+            im.setDisplayName(NAVIGATOR_TOOL);
+            final List<String> comments = new ArrayList<>();
+            comments.add("Used to navigate Equestricraft");
+            im.setLore(comments);
+            navTool.setItemMeta(im);
+            inventory.addItem(navTool);
         }
     }
 
