@@ -751,6 +751,13 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     }
                     race.clearAll();
                     Bukkit.broadcastMessage(ChatColor.BOLD + "All race entrants have been cleared!");
+                } else if (args[0].equalsIgnoreCase("spectate")) {
+                    if (!(sender instanceof Player)) {
+                        sender.sendMessage("Must be a player");
+                        return true;
+                    }
+                    race.addSpectator((Player) sender);
+                    return true;
                 } else {
                     sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "Unknown command");
                 }
@@ -1292,12 +1299,11 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             inventory.addItem(navTool);
         }
     }
-    
+
 //    @EventHandler
 //    public void onPing(ServerListPingEvent event){
 //        event.setMotd(ChatColor.LIGHT_PURPLE + "        ---Equestricraft---\n    " + ChatColor.GREEN + "Welcome!" + ChatColor.WHITE + " | " + ChatColor.YELLOW + "Disciplines!");
 //    }
-
     /**
      * Convert a long durations in ms to a string displaying the days and hours.
      *
