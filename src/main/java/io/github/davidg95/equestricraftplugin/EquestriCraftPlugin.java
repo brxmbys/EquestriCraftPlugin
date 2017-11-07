@@ -48,7 +48,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     public static final String STICK_NAME = "Horse checking wand";
     public static final String VACCINE_NAME = "Vaccination";
     public static final String ONE_USE_VACCINATION = "One use vaccination";
-    public static final int ONE_USE_COST = 5000;
+    public static int ONE_USE_COST = 5000;
     public static final String DOCTOR_TOOL = "Doctor's Tool";
     public static final String FARRIER_TOOL = "Farrier's Tool";
     public static final String NAVIGATOR_TOOL = "Navigator";
@@ -147,6 +147,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             initRaceConfig();
             LOG.log(Level.SEVERE, "Error loading race.yml", ex);
         }
+        ONE_USE_COST = getConfig().getInt("tools.one_use_vaccination_price");
         properties = new Properties();
         loadProperties();
         container = DataContainer.getInstance();
@@ -185,6 +186,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         getConfig().set("check.x1", -2124);
         getConfig().set("check.x2", -2093);
         getConfig().set("check.yl", 20);
+        
+        getConfig().set("tools.one_use_vaccination_price", 100);
         try {
             getConfig().save(getDataFolder().getAbsolutePath() + File.separator + "race.yml");
         } catch (IOException ex) {
