@@ -59,11 +59,16 @@ public class Race implements Listener {
     private Objective objective;
 
     private static final Sign raceMonitor;
+    private static final Sign[] playerSigns;
     private int lap;
 
     static {
         Block b = Bukkit.getWorld("EquestriCraft").getBlockAt(-2033, 7, 11125);
         raceMonitor = (Sign) b.getState();
+        playerSigns = new Sign[5];
+        for (int i = -2032; i <= -2028; i++) {
+            playerSigns[i + 2032] = (Sign) Bukkit.getWorld("EquestriCraft").getBlockAt(i, 7, 11125).getState();
+        }
     }
 
     public Race(int laps, double prize1, double prize2, double prize3) {
@@ -218,6 +223,7 @@ public class Race implements Listener {
         raceMonitor.setLine(2, "Entrants: -/20");
         raceMonitor.setLine(3, "No active session");
         raceMonitor.update();
+        clearPlayerSigns();
         setGatesOpen(false);
         HandlerList.unregisterAll(this);
         Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.RED + "RACE HAS BEEN TERMINATED!");
@@ -248,7 +254,29 @@ public class Race implements Listener {
         p.setScoreboard(board);
         raceMonitor.setLine(2, "Entrants: " + players.size() + "/20");
         raceMonitor.update();
+        setPlayerSigns();
         return 1;
+    }
+
+    private void setPlayerSigns() {
+        for (int i = 0; i < players.size(); i++) {
+            int sign = (int) Math.floor(i / 5);
+            int line = (i % 4);
+            playerSigns[sign].setLine(line, ChatColor.stripColor(players.get(i).getPlayer().getName()));
+        }
+        for (Sign s : playerSigns) {
+            s.update();
+        }
+    }
+    
+    private void clearPlayerSigns(){
+        for (Sign s : playerSigns) {
+            s.setLine(0, "");
+            s.setLine(1, "");
+            s.setLine(2, "");
+            s.setLine(3, "");
+            s.update();
+        }
     }
 
     /**
@@ -316,6 +344,7 @@ public class Race implements Listener {
                 player.setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
                 raceMonitor.setLine(2, "Entrants: " + players.size() + "/20");
                 raceMonitor.update();
+                setPlayerSigns();
                 return true;
             }
         }
