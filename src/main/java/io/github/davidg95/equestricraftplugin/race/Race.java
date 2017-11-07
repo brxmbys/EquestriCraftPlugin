@@ -269,7 +269,7 @@ public class Race implements Listener {
         for (int i = 0; i < players.size(); i++) {
             int sign = (int) Math.floor(i / 5);
             int line = (i % 4);
-            playerSigns[sign].setLine(line, ChatColor.stripColor(players.get(i).getPlayer().getName()));
+            playerSigns[sign].setLine(line, ChatColor.stripColor(stripName(players.get(i).getPlayer())));
         }
         for (Sign s : playerSigns) {
             s.update();
@@ -295,6 +295,19 @@ public class Race implements Listener {
         return players;
     }
 
+    private String stripName(Player p) {
+        String name = p.getPlayer().getDisplayName(); //Get thier display name
+        int index = 0;
+        for (int i = 0; i < name.length(); i++) {
+            char c = name.charAt(i);
+            if (c == ']') {
+                index = i;
+                break;
+            }
+        }
+        return name.substring(index + 1); //Display name stripped of thier rank
+    }
+
     /**
      * Calculates the players time and adds them to the complete list. Displays
      * their time and position.
@@ -306,16 +319,7 @@ public class Race implements Listener {
         final long raceTime = time - startTime; //Total race time
         final double seconds = raceTime / 1000D; //Race time in seconds
         final int position = complete.size() + 1; //Their position
-        String name = p.getPlayer().getDisplayName(); //Get thier display name
-        int index = 0;
-        for (int i = 0; i < name.length(); i++) {
-            char c = name.charAt(i);
-            if (c == ']') {
-                index = i;
-                break;
-            }
-        }
-        name = name.substring(index + 1); //Display name stripped of thier rank
+        String name = stripName(p.getPlayer());
         double prize = 0;
         switch (position) {
             case 1: //1st place
