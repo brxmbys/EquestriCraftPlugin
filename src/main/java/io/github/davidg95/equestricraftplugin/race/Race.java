@@ -15,6 +15,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
@@ -57,6 +58,13 @@ public class Race implements Listener {
     private Team team;
     private Objective objective;
 
+    private static final Sign raceMonitor;
+
+    static {
+        Block b = Bukkit.getWorld("EquestriCraft").getBlockAt(-2033, 7, 11125);
+        raceMonitor = (Sign) b.getState();
+    }
+
     public Race(int laps, double prize1, double prize2, double prize3) {
         this.laps = laps;
         players = new LinkedList<>();
@@ -70,6 +78,10 @@ public class Race implements Listener {
         this.prize2 = prize2;
         this.prize3 = prize3;
         initScoreboard();
+        raceMonitor.setLine(1, "Laps: " + laps);
+        raceMonitor.setLine(2, "Entrants: " + players.size() + "/20");
+        raceMonitor.setLine(3, "Open for entries");
+        raceMonitor.update();
     }
 
     private void initScoreboard() {
@@ -90,6 +102,8 @@ public class Race implements Listener {
         thread = new CheckThread(this, players);
         setGatesOpen(true);
         thread.start();
+        raceMonitor.setLine(3, "Underway");
+        raceMonitor.update();
     }
 
     private void setGatesOpen(boolean state) {
@@ -112,14 +126,24 @@ public class Race implements Listener {
         final Runnable run = () -> {
             try {
                 Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "5");
+                raceMonitor.setLine(3, "5");
+                raceMonitor.update();
                 Thread.sleep(1000);
                 Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "4");
+                raceMonitor.setLine(3, "4");
+                raceMonitor.update();
                 Thread.sleep(1000);
                 Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "3");
+                raceMonitor.setLine(3, "3");
+                raceMonitor.update();
                 Thread.sleep(1000);
                 Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "2");
+                raceMonitor.setLine(3, "2");
+                raceMonitor.update();
                 Thread.sleep(1000);
                 Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "1");
+                raceMonitor.setLine(3, "1");
+                raceMonitor.update();
                 Thread.sleep(1000);
                 start();
                 Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "Race has started!");
@@ -175,6 +199,10 @@ public class Race implements Listener {
         if (thread != null) {
             thread.stopRun();
         }
+        raceMonitor.setLine(1, "Laps: ---");
+        raceMonitor.setLine(2, "Entrants: -/20");
+        raceMonitor.setLine(3, "No active session");
+        raceMonitor.update();
         setGatesOpen(false);
         HandlerList.unregisterAll(this);
         Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.RED + "RACE HAS BEEN TERMINATED!");
@@ -203,6 +231,8 @@ public class Race implements Listener {
         team.addPlayer(p);
         players.add(new RacePlayer(p, objective.getScore(p)));
         p.setScoreboard(board);
+        raceMonitor.setLine(2, "Entrants: " + players.size() + "/20");
+        raceMonitor.update();
         return 1;
     }
 
@@ -269,6 +299,8 @@ public class Race implements Listener {
                 players.remove(i);
                 team.removePlayer(player);
                 player.setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
+                raceMonitor.setLine(2, "Entrants: " + players.size() + "/20");
+                raceMonitor.update();
                 return true;
             }
         }
