@@ -17,6 +17,7 @@ public class RacePlayer {
     private int lap;
     private long lastCrossTime;
     private final Score score;
+    private int section;
 
     public RacePlayer(Player player, Score score) {
         this.player = player;
@@ -25,11 +26,21 @@ public class RacePlayer {
         lastCrossTime = 0L;
         this.score = score;
         score.setScore(1);
+        section = 1;
     }
 
     public void nextLap() {
         lap++;
         score.setScore(lap);
+        section = 1;
+    }
+
+    public int getSection() {
+        return section;
+    }
+
+    public void setSection(int section) {
+        this.section = section;
     }
 
     public int getLap() {

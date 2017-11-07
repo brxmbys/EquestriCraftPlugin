@@ -33,20 +33,33 @@ public class CheckThread extends Thread {
     @Override
     public void run() {
         FileConfiguration fc = EquestriCraftPlugin.plugin.getConfig();
-        int z1 = fc.getInt("z1");
-        int z2 = fc.getInt("z2");
-        int x1 = fc.getInt("x1");
-        int x2 = fc.getInt("x2");
-        int yl = fc.getInt("yl");
+        int fz1 = fc.getInt("finish.z1");
+        int fz2 = fc.getInt("finish.z2");
+        int fx1 = fc.getInt("finish.x1");
+        int fx2 = fc.getInt("finish.x2");
+        int fy1 = fc.getInt("finish.yl");
+
+        int cz1 = fc.getInt("check.z1");
+        int cz2 = fc.getInt("check.z2");
+        int cx1 = fc.getInt("check.x1");
+        int cx2 = fc.getInt("check.x2");
+        int cy1 = fc.getInt("check.yl");
         while (run) {
             for (int i = 0; i < players.size(); i++) {
                 final Player player = players.get(i).getPlayer();
                 int z = player.getLocation().getBlockZ();
                 int x = player.getLocation().getBlockX();
                 int y = player.getLocation().getBlockY();
-                if (z < z1 && z > z2 && x >= x1 && x <= x2 && y <= yl) {
+                if (z < cz1 && z > cz2 && x >= cx1 && x <= cx2 && y <= cy1) {
                     final RacePlayer rp = players.get(i);
-                    if (rp.getLap() > 0 && new Date().getTime() - rp.getLastCrossTime() < 10000L) {
+                    if (rp.getSection() == 1) {
+                        rp.setSection(2);
+                    }
+                }
+
+                if (z < fz1 && z > fz2 && x >= fx1 && x <= fx2 && y <= fy1) {
+                    final RacePlayer rp = players.get(i);
+                    if (rp.getSection() == 1) {
                         continue;
                     }
                     rp.setLastCrossTime(new Date().getTime());

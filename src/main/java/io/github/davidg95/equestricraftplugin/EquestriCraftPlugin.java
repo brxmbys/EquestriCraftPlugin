@@ -144,6 +144,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         try {
             getConfig().load(getDataFolder() + File.separator + "race.yml");
         } catch (IOException | InvalidConfigurationException ex) {
+            initRaceConfig();
             LOG.log(Level.SEVERE, "Error loading race.yml", ex);
         }
         properties = new Properties();
@@ -157,6 +158,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         } else {
             this.getCommand("disciplines").setExecutor(new DisciplinesHandler(this));
         }
+        this.getCommand("race").setExecutor(new RaceController(this));
     }
 
     private boolean setupEconomy() {
@@ -172,16 +174,18 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     }
 
     private void initRaceConfig() {
-        int z1 = 11135;
-        int z2 = 11130;
-        int x1 = -2124;
-        int x2 = -2093;
-        int yl = 20;
-        getConfig().set("z1", z1);
-        getConfig().set("z2", z2);
-        getConfig().set("x1", x1);
-        getConfig().set("x2", x2);
-        getConfig().set("yl", yl);
+        getConfig().set("finish.z1", 11135);
+        getConfig().set("finish.z2", 11130);
+        getConfig().set("finish.x1", -2124);
+        getConfig().set("finish.x2", -2093);
+        getConfig().set("finish.yl", 20);
+        
+        
+        getConfig().set("check.z1", 11155);
+        getConfig().set("check.z2", 11150);
+        getConfig().set("check.x1", -2124);
+        getConfig().set("check.x2", -2093);
+        getConfig().set("check.yl", 20);
         try {
             getConfig().save(getDataFolder().getAbsolutePath() + File.separator + "race.yml");
         } catch (IOException ex) {
@@ -644,126 +648,6 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             };
             final Thread thread = new Thread(run, "Cleanup_Thread");
             thread.start();
-        } else if (cmd.getName().equalsIgnoreCase("race")) {
-            if (args.length >= 1) {
-                if (args[0].equalsIgnoreCase("open")) {
-                    if (args.length >= 5) {
-                        try {
-                            int laps = Integer.parseInt(args[1]);
-                            if (laps < 1) {
-                                sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Must be 1 or greater");
-                                return true;
-                            }
-                            double prize1 = Double.parseDouble(args[2]);
-                            double prize2 = Double.parseDouble(args[3]);
-                            double prize3 = Double.parseDouble(args[4]);
-                            race = new Race(laps, prize1, prize2, prize3);
-                            Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "***" + laps + " lap race is now open for entries" + (prize1 > 0 ? ". $" + new DecimalFormat("0").format(prize1) + " reward for first place!" : "") + "***");
-                        } catch (NumberFormatException ex) {
-                            sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Must specify a number value");
-                        }
-                    } else {
-                        sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "You must specify the number of laps, and the prizes for 1st, 2nd and 3rd place");
-                    }
-                    return true;
-                } else if (args[0].equalsIgnoreCase("join")) {
-                    if (args.length >= 1) {
-                        Player player;
-                        if (args.length == 2) {
-                            player = Bukkit.getPlayer(args[1]);
-                        } else {
-                            if (sender instanceof Player) {
-                                player = (Player) sender;
-                            } else {
-                                sender.sendMessage("Must enter player name");
-                                return true;
-                            }
-                        }
-                        if (player == null) {
-                            sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "Player not found");
-                            return true;
-                        }
-                        if (race == null || race.isStarted() || race.isFinnsihed()) {
-                            sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "Race not currently open for entries");
-                            return true;
-                        }
-                        int result = race.addPlayer(player);
-                        if (result == 2) {
-                            player.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "Race already started");
-                        } else if (result == 3) {
-                            player.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "Max players already reached.");
-                        } else {
-                            player.sendMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "You are in the race!");
-                            Bukkit.broadcastMessage(player.getDisplayName() + " is in the race!");
-                        }
-                    }
-                } else if (args[0].equalsIgnoreCase("start")) {
-                    if (race == null || race.isFinnsihed()) {
-                        sender.sendMessage("You must open a new race first. Use /race open");
-                        return true;
-                    } else if (race.isStarted()) {
-                        sender.sendMessage("The current race must finish first");
-                        return true;
-                    } else if (race.getPlayers().isEmpty()) {
-                        sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "There are no players in the race yet");
-                        return true;
-                    }
-                    race.start();
-                    Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "Race has started!");
-                } else if (args[0].equalsIgnoreCase("withdraw")) {
-                    if (!(sender instanceof Player)) {
-                        sender.sendMessage("Only players can use this command");
-                        return true;
-                    }
-                    if (race == null || race.isFinnsihed()) {
-                        sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "There is not an active race");
-                    }
-                    final Player player = (Player) sender;
-                    if (race.withdraw(player)) {
-                        player.sendMessage("You have withdrawn from the race");
-                        Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.RED + player.getName() + " has withdrawn from the race!");
-                    } else {
-                        player.sendMessage("You are not in the race");
-                    }
-                } else if (args[0].equalsIgnoreCase("end")) {
-                    if (race != null) {
-                        race.terminate();
-                        race = null;
-                    } else {
-                        sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "There is no active race session");
-                    }
-                } else if (args[0].equalsIgnoreCase("list")) {
-                    if (race == null || race.isFinnsihed()) {
-                        sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "There is not an active race");
-                        return true;
-                    }
-                    sender.sendMessage("Race entrants:");
-                    for (RacePlayer p : race.getPlayers()) {
-                        sender.sendMessage("- " + p.getPlayer().getName());
-                    }
-                    sender.sendMessage("Total entrants: " + race.getPlayers().size());
-                } else if (args[0].equalsIgnoreCase("clearall")) {
-                    if (race == null) {
-                        sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "You must open a race first");
-                        return true;
-                    } else if (race.isStarted()) {
-                        sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "This race is already underway");
-                        return true;
-                    }
-                    race.clearAll();
-                    Bukkit.broadcastMessage(ChatColor.BOLD + "All race entrants have been cleared!");
-                } else if (args[0].equalsIgnoreCase("spectate")) {
-                    if (!(sender instanceof Player)) {
-                        sender.sendMessage("Must be a player");
-                        return true;
-                    }
-                    race.addSpectator((Player) sender);
-                    return true;
-                } else {
-                    sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "Unknown command");
-                }
-            }
-            return true;
         } else if (cmd.getName().equalsIgnoreCase("eqh")) {
             if (args.length >= 1) {
                 String arg = args[0];

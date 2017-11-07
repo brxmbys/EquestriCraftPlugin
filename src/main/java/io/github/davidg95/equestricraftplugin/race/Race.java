@@ -8,18 +8,22 @@ import java.text.DecimalFormat;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
-import org.bukkit.scoreboard.Score;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
@@ -50,9 +54,7 @@ public class Race implements Listener {
     private final double prize3;
 
     private Scoreboard board;
-    private Team infoTeam;
     private Team team;
-    private Objective infoObjective;
     private Objective objective;
 
     public Race(int laps, double prize1, double prize2, double prize3) {
@@ -73,17 +75,10 @@ public class Race implements Listener {
     private void initScoreboard() {
         board = Bukkit.getScoreboardManager().getNewScoreboard();
 
-        team = board.registerNewTeam(ChatColor.GREEN + "Race");
+        team = board.registerNewTeam(ChatColor.BOLD + "" + ChatColor.GREEN + "Race");
         objective = board.registerNewObjective("Race", "Win the race");
         objective.setDisplaySlot(DisplaySlot.SIDEBAR);
-        objective.setDisplayName(ChatColor.GREEN + "Race");
-//        
-//        infoObjective = board.registerNewObjective("Info", "Race Info");
-//        infoObjective.setDisplaySlot(DisplaySlot.SIDEBAR);
-//        infoObjective.setDisplayName(ChatColor.GREEN + "Info");
-//
-//        Score lapsS = infoObjective.getScore(ChatColor.LIGHT_PURPLE + "Total Laps:");
-//        lapsS.setScore(laps);
+        objective.setDisplayName(ChatColor.BOLD + "" + ChatColor.GREEN + "Race");
     }
 
     /**
@@ -93,7 +88,45 @@ public class Race implements Listener {
         started = true;
         startTime = new Date().getTime();
         thread = new CheckThread(this, players);
+        setGatesOpen(true);
         thread.start();
+    }
+
+    private void setGatesOpen(boolean state) {
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                final Block b = Bukkit.getWorld("Equestricraft").getBlockAt(-2026, 1, 11123);
+                if (state) {
+                    b.setType(Material.AIR);
+                } else {
+                    b.setType(Material.REDSTONE_BLOCK);
+                }
+            }
+        }.runTask(EquestriCraftPlugin.plugin);
+    }
+
+    public void countdown() {
+        final Runnable run = () -> {
+            try {
+                Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "5");
+                Thread.sleep(1000);
+                Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "4");
+                Thread.sleep(1000);
+                Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "3");
+                Thread.sleep(1000);
+                Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "2");
+                Thread.sleep(1000);
+                Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "1");
+                Thread.sleep(1000);
+                start();
+                Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "Race has started!");
+            } catch (InterruptedException ex) {
+                Logger.getLogger(Race.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        };
+        final Thread countThread = new Thread(run, "COUNTDOWN");
+        countThread.start();
     }
 
     /**
@@ -140,6 +173,7 @@ public class Race implements Listener {
         if (thread != null) {
             thread.stopRun();
         }
+        setGatesOpen(false);
         HandlerList.unregisterAll(this);
         Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.RED + "RACE HAS BEEN TERMINATED!");
     }
@@ -156,7 +190,7 @@ public class Race implements Listener {
         if (started) {
             return 2;
         }
-        if (players.size() >= 11) {
+        if (players.size() >= 20) {
             return 3;
         }
         for (int i = 0; i < players.size(); i++) {
@@ -231,6 +265,8 @@ public class Race implements Listener {
         for (int i = 0; i < players.size(); i++) {
             if (players.get(i).getPlayer().getName().equals(player.getName())) {
                 players.remove(i);
+                team.removePlayer(player);
+                player.setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
                 return true;
             }
         }
