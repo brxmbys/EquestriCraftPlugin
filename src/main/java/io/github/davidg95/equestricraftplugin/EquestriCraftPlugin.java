@@ -47,14 +47,14 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     public static final String SHEARS_NAME = "Gelding Shears";
     public static final String STICK_NAME = "Horse checking wand";
     public static final String VACCINE_NAME = "Vaccination";
+    public static final String ONE_USE_VACCINATION = "One use vaccination";
+    public static final int ONE_USE_COST = 5000;
     public static final String DOCTOR_TOOL = "Doctor's Tool";
     public static final String FARRIER_TOOL = "Farrier's Tool";
     public static final String NAVIGATOR_TOOL = "Navigator";
 
     public static boolean OP_REQ = true;
     public static boolean BLOCK_HUNGER = true;
-
-    private Race race;
 
     public static Economy economy;
 
@@ -179,8 +179,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         getConfig().set("finish.x1", -2124);
         getConfig().set("finish.x2", -2093);
         getConfig().set("finish.yl", 20);
-        
-        
+
         getConfig().set("check.z1", 11155);
         getConfig().set("check.z2", 11150);
         getConfig().set("check.x1", -2124);
@@ -292,6 +291,28 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         } else if (cmd.getName().equalsIgnoreCase("vaccination")) {   //vaccination command
             if (sender instanceof Player) {
                 final Player player = (Player) sender;
+                if (args.length == 1) {
+                    if (args[0].equalsIgnoreCase("buy")) {
+                        if (economy.getBalance(player) >= ONE_USE_COST) {
+                            economy.withdrawPlayer(player, ONE_USE_COST);
+                            player.sendMessage(ChatColor.GREEN + "You have been charged $" + ONE_USE_COST);
+                            final PlayerInventory inventory = player.getInventory();
+                            final ItemStack vaccine = new ItemStack(Material.BLAZE_ROD, 1);
+                            final ItemMeta im = vaccine.getItemMeta();
+                            im.setDisplayName(ONE_USE_VACCINATION);
+                            final List<String> comments = new ArrayList<>();
+                            comments.add("Useful for one vaccination.");
+                            comments.add("Vaccinations last for 4 weeks");
+                            im.setLore(comments);
+                            vaccine.setItemMeta(im);
+                            inventory.addItem(vaccine);
+                        } else {
+                            player.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "You do not have enough money");
+                        }
+                        return true;
+                    }
+                    return false;
+                }
                 if (container.isDoctor(player)) {
                     final PlayerInventory inventory = player.getInventory();
                     final ItemStack vaccine = new ItemStack(Material.BLAZE_ROD, 1);
@@ -1065,22 +1086,27 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     }
                     break;
                 case BLAZE_ROD: //Vaccination
-                    //Vaccination
                     if (!inHand.getItemMeta().hasDisplayName()) {
                         return;
                     }
-                    if (!inHand.getItemMeta().getDisplayName().equals(VACCINE_NAME)) {
-                        return;
-                    }
-                    event.setCancelled(true);
-                    if (event.getEntity() instanceof Horse) {
-                        final MyHorse horse = container.getHorse(event.getEntity().getUniqueId());
-                        horse.setVaccinated(true);
-                        player.sendMessage(ChatColor.BOLD + "Horse has been vaccinated");
+                    if (inHand.getItemMeta().getDisplayName().equals(VACCINE_NAME)) {
+                        event.setCancelled(true);
+                        if (event.getEntity() instanceof Horse) {
+                            final MyHorse horse = container.getHorse(event.getEntity().getUniqueId());
+                            horse.setVaccinated(true);
+                            player.sendMessage(ChatColor.BOLD + "Horse has been vaccinated");
+                        }
+                    } else if (inHand.getItemMeta().getDisplayName().equals(ONE_USE_VACCINATION)) {
+                        event.setCancelled(true);
+                        if (event.getEntity() instanceof Horse) {
+                            final MyHorse horse = container.getHorse(event.getEntity().getUniqueId());
+                            horse.setVaccinated(true);
+                            player.sendMessage(ChatColor.BOLD + "Horse has been vaccinated");
+                            player.getInventory().remove(inHand);
+                        }
                     }
                     break;
                 case REDSTONE_TORCH_ON: //Healing
-                    //Healing
                     if (!inHand.getItemMeta().hasDisplayName()) {
                         return;
                     }
