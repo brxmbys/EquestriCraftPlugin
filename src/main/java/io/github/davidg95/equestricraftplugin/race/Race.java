@@ -94,7 +94,7 @@ public class Race implements Listener {
         podiumSign.setLine(2, "2nd: --------");
         podiumSign.setLine(3, "3rd: --------");
         podiumSign.update();
-        
+
     }
 
     private void initScoreboard() {
@@ -306,18 +306,34 @@ public class Race implements Listener {
         final long raceTime = time - startTime;
         final double seconds = raceTime / 1000D;
         final int position = complete.size() + 1;
-        if (position == 1 && prize1 > 0) {
+        String name = p.getPlayer().getDisplayName();
+        int index = 0;
+        for (int i = 0; i < name.length(); i++) {
+            char c = name.charAt(i);
+            if (c == ']') {
+                index = i;
+                return;
+            }
+        }
+        name = name.substring(index + 1);
+        if (position == 1) {
             economy.depositPlayer(p.getPlayer(), prize1);
-            p.getPlayer().sendMessage("You have won " + ChatColor.AQUA + "$" + new DecimalFormat("0").format(prize1) + "!");
-            podiumSign.setLine(1, "1st: " + p.getPlayer().getName());
-        } else if (position == 2 && prize2 > 0) {
+            if (prize1 > 0) {
+                p.getPlayer().sendMessage("You have won " + ChatColor.AQUA + "$" + new DecimalFormat("0").format(prize1) + "!");
+            }
+            podiumSign.setLine(1, "1st: " + name);
+        } else if (position == 2) {
             economy.depositPlayer(p.getPlayer(), prize2);
-            p.getPlayer().sendMessage("You have won " + ChatColor.AQUA + "$" + new DecimalFormat("0").format(prize2) + "!");
-            podiumSign.setLine(2, "2nd: " + p.getPlayer().getName());
-        } else if (position == 3 && prize3 > 0) {
+            if (prize2 > 0) {
+                p.getPlayer().sendMessage("You have won " + ChatColor.AQUA + "$" + new DecimalFormat("0").format(prize2) + "!");
+            }
+            podiumSign.setLine(2, "2nd: " + name);
+        } else if (position == 3) {
             economy.depositPlayer(p.getPlayer(), prize3);
-            p.getPlayer().sendMessage("You have won " + ChatColor.AQUA + "$" + new DecimalFormat("0").format(prize3) + "!");
-            podiumSign.setLine(3, "3rd: " + p.getPlayer().getName());
+            if (prize3 > 0) {
+                p.getPlayer().sendMessage("You have won " + ChatColor.AQUA + "$" + new DecimalFormat("0").format(prize3) + "!");
+            }
+            podiumSign.setLine(3, "3rd: " + name);
         }
         podiumSign.update();
         p.setTime(seconds);
