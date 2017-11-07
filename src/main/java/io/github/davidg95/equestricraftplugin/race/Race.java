@@ -320,15 +320,15 @@ public class Race implements Listener {
         switch (position) {
             case 1: //1st place
                 prize = prize1;
-                podiumSign.setLine(1, "1st: " + name);
+                podiumSign.setLine(1, "1st: " + ChatColor.stripColor(name));
                 break;
             case 2: //2nd place
                 prize = prize2;
-                podiumSign.setLine(2, "2nd: " + name);
+                podiumSign.setLine(2, "2nd: " + ChatColor.stripColor(name));
                 break;
             case 3: //3rd place
                 prize = prize3;
-                podiumSign.setLine(3, "3rd: " + name);
+                podiumSign.setLine(3, "3rd: " + ChatColor.stripColor(name));
                 break;
             default:
                 break;
