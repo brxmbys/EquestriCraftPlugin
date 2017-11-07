@@ -72,6 +72,9 @@ public class CheckThread extends Thread {
                         continue;
                     }
                     rp.nextLap();
+                    if (rp.getLap() > race.getLap()) {
+                        race.setLap(rp.getLap());
+                    }
                     player.sendMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "You are on lap " + rp.getLap());
                 }
             }

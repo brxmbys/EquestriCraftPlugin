@@ -59,6 +59,7 @@ public class Race implements Listener {
     private Objective objective;
 
     private static final Sign raceMonitor;
+    private int lap;
 
     static {
         Block b = Bukkit.getWorld("EquestriCraft").getBlockAt(-2033, 7, 11125);
@@ -102,6 +103,7 @@ public class Race implements Listener {
         thread = new CheckThread(this, players);
         setGatesOpen(true);
         thread.start();
+        raceMonitor.setLine(1, "Laps: 1/" + laps);
         raceMonitor.setLine(3, "Underway");
         raceMonitor.update();
     }
@@ -120,6 +122,19 @@ public class Race implements Listener {
                 }
             }
         }.runTask(EquestriCraftPlugin.plugin);
+    }
+
+    protected void setLap(int lap) {
+        if (lap > laps) {
+            raceMonitor.setLine(3, "Race complete");
+        }
+        raceMonitor.setLine(1, "Laps: " + lap + "/" + laps);
+        raceMonitor.update();
+        this.lap = lap;
+    }
+
+    protected int getLap() {
+        return lap;
     }
 
     public void countdown() {
