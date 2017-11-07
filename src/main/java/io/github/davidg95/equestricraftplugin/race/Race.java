@@ -96,11 +96,13 @@ public class Race implements Listener {
         new BukkitRunnable() {
             @Override
             public void run() {
-                final Block b = Bukkit.getWorld("Equestricraft").getBlockAt(-2026, 1, 11123);
-                if (state) {
-                    b.setType(Material.AIR);
-                } else {
-                    b.setType(Material.REDSTONE_BLOCK);
+                for (int i = 11090; i <= 11120; i += 6) {
+                    final Block b = Bukkit.getWorld("Equestricraft").getBlockAt(-2026, 1, i);
+                    if (state) {
+                        b.setType(Material.AIR);
+                    } else {
+                        b.setType(Material.REDSTONE_BLOCK);
+                    }
                 }
             }
         }.runTask(EquestriCraftPlugin.plugin);
