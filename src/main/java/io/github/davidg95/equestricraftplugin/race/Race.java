@@ -302,40 +302,42 @@ public class Race implements Listener {
      * @param p the player.
      */
     public void completePlayer(RacePlayer p) {
-        final long time = new Date().getTime();
-        final long raceTime = time - startTime;
-        final double seconds = raceTime / 1000D;
-        final int position = complete.size() + 1;
-        String name = p.getPlayer().getDisplayName();
+        final long time = new Date().getTime(); //Time the crossed the line
+        final long raceTime = time - startTime; //Total race time
+        final double seconds = raceTime / 1000D; //Race time in seconds
+        final int position = complete.size() + 1; //Their position
+        String name = p.getPlayer().getDisplayName(); //Get thier display name
         int index = 0;
         for (int i = 0; i < name.length(); i++) {
             char c = name.charAt(i);
             if (c == ']') {
                 index = i;
-                return;
+                break;
             }
         }
-        name = name.substring(index + 1);
-        if (position == 1) {
-            economy.depositPlayer(p.getPlayer(), prize1);
-            if (prize1 > 0) {
-                p.getPlayer().sendMessage("You have won " + ChatColor.AQUA + "$" + new DecimalFormat("0").format(prize1) + "!");
-            }
-            podiumSign.setLine(1, "1st: " + name);
-        } else if (position == 2) {
-            economy.depositPlayer(p.getPlayer(), prize2);
-            if (prize2 > 0) {
-                p.getPlayer().sendMessage("You have won " + ChatColor.AQUA + "$" + new DecimalFormat("0").format(prize2) + "!");
-            }
-            podiumSign.setLine(2, "2nd: " + name);
-        } else if (position == 3) {
-            economy.depositPlayer(p.getPlayer(), prize3);
-            if (prize3 > 0) {
-                p.getPlayer().sendMessage("You have won " + ChatColor.AQUA + "$" + new DecimalFormat("0").format(prize3) + "!");
-            }
-            podiumSign.setLine(3, "3rd: " + name);
+        name = name.substring(index + 1); //Display name stripped of thier rank
+        double prize = 0;
+        switch (position) {
+            case 1: //1st place
+                prize = prize1;
+                podiumSign.setLine(1, "1st: " + name);
+                break;
+            case 2: //2nd place
+                prize = prize2;
+                podiumSign.setLine(2, "2nd: " + name);
+                break;
+            case 3: //3rd place
+                prize = prize3;
+                podiumSign.setLine(3, "3rd: " + name);
+                break;
+            default:
+                break;
         }
-        podiumSign.update();
+        if (prize > 0) { //Check if they have won a prize
+            economy.depositPlayer(p.getPlayer(), prize); //Deposit prize money
+            p.getPlayer().sendMessage("You have won " + ChatColor.AQUA + "$" + new DecimalFormat("0").format(prize) + "!");
+        }
+        podiumSign.update(); //Update podium sign
         p.setTime(seconds);
         for (RacePlayer rp : complete) {
             if (rp.getPlayer().getName().equals(p.getPlayer().getName())) {
