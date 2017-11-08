@@ -48,7 +48,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     public static final String STICK_NAME = "Horse checking wand";
     public static final String VACCINE_NAME = "Vaccination";
     public static final String ONE_USE_VACCINATION = "One use vaccination";
-    public static int ONE_USE_COST = 5000;
+    public static int ONE_USE_COST = 150;
     public static final String DOCTOR_TOOL = "Doctor's Tool";
     public static final String FARRIER_TOOL = "Farrier's Tool";
     public static final String NAVIGATOR_TOOL = "Navigator";
