@@ -186,7 +186,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         getConfig().set("check.x1", -2124);
         getConfig().set("check.x2", -2093);
         getConfig().set("check.yl", 20);
-        
+
         getConfig().set("tools.one_use_vaccination_price", 100);
         try {
             getConfig().save(getDataFolder().getAbsolutePath() + File.separator + "race.yml");
@@ -1105,7 +1105,11 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                             final MyHorse horse = container.getHorse(event.getEntity().getUniqueId());
                             horse.setVaccinated(true);
                             player.sendMessage(ChatColor.BOLD + "Horse has been vaccinated");
-                            player.getInventory().remove(inHand);
+                            if (inHand.getAmount() > 1) {
+                                inHand.setAmount(inHand.getAmount() - 1);
+                            } else {
+                                player.getInventory().removeItem(inHand);
+                            }
                         }
                     }
                     break;
