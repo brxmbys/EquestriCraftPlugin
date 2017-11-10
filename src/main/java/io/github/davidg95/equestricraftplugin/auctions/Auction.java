@@ -4,6 +4,8 @@
 package io.github.davidg95.equestricraftplugin.auctions;
 
 import net.milkbowl.vault.economy.Economy;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 /**
@@ -24,6 +26,7 @@ public class Auction {
 
     public static int BID_PLACED = 1;
     public static int NOT_ENOUGH_MONEY = 2;
+    public static int ERROR = 3;
 
     public Auction(Player seller, int startingBid, int incrementValue) {
         this.seller = seller;
@@ -31,6 +34,7 @@ public class Auction {
         this.incrementValue = incrementValue;
         bidValue = -1;
         this.econ = io.github.davidg95.equestricraftplugin.EquestriCraftPlugin.economy;
+        Bukkit.broadcastMessage(seller.getDisplayName() + ChatColor.GREEN + " has stated an auction at " + ChatColor.AQUA + "$" + startingBid + ChatColor.GREEN + "!");
     }
 
     public int getCurrentBid() {
@@ -50,12 +54,19 @@ public class Auction {
     }
 
     public int placeBid(Player p) {
+        if (p.getUniqueId() == seller.getUniqueId()) {
+            p.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "You cannot place a bid on your own auction!");
+            return ERROR;
+        }
         if (econ.getBalance(p) < currentBid) {
+            p.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "You do not have enough money");
             return NOT_ENOUGH_MONEY;
         }
         currentBidder = p;
         bidValue = currentBid;
+        p.sendMessage(ChatColor.GREEN + "Bid of " + ChatColor.AQUA + "$" + bidValue + ChatColor.GREEN + " placed");
         incrementBid(incrementValue);
+        Bukkit.broadcastMessage(p.getDisplayName() + ChatColor.GREEN + " has placed a bid of " + ChatColor.AQUA + "$" + bidValue + ChatColor.GREEN + ". Next value is " + ChatColor.AQUA + "$" + currentBid);
         return BID_PLACED;
     }
 
@@ -69,9 +80,13 @@ public class Auction {
 
     public void sell() {
         if (currentBidder == null) {
+            seller.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "There has been no bids");
             return;
         }
         econ.withdrawPlayer(currentBidder, bidValue);
+        currentBidder.sendMessage(ChatColor.GREEN + "You have won the bid! Withdrawing " + ChatColor.AQUA + "$" + bidValue + ChatColor.GREEN + " from your account!");
+        seller.sendMessage(ChatColor.GREEN + "You have had " + ChatColor.AQUA + "$" + bidValue + ChatColor.GREEN + " deposited");
+        Bukkit.broadcastMessage(currentBidder.getDisplayName() + ChatColor.GREEN + " has won the bid!");
         econ.depositPlayer(seller, bidValue);
     }
 }
