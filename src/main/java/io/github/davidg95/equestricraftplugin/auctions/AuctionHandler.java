@@ -49,7 +49,15 @@ public class AuctionHandler implements CommandExecutor {
                 player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "No active auction");
                 return true;
             }
-            auction.placeBid(player);
+            try {
+                if (args.length == 1) {
+                    auction.placeBid(player, -1);
+                } else {
+                    auction.placeBid(player, Integer.parseInt(args[1]));
+                }
+            } catch (NumberFormatException e) {
+                player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Must enter a number");
+            }
             return true;
         } else if (args[0].equalsIgnoreCase("sell")) {
             if (auction == null) {

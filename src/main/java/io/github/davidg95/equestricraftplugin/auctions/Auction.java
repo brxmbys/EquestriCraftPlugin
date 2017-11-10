@@ -83,7 +83,7 @@ public class Auction implements Listener {
         this.currentBid += amount;
     }
 
-    public synchronized int placeBid(Player p) {
+    public synchronized int placeBid(Player p, int amount) {
         if (complete) {
             p.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Auction closed!");
             return CLOSED;
@@ -101,7 +101,15 @@ public class Auction implements Listener {
             return NOT_ENOUGH_MONEY;
         }
         currentBidder = p;
-        bidValue = currentBid;
+        if (amount == -1) {
+            bidValue = currentBid;
+        } else if (amount <= currentBid) {
+            p.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Bid must be higher than current bid");
+            return NOT_ENOUGH_MONEY;
+        } else {
+            bidValue = amount;
+            currentBid = amount;
+        }
         p.sendMessage(ChatColor.GREEN + "Bid of " + ChatColor.AQUA + "$" + bidValue + ChatColor.GREEN + " placed");
         incrementBid(incrementValue);
         score.setScore(currentBid);
