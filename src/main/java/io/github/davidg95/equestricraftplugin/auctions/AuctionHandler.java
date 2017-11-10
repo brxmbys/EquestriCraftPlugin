@@ -39,7 +39,11 @@ public class AuctionHandler implements CommandExecutor {
                     player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Must be values greater than 0");
                     return true;
                 }
-                if (auction == null || auction.isComplete()) {
+                if (auction == null) {
+                    auction = new Auction(player, startingBid, incrementValue);
+                    return true;
+                }
+                if (auction.isComplete()) {
                     auction = new Auction(player, startingBid, incrementValue);
                     return true;
                 }
