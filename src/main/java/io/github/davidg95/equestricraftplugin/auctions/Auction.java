@@ -12,6 +12,11 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.scoreboard.DisplaySlot;
+import org.bukkit.scoreboard.Objective;
+import org.bukkit.scoreboard.Score;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.Team;
 
 /**
  *
@@ -41,6 +46,11 @@ public class Auction implements Listener {
 
     private boolean complete;
 
+    private Scoreboard board;
+    private Team team;
+    private Objective objective;
+    private Score score;
+
     public Auction(Player seller, int startingBid, int incrementValue) {
         this.seller = seller;
         this.currentBid = startingBid;
@@ -48,8 +58,21 @@ public class Auction implements Listener {
         bidValue = -1;
         this.econ = io.github.davidg95.equestricraftplugin.EquestriCraftPlugin.economy;
         complete = false;
+        initScoreboard();
+        seller.setScoreboard(board);
         Bukkit.broadcastMessage(seller.getDisplayName() + ChatColor.GREEN + " has stated an auction at " + ChatColor.AQUA + "$" + startingBid + ChatColor.GREEN + "!");
         Bukkit.getServer().getPluginManager().registerEvents(this, EquestriCraftPlugin.plugin);
+    }
+
+    private void initScoreboard() {
+        board = Bukkit.getScoreboardManager().getNewScoreboard();
+
+        team = board.registerNewTeam(ChatColor.BOLD + "" + ChatColor.GREEN + "Auction");
+        objective = board.registerNewObjective("Auction", "Bid");
+        objective.setDisplaySlot(DisplaySlot.SIDEBAR);
+        objective.setDisplayName(ChatColor.BOLD + "" + ChatColor.GREEN + "Auction");
+        score = objective.getScore("Current Bid");
+        score.setScore(currentBid);
     }
 
     public Player getSeller() {
@@ -69,7 +92,7 @@ public class Auction implements Listener {
             p.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "You cannot place a bid on your own auction!");
             return CANT_BID_ON_SELF;
         }
-        if (currentBidder.getUniqueId() == p.getUniqueId()) {
+        if (currentBidder != null && currentBidder.getUniqueId() == p.getUniqueId()) {
             p.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "You must wait for someone else to place a bid!");
             return WAIT;
         }
@@ -81,6 +104,8 @@ public class Auction implements Listener {
         bidValue = currentBid;
         p.sendMessage(ChatColor.GREEN + "Bid of " + ChatColor.AQUA + "$" + bidValue + ChatColor.GREEN + " placed");
         incrementBid(incrementValue);
+        score.setScore(currentBid);
+        p.setScoreboard(board);
         Bukkit.broadcastMessage(p.getDisplayName() + ChatColor.GREEN + " has placed a bid of " + ChatColor.AQUA + "$" + bidValue + ChatColor.GREEN + ". Next value is " + ChatColor.AQUA + "$" + currentBid);
         return BID_PLACED;
     }
@@ -99,17 +124,27 @@ public class Auction implements Listener {
         Bukkit.broadcastMessage(currentBidder.getDisplayName() + ChatColor.GREEN + " has won the bid!");
         econ.depositPlayer(seller, bidValue);
         HandlerList.unregisterAll(this);
+        clearBoard();
         return AUCTION_COMPLETE;
     }
 
     public void end() {
         HandlerList.unregisterAll(this);
+        clearBoard();
         complete = true;
         Bukkit.broadcastMessage(ChatColor.RED + "" + ChatColor.BOLD + "Auction has been stopped!");
     }
 
     public boolean isComplete() {
         return complete;
+    }
+    
+    private void clearBoard(){
+        for(Player p: Bukkit.getOnlinePlayers()){
+            if(p.getScoreboard() == board){
+                p.setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
+            }
+        }
     }
 
     @EventHandler
