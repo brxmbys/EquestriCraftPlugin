@@ -66,6 +66,7 @@ public class AuctionHandler implements CommandExecutor {
             }
             if (auction.getSeller().getUniqueId() != player.getUniqueId()) {
                 player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Only the seller can use this command");
+                return true;
             }
             int res = auction.sell();
             if (res == Auction.AUCTION_COMPLETE) {
