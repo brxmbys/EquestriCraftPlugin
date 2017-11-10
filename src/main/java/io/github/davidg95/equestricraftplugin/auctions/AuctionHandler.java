@@ -39,11 +39,11 @@ public class AuctionHandler implements CommandExecutor {
                     player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Must be values greater than 0");
                     return true;
                 }
-                if (auction != null || !auction.isComplete()) {
-                    player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "There is currently an active auction");
+                if (auction == null || auction.isComplete()) {
+                    auction = new Auction(player, startingBid, incrementValue);
                     return true;
                 }
-                auction = new Auction(player, startingBid, incrementValue);
+                player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "There is currently an active auction");
                 return true;
             } catch (NumberFormatException e) {
                 return false;
