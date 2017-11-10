@@ -26,7 +26,8 @@ public class Auction {
 
     public static int BID_PLACED = 1;
     public static int NOT_ENOUGH_MONEY = 2;
-    public static int ERROR = 3;
+    public static int CANT_BID_ON_SELF = 3;
+    public static int WAIT = 4;
 
     public static int AUCTION_COMPLETE = 1;
     public static int AUCTION_NOT_COMPLETE = 2;
@@ -51,7 +52,11 @@ public class Auction {
     public synchronized int placeBid(Player p) {
         if (p.getUniqueId() == seller.getUniqueId()) {
             p.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "You cannot place a bid on your own auction!");
-            return ERROR;
+            return CANT_BID_ON_SELF;
+        }
+        if (currentBidder.getUniqueId() == p.getUniqueId()) {
+            p.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "You must wait for someone else to place a bid!");
+            return WAIT;
         }
         if (econ.getBalance(p) < currentBid) {
             p.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "You do not have enough money");
