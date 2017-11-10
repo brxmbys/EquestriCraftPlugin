@@ -119,7 +119,7 @@ public class Auction implements Listener {
             return AUCTION_NOT_COMPLETE;
         }
         econ.withdrawPlayer(currentBidder, bidValue);
-        currentBidder.sendMessage(ChatColor.GREEN + "You have won the bid! Withdrawing " + ChatColor.AQUA + "$" + bidValue + ChatColor.GREEN + " from your account!");
+        currentBidder.sendMessage(ChatColor.GREEN + "You have won the bid! Withdrawing " + ChatColor.AQUA + "$" + bidValue + ChatColor.GREEN + " from your account");
         seller.sendMessage(ChatColor.GREEN + "You have had " + ChatColor.AQUA + "$" + bidValue + ChatColor.GREEN + " deposited");
         Bukkit.broadcastMessage(currentBidder.getDisplayName() + ChatColor.GREEN + " has won the bid!");
         econ.depositPlayer(seller, bidValue);
@@ -138,10 +138,10 @@ public class Auction implements Listener {
     public boolean isComplete() {
         return complete;
     }
-    
-    private void clearBoard(){
-        for(Player p: Bukkit.getOnlinePlayers()){
-            if(p.getScoreboard() == board){
+
+    private void clearBoard() {
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            if (p.getScoreboard() == board) {
                 p.setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
             }
         }
@@ -156,6 +156,7 @@ public class Auction implements Listener {
         } else if (event.getPlayer().getUniqueId() == seller.getUniqueId()) {
             complete = true;
             Bukkit.broadcastMessage(ChatColor.RED + "" + ChatColor.BOLD + "The seller has left. Auction cancelled");
+            end();
         }
     }
 }
