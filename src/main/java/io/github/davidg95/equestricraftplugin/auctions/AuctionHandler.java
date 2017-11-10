@@ -35,7 +35,11 @@ public class AuctionHandler implements CommandExecutor {
             try {
                 int startingBid = Integer.parseInt(args[1]);
                 int incrementValue = Integer.parseInt(args[2]);
-                if (auction != null && !auction.isComplete()) {
+                if (startingBid <= 0 || incrementValue <= 0) {
+                    player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Must be values greater than 0");
+                    return true;
+                }
+                if (auction != null || !auction.isComplete()) {
                     player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "There is currently an active auction");
                     return true;
                 }
