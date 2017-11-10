@@ -40,23 +40,15 @@ public class Auction {
         Bukkit.broadcastMessage(seller.getDisplayName() + ChatColor.GREEN + " has stated an auction at " + ChatColor.AQUA + "$" + startingBid + ChatColor.GREEN + "!");
     }
 
-    public int getCurrentBid() {
-        return currentBid;
-    }
-
-    public void setCurrentBid(int currentBid) {
-        this.currentBid = currentBid;
-    }
-
     public Player getSeller() {
         return seller;
     }
 
-    public void incrementBid(int amount) {
+    private void incrementBid(int amount) {
         this.currentBid += amount;
     }
 
-    public int placeBid(Player p) {
+    public synchronized int placeBid(Player p) {
         if (p.getUniqueId() == seller.getUniqueId()) {
             p.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "You cannot place a bid on your own auction!");
             return ERROR;
@@ -71,14 +63,6 @@ public class Auction {
         incrementBid(incrementValue);
         Bukkit.broadcastMessage(p.getDisplayName() + ChatColor.GREEN + " has placed a bid of " + ChatColor.AQUA + "$" + bidValue + ChatColor.GREEN + ". Next value is " + ChatColor.AQUA + "$" + currentBid);
         return BID_PLACED;
-    }
-
-    public Player getCurrentBidder() {
-        return currentBidder;
-    }
-
-    public int getCurrentBidderValue() {
-        return this.currentBid;
     }
 
     public int sell() {
