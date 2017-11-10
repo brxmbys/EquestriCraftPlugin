@@ -3,6 +3,7 @@
  */
 package io.github.davidg95.equestricraftplugin.auctions;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -58,8 +59,11 @@ public class AuctionHandler implements CommandExecutor {
             if (auction.getSeller().getUniqueId() != player.getUniqueId()) {
                 player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Only the seller can use this command");
             }
-            auction.sell();
-            auction = null;
+            int res = auction.sell();
+            if (res == Auction.AUCTION_COMPLETE) {
+                auction = null;
+                Bukkit.broadcastMessage(ChatColor.RED + "---AUCTION OVER---");
+            }
             return true;
         }
         return false;

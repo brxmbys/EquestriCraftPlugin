@@ -28,6 +28,9 @@ public class Auction {
     public static int NOT_ENOUGH_MONEY = 2;
     public static int ERROR = 3;
 
+    public static int AUCTION_COMPLETE = 1;
+    public static int AUCTION_NOT_COMPLETE = 2;
+
     public Auction(Player seller, int startingBid, int incrementValue) {
         this.seller = seller;
         this.currentBid = startingBid;
@@ -78,15 +81,16 @@ public class Auction {
         return this.currentBid;
     }
 
-    public void sell() {
+    public int sell() {
         if (currentBidder == null) {
             seller.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "There has been no bids");
-            return;
+            return AUCTION_NOT_COMPLETE;
         }
         econ.withdrawPlayer(currentBidder, bidValue);
         currentBidder.sendMessage(ChatColor.GREEN + "You have won the bid! Withdrawing " + ChatColor.AQUA + "$" + bidValue + ChatColor.GREEN + " from your account!");
         seller.sendMessage(ChatColor.GREEN + "You have had " + ChatColor.AQUA + "$" + bidValue + ChatColor.GREEN + " deposited");
         Bukkit.broadcastMessage(currentBidder.getDisplayName() + ChatColor.GREEN + " has won the bid!");
         econ.depositPlayer(seller, bidValue);
+        return AUCTION_COMPLETE;
     }
 }
