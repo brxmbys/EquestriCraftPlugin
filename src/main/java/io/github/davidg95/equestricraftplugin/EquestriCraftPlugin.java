@@ -3,6 +3,7 @@
  */
 package io.github.davidg95.equestricraftplugin;
 
+import io.github.davidg95.equestricraftplugin.auctions.AuctionHandler;
 import io.github.davidg95.equestricraftplugin.disciplines.DisciplinesHandler;
 import io.github.davidg95.equestricraftplugin.race.*;
 import java.io.*;
@@ -160,6 +161,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             this.getCommand("disciplines").setExecutor(new DisciplinesHandler(this));
         }
         this.getCommand("race").setExecutor(new RaceController(this));
+        this.getCommand("auction").setExecutor(new AuctionHandler());
     }
 
     private boolean setupEconomy() {

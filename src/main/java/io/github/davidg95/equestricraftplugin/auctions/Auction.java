@@ -3,16 +3,21 @@
  */
 package io.github.davidg95.equestricraftplugin.auctions;
 
+import io.github.davidg95.equestricraftplugin.EquestriCraftPlugin;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.HandlerList;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerQuitEvent;
 
 /**
  *
  * @author David
  */
-public class Auction {
+public class Auction implements Listener {
 
     private final Economy econ;
 
@@ -32,13 +37,19 @@ public class Auction {
     public static int AUCTION_COMPLETE = 1;
     public static int AUCTION_NOT_COMPLETE = 2;
 
+    public static int CLOSED = -1;
+
+    private boolean complete;
+
     public Auction(Player seller, int startingBid, int incrementValue) {
         this.seller = seller;
         this.currentBid = startingBid;
         this.incrementValue = incrementValue;
         bidValue = -1;
         this.econ = io.github.davidg95.equestricraftplugin.EquestriCraftPlugin.economy;
+        complete = false;
         Bukkit.broadcastMessage(seller.getDisplayName() + ChatColor.GREEN + " has stated an auction at " + ChatColor.AQUA + "$" + startingBid + ChatColor.GREEN + "!");
+        Bukkit.getServer().getPluginManager().registerEvents(this, EquestriCraftPlugin.plugin);
     }
 
     public Player getSeller() {
@@ -50,6 +61,10 @@ public class Auction {
     }
 
     public synchronized int placeBid(Player p) {
+        if (complete) {
+            p.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Auction closed!");
+            return CLOSED;
+        }
         if (p.getUniqueId() == seller.getUniqueId()) {
             p.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "You cannot place a bid on your own auction!");
             return CANT_BID_ON_SELF;
@@ -71,6 +86,9 @@ public class Auction {
     }
 
     public int sell() {
+        if (complete) {
+            return CLOSED;
+        }
         if (currentBidder == null) {
             seller.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "There has been no bids");
             return AUCTION_NOT_COMPLETE;
@@ -80,6 +98,29 @@ public class Auction {
         seller.sendMessage(ChatColor.GREEN + "You have had " + ChatColor.AQUA + "$" + bidValue + ChatColor.GREEN + " deposited");
         Bukkit.broadcastMessage(currentBidder.getDisplayName() + ChatColor.GREEN + " has won the bid!");
         econ.depositPlayer(seller, bidValue);
+        HandlerList.unregisterAll(this);
         return AUCTION_COMPLETE;
+    }
+
+    public void end() {
+        HandlerList.unregisterAll(this);
+        complete = true;
+        Bukkit.broadcastMessage(ChatColor.RED + "" + ChatColor.BOLD + "Auction has been stopped!");
+    }
+
+    public boolean isComplete() {
+        return complete;
+    }
+
+    @EventHandler
+    public void onPlayerLeave(PlayerQuitEvent event) {
+        if (currentBidder != null && event.getPlayer().getUniqueId() == currentBidder.getUniqueId()) {
+            currentBidder = null;
+            currentBid = -1;
+            Bukkit.broadcastMessage(event.getPlayer().getDisplayName() + ChatColor.GREEN + " has left, their bid has been retracted");
+        } else if (event.getPlayer().getUniqueId() == seller.getUniqueId()) {
+            complete = true;
+            Bukkit.broadcastMessage(ChatColor.RED + "" + ChatColor.BOLD + "The seller has left. Auction cancelled");
+        }
     }
 }

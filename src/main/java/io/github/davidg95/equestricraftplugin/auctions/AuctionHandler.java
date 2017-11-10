@@ -35,7 +35,7 @@ public class AuctionHandler implements CommandExecutor {
             try {
                 int startingBid = Integer.parseInt(args[1]);
                 int incrementValue = Integer.parseInt(args[2]);
-                if (auction != null) {
+                if (auction != null && !auction.isComplete()) {
                     player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "There is currently an active auction");
                     return true;
                 }
@@ -64,6 +64,18 @@ public class AuctionHandler implements CommandExecutor {
                 auction = null;
                 Bukkit.broadcastMessage(ChatColor.RED + "---AUCTION OVER---");
             }
+            return true;
+        } else if (args[0].equalsIgnoreCase("end")) {
+            if (auction == null) {
+                player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "No active auction");
+                return true;
+            }
+            if (player.getUniqueId() != auction.getSeller().getUniqueId()) {
+                player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Only the seller can end the auction");
+                return true;
+            }
+            auction.end();
+            auction = null;
             return true;
         }
         return false;

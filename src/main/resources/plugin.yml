@@ -71,6 +71,9 @@ commands:
     navigator:
         description: Spawns the navigator.
         udage: /navigator
+    auction:
+        description: Auction commands.
+        usage: /auction [open|bid|sell]
     #build:
     #    description: Pay for a build.
     #    udage: /build <pay|enq> <width> <height>
