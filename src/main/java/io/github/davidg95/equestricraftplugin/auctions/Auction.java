@@ -50,7 +50,7 @@ public class Auction implements Listener {
     private Team team;
     private Objective objective;
     private Score score;
-
+    
     public Auction(Player seller, int startingBid, int incrementValue) {
         this.seller = seller;
         this.currentBid = startingBid;
@@ -60,7 +60,7 @@ public class Auction implements Listener {
         complete = false;
         initScoreboard();
         seller.setScoreboard(board);
-        Bukkit.broadcastMessage(seller.getDisplayName() + ChatColor.GREEN + " has stated an auction at " + ChatColor.AQUA + "$" + startingBid + ChatColor.GREEN + "!");
+        Bukkit.broadcastMessage(seller.getDisplayName() + ChatColor.GREEN + " has started an auction at " + ChatColor.AQUA + "$" + startingBid + ChatColor.GREEN + "!");
         Bukkit.getServer().getPluginManager().registerEvents(this, EquestriCraftPlugin.plugin);
     }
 
@@ -70,7 +70,7 @@ public class Auction implements Listener {
         team = board.registerNewTeam(ChatColor.BOLD + "" + ChatColor.GREEN + "Auction");
         objective = board.registerNewObjective("Auction", "Bid");
         objective.setDisplaySlot(DisplaySlot.SIDEBAR);
-        objective.setDisplayName(ChatColor.BOLD + "" + ChatColor.GREEN + "Auction");
+        objective.setDisplayName(ChatColor.BOLD + "" + ChatColor.GREEN + "Auction - " + ChatColor.BOLD + "" + ChatColor.AQUA + seller.getName());
         score = objective.getScore("Current Bid");
         score.setScore(currentBid);
     }
