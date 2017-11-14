@@ -1336,7 +1336,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             player.sendMessage("Teleporting to the Trails...");
         } else if (clicked.getType() == Material.FISHING_ROD) {
             //Showgrounds
-            l = new Location(w, 653, 4.8, 1501);
+            l = new Location(w, 635, 4.8, 1498);
             player.sendMessage("Teleporting to the Showgrounds...");
         } else if (clicked.getType() == Material.SHEARS) {
             //Dentist
