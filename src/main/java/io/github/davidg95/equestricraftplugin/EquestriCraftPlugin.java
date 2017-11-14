@@ -480,12 +480,13 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                                 }
                             }
                         }
-                        if (br2 == null) {
+                        if (args.length == 1) {
                             horse.setBreed(new HorseBreed[]{br1, br1});
+                            sender.sendMessage(ChatColor.BOLD + "Breed set to " + horse.getBreed()[0].toString());
                         } else {
                             horse.setBreed(new HorseBreed[]{br1, br2});
+                            sender.sendMessage(ChatColor.BOLD + "Breed set to " + horse.getBreed()[0].toString() + " x " + horse.getBreed()[1].toString());
                         }
-                        sender.sendMessage(ChatColor.BOLD + "Breed set to " + horse.getBreed()[0].toString());
                     }
                 } else {
                     sender.sendMessage("Only ops can use this command");
