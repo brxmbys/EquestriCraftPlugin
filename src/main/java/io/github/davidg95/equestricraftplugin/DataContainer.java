@@ -378,6 +378,17 @@ public class DataContainer {
             } catch (IOException ex) {
                 EquestriCraftPlugin.plugin.getLogger().log(Level.SEVERE, null, ex);
             }
+            Throwable t = null;
+            for (MyHorse mh : horses) {
+                try {
+                    EquestriCraftPlugin.database.saveHorse(mh);
+                } catch (Throwable th) {
+                    t = th;
+                }
+            }
+            if (t != null) {
+                EquestriCraftPlugin.LOG.log(Level.SEVERE, "Error", t);
+            }
         } finally {
             fileLock.unlockWrite(stamp);
         }

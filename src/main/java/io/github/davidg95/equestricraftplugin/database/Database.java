@@ -16,7 +16,6 @@ import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.UUID;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
@@ -235,8 +234,8 @@ public abstract class Database {
 
         try {
             conn = getSQLConnection();
-            ps = conn.prepareStatement("INSERT INTO " + table + " (uuid, gender, vaccinated, vacc_time, hungry, last_eat, hunger_time, thristy, last_drink, thrist_time, ill_since, ill, well_since, last_breed, defacate_since_eat, breed1, breed2, birth, person1, person2, dieat, illness, shod, training_level) VALUES ('"
-                    + h.getUuid() + "'," + h.getGender() + "," + h.isVaccinated() + "," + h.getVaccinationTime() + "," + h.isHungry() + "," + h.getLastEat() + "," + h.getHungerDuration() + "," + h.isThirsty() + "," + h.getLastDrink() + "," + h.getThristDuration() + "," + h.getIllDuration() + "," + h.isSick() + "," + h.getWellSince() + "," + h.getLastBreed() + "," + h.hasDefecate() + ",'" + h.getBreed()[0].toString() + "','" + h.getBreed()[0].toString() + "'," + h.getBirthTime() + ",'" + h.getPersonalities()[0].toString() + "','" + h.getPersonalities()[1].toString() + "'," + h.getDieAt() + ",'" + h.getIllness().toString() + "'," + h.isShod() + "," + h.getTrainingLevel() + ")");
+            ps = conn.prepareStatement("INSERT INTO " + table + " (uuid, gender, vacc_time, last_eat, last_drink, ill_since, ill, well_since, last_breed, defacate_since_eat, breed1, breed2, birth, person1, person2, dieat, illness, shod, training_level) VALUES ('"
+                    + h.getUuid() + "'," + h.getGender() + "," + h.getVaccinationTime() + "," + h.getLastEat() + "," + h.getLastDrink() + "," + h.getIllDuration() + "," + h.isSick() + "," + h.getWellSince() + "," + h.getLastBreed() + "," + h.hasDefecate() + ",'" + h.getBreed()[0].toString() + "','" + h.getBreed()[0].toString() + "'," + h.getBirthTime() + ",'" + h.getPersonalities()[0].toString() + "','" + h.getPersonalities()[1].toString() + "'," + h.getDieAt() + ",'" + h.getIllness().toString() + "'," + h.isShod() + "," + h.getTrainingLevel() + ")");
             ps.executeUpdate();
         } catch (SQLException ex) {
             plugin.getLogger().log(Level.SEVERE, Errors.sqlConnectionExecute(), ex);
