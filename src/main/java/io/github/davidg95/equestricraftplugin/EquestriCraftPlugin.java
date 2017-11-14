@@ -935,7 +935,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     }
                 }
             }
-        } catch (Exception e) {
+        } catch (Throwable e) {
             LOG.log(Level.SEVERE, "Error on chunk load", e);
         }
     }
