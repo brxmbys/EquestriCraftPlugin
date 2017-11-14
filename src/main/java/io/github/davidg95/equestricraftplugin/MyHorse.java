@@ -28,29 +28,29 @@ public class MyHorse implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private long vaccinationTime;
-    private boolean vaccination;
-    private int gender; //The horses gender.
-    private UUID uuid;
-    private long lastEat;
-    private boolean hunger;
-    private long hungerSince;
-    private long lastDrink;
-    private boolean thirst;
-    private long thirstSince;
-    private long illSince;
-    private boolean ill;
-    private long wellSince;
-    private long lastBreed;
-    private boolean defecateSinceEat;
-    private HorseBreed breed;
-    private HorseBreed[] breedArr;
-    private long birthTime;
-    private final Personality[] personality;
-    private int dieat;
-    private Illness illness;
-    private boolean shod;
-    private int trainingLevel;
+    private long vaccinationTime;////////////////////////////////////////
+    private boolean vaccination;////////////////////////////////////////
+    private int gender; //The horses gender.////////////////////////////////////////
+    private UUID uuid;////////////////////////////////////////
+    private long lastEat;////////////////////////////////////////
+    private boolean hunger;////////////////////////////////////////
+    private long hungerSince;////////////////////////////////////////
+    private long lastDrink;////////////////////////////////////////
+    private boolean thirst;////////////////////////////////////////
+    private long thirstSince;////////////////////////////////////////
+    private long illSince;////////////////////////////////////////
+    private boolean ill;////////////////////////////////////////
+    private long wellSince;////////////////////////////////////////
+    private long lastBreed;////////////////////////////////////////
+    private boolean defecateSinceEat;////////////////////////////////////////
+    private HorseBreed breed;////////////////////////////////////////
+    private HorseBreed[] breedArr;////////////////////////////////////////
+    private long birthTime;////////////////////////////////////////
+    private final Personality[] personality;////////////////////////////////////////
+    private int dieat;////////////////////////////////////////
+    private Illness illness;////////////////////////////////////////
+    private boolean shod;////////////////////////////////////////
+    private int trainingLevel;////////////////////////////////////////
 
     private transient Horse horse;
 
@@ -107,6 +107,31 @@ public class MyHorse implements Serializable {
         h.setAgeLock(true);
         shod = false;
         trainingLevel = 1;
+    }
+
+    public MyHorse(long vaccinationTime, boolean vaccination, int gender, UUID uuid, long lastEat, boolean hunger, long hungerSince, long lastDrink, boolean thirst, long thirstSince, long illSince, boolean ill, long wellSince, long lastBreed, boolean defecateSinceEat, HorseBreed[] breedArr, long birthTime, Personality[] personality, int dieat, Illness illness, boolean shod, int trainingLevel) {
+        this.vaccinationTime = vaccinationTime;
+        this.vaccination = vaccination;
+        this.gender = gender;
+        this.uuid = uuid;
+        this.lastEat = lastEat;
+        this.hunger = hunger;
+        this.hungerSince = hungerSince;
+        this.lastDrink = lastDrink;
+        this.thirst = thirst;
+        this.thirstSince = thirstSince;
+        this.illSince = illSince;
+        this.ill = ill;
+        this.wellSince = wellSince;
+        this.lastBreed = lastBreed;
+        this.defecateSinceEat = defecateSinceEat;
+        this.breedArr = breedArr;
+        this.birthTime = birthTime;
+        this.personality = personality;
+        this.dieat = dieat;
+        this.illness = illness;
+        this.shod = shod;
+        this.trainingLevel = trainingLevel;
     }
 
     public static long getCurrentTime() {

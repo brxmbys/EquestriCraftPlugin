@@ -4,6 +4,9 @@
 package io.github.davidg95.equestricraftplugin;
 
 import io.github.davidg95.equestricraftplugin.auctions.AuctionHandler;
+import io.github.davidg95.equestricraftplugin.database.Database;
+import io.github.davidg95.equestricraftplugin.database.SQLite;
+import io.github.davidg95.equestricraftplugin.disciplines.Discipline;
 import io.github.davidg95.equestricraftplugin.disciplines.DisciplinesHandler;
 import io.github.davidg95.equestricraftplugin.race.*;
 import java.io.*;
@@ -62,6 +65,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     private static final Inventory navigator = Bukkit.createInventory(null, 45, "Navigator");
 
     public static String motd = "";
+
+    private Database database;
 
     static {
         ItemStack spawn = new ItemStack(Material.MONSTER_EGG, 1);
@@ -162,6 +167,12 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         }
         this.getCommand("race").setExecutor(new RaceController(this));
         this.getCommand("auction").setExecutor(new AuctionHandler());
+        setupDatabase();
+    }
+
+    private void setupDatabase() {
+        database = new SQLite(this);
+        database.load();
     }
 
     private boolean setupEconomy() {
@@ -1222,6 +1233,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
+        database.addMember(player, Discipline.BarrelRacing);
         if (player.getLastPlayed() == 0) {
             final PlayerInventory inventory = player.getInventory();
             final ItemStack navTool = new ItemStack(Material.COMPASS, 1);
