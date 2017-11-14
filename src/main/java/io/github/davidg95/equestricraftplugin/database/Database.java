@@ -14,7 +14,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -32,6 +31,7 @@ public abstract class Database {
     Connection connection;
     public String table = "horses";
     public String disciplinesTable = "disciplines";
+    public String rolesTable = "roles";
     public int tokens = 0;
 
     public Database(EquestriCraftPlugin plugin) {
@@ -45,12 +45,128 @@ public abstract class Database {
     public void initialize() {
         connection = getSQLConnection();
         try {
-            PreparedStatement ps = connection.prepareStatement("SELECT * FROM " + table);
+            PreparedStatement ps = connection.prepareStatement("SELECT * FROM " + disciplinesTable);
             ResultSet rs = ps.executeQuery();
             close(ps, rs);
         } catch (SQLException ex) {
             plugin.getLogger().log(Level.SEVERE, "Unable to retrieve connection", ex);
         }
+    }
+
+    public void setDocor(OfflinePlayer p, boolean set) {
+        Connection conn = null;
+        PreparedStatement ps = null;
+
+        try {
+            conn = getSQLConnection();
+            ps = conn.prepareStatement("UPDATE " + rolesTable + " SET doctor = " + set + " WHERE uuid = '" + p.getUniqueId() + "'");
+            ps.executeUpdate();
+        } catch (SQLException ex) {
+            conn = getSQLConnection();
+            try {
+                ps = conn.prepareStatement("INSERT INTO " + rolesTable + " (uuid, doctor, farrier) VALUES ('" + p.getUniqueId() + "','" + set + "', 'false')");
+            } catch (SQLException ex1) {
+                plugin.getLogger().log(Level.SEVERE, Errors.sqlConnectionExecute(), ex1);
+            }
+        } finally {
+            try {
+                if (ps != null) {
+                    ps.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+                plugin.getLogger().log(Level.SEVERE, Errors.sqlConnectionClose(), ex);
+            }
+        }
+    }
+
+    public void setFarrier(OfflinePlayer p, boolean set) {
+        Connection conn = null;
+        PreparedStatement ps = null;
+
+        try {
+            conn = getSQLConnection();
+            ps = conn.prepareStatement("UPDATE " + rolesTable + " SET farrier = " + set + " WHERE uuid = '" + p.getUniqueId() + "'");
+            ps.executeUpdate();
+        } catch (SQLException ex) {
+            conn = getSQLConnection();
+            try {
+                ps = conn.prepareStatement("INSERT INTO " + rolesTable + " (uuid, farrier, doctor) VALUES ('" + p.getUniqueId() + "','" + Boolean.toString(set) + "', 'false')");
+            } catch (SQLException ex1) {
+                plugin.getLogger().log(Level.SEVERE, Errors.sqlConnectionExecute(), ex1);
+            }
+        } finally {
+            try {
+                if (ps != null) {
+                    ps.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+                plugin.getLogger().log(Level.SEVERE, Errors.sqlConnectionClose(), ex);
+            }
+        }
+    }
+
+    public boolean isDoctor(OfflinePlayer p) {
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            conn = getSQLConnection();
+            ps = conn.prepareStatement("SELECT uuid, doctor FROM " + rolesTable + " WHERE uuid = '" + p.getUniqueId() + "'");
+
+            rs = ps.executeQuery();
+            while (rs.next()) {
+                return rs.getBoolean("doctor");
+            }
+        } catch (SQLException ex) {
+        } finally {
+            try {
+                if (ps != null) {
+                    ps.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+                plugin.getLogger().log(Level.SEVERE, Errors.sqlConnectionClose(), ex);
+            }
+        }
+        return false;
+    }
+
+    public boolean isFarrier(OfflinePlayer p) {
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            conn = getSQLConnection();
+            ps = conn.prepareStatement("SELECT uuid, farrier FROM " + rolesTable + " WHERE uuid = '" + p.getUniqueId() + "'");
+
+            rs = ps.executeQuery();
+            while (rs.next()) {
+                return rs.getBoolean("farrier");
+            }
+        } catch (SQLException ex) {
+        } finally {
+            try {
+                if (ps != null) {
+                    ps.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+                plugin.getLogger().log(Level.SEVERE, Errors.sqlConnectionClose(), ex);
+            }
+        }
+        return false;
     }
 
     public void addMember(Player p, Discipline d) {
@@ -87,7 +203,7 @@ public abstract class Database {
 
         try {
             conn = getSQLConnection();
-            ps = conn.prepareStatement("SELECT * FROM " + disciplinesTable + " WHERE disciplines = '" + d.toString());
+            ps = conn.prepareStatement("SELECT * FROM " + disciplinesTable + " WHERE discipline = '" + d.toString() + "'");
 
             rs = ps.executeQuery();
             while (rs.next()) {
@@ -111,6 +227,31 @@ public abstract class Database {
             }
         }
         return new LinkedList<>();
+    }
+
+    public void saveHorse(MyHorse h) {
+        Connection conn = null;
+        PreparedStatement ps = null;
+
+        try {
+            conn = getSQLConnection();
+            ps = conn.prepareStatement("INSERT INTO " + table + " (uuid, gender, vaccinated, vacc_time, hungry, last_eat, hunger_time, thristy, last_drink, thrist_time, ill_since, ill, well_since, last_breed, defacate_since_eat, breed1, breed2, birth, person1, person2, dieat, illness, shod, training_level) VALUES ('"
+                    + h.getUuid() + "'," + h.getGender() + "," + h.isVaccinated() + "," + h.getVaccinationTime() + "," + h.isHungry() + "," + h.getLastEat() + "," + h.getHungerDuration() + "," + h.isThirsty() + "," + h.getLastDrink() + "," + h.getThristDuration() + "," + h.getIllDuration() + "," + h.isSick() + "," + h.getWellSince() + "," + h.getLastBreed() + "," + h.hasDefecate() + ",'" + h.getBreed()[0].toString() + "','" + h.getBreed()[0].toString() + "'," + h.getBirthTime() + ",'" + h.getPersonalities()[0].toString() + "','" + h.getPersonalities()[1].toString() + "'," + h.getDieAt() + ",'" + h.getIllness().toString() + "'," + h.isShod() + "," + h.getTrainingLevel() + ")");
+            ps.executeUpdate();
+        } catch (SQLException ex) {
+            plugin.getLogger().log(Level.SEVERE, Errors.sqlConnectionExecute(), ex);
+        } finally {
+            try {
+                if (ps != null) {
+                    ps.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+                plugin.getLogger().log(Level.SEVERE, Errors.sqlConnectionClose(), ex);
+            }
+        }
     }
 
     public LinkedList<MyHorse> getHorses() {
@@ -138,7 +279,7 @@ public abstract class Database {
                 long thirstTime = rs.getLong("thrist_time");
                 long illSince = rs.getLong("ill_since");
                 boolean ill = rs.getBoolean("ill");
-                long wellSince = rs.getLong("ill_since");
+                long wellSince = rs.getLong("well_since");
                 long lastBreed = rs.getLong("last_breed");
                 boolean defacateSinceEat = rs.getBoolean("defacate_since_eat");
                 String breed1 = rs.getString("breed1");
