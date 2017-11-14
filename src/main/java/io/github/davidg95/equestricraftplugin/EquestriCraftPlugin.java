@@ -66,7 +66,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
 
     public static String motd = "";
 
-    private Database database;
+    public static Database database;
 
     static {
         ItemStack spawn = new ItemStack(Material.MONSTER_EGG, 1);
@@ -147,6 +147,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         if (!this.getDataFolder().exists()) {
             this.getDataFolder().mkdir();
         }
+        setupDatabase();
         try {
             getConfig().load(getDataFolder() + File.separator + "race.yml");
         } catch (IOException | InvalidConfigurationException ex) {
@@ -167,7 +168,6 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         }
         this.getCommand("race").setExecutor(new RaceController(this));
         this.getCommand("auction").setExecutor(new AuctionHandler());
-        setupDatabase();
     }
 
     private void setupDatabase() {
@@ -357,6 +357,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     }
                     if (args[0].equalsIgnoreCase("add")) {
                         container.addDoctor(player);
+                        database.setDocor(player, true);
                         sender.sendMessage(ChatColor.BOLD + "" + ChatColor.GREEN + args[1] + " is now a doctor");
                         if (player.isOnline()) {
                             Player pl = (Player) player;
@@ -365,6 +366,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         return true;
                     } else if (args[0].equalsIgnoreCase("remove")) {
                         if (container.removeDoctor(player)) {
+                            database.setDocor(player, false);
                             sender.sendMessage(ChatColor.BOLD + "" + ChatColor.GREEN + args[1] + " is no longer a doctor");
                             if (player.isOnline()) {
                                 Player pl = (Player) player;
@@ -725,6 +727,18 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         }
                     }
                     sender.sendMessage("MOTD set to-\n" + motd);
+                } else if (args[0].equalsIgnoreCase("db")) {
+                    if (args.length >= 3) {
+                        if (args[1].equalsIgnoreCase("farrier")) {
+                            OfflinePlayer p = Bukkit.getOfflinePlayer(args[2]);
+                            if (database.isFarrier(p)) {
+                                sender.sendMessage("This player is a farrier");
+                            } else {
+                                sender.sendMessage("This player is not a farrier");
+                            }
+                        }
+                    }
+                    return true;
                 }
             }
             return true;
@@ -792,6 +806,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                             return true;
                         }
                         container.addFarrier(player);
+                        database.setFarrier(player, true);
                         sender.sendMessage(ChatColor.BOLD + "" + ChatColor.GREEN + args[1] + " is now a farrier");
                         if (player.isOnline()) {
                             Player p = (Player) player;
@@ -809,6 +824,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                             return true;
                         }
                         if (container.removeFarrier(player)) {
+                            database.setFarrier(player, false);
                             sender.sendMessage(ChatColor.BOLD + "" + ChatColor.GREEN + args[1] + " is no longer a farrier");
                             if (player.isOnline()) {
                                 Player p = (Player) player;
