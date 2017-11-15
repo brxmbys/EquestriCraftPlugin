@@ -593,6 +593,13 @@ public class MyHorse implements Serializable {
      */
     public void setBreed(HorseBreed[] br) {
         this.breedArr = br;
+        try {
+            if (this.horse == null) {
+                return;
+            }
+        } catch (Exception e) {
+            return;
+        }
         if (br[0] == HorseBreed.Donkey) {
             this.horse.setVariant(Variant.DONKEY);
         } else if (br[0] == HorseBreed.Mule) {
@@ -704,6 +711,14 @@ public class MyHorse implements Serializable {
      */
     public Illness getIllness() {
         return illness;
+    }
+
+    public String getIllnessString() {
+        if (illness != null) {
+            return illness.toString();
+        } else {
+            return null;
+        }
     }
 
     /**

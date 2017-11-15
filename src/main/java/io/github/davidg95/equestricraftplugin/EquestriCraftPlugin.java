@@ -740,6 +740,38 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         }
                     }
                     return true;
+                } else if (args[0].equalsIgnoreCase("integrity")) {
+                    int breed = 0;
+                    for (MyHorse mh : container.getAllHorses()) {
+                        try {
+                            if (mh.getBreed() == null || mh.getBreed().length == 0) {
+                                breed++;
+                            }
+                        } catch (Exception e) {
+                            breed++;
+                        }
+                    }
+                    return true;
+                } else if (args[0].equalsIgnoreCase("fix")) {
+                    for (MyHorse mh : container.getAllHorses()) {
+                        try {
+                            if (mh.getBreed() == null || mh.getBreed().length == 0) {
+                                mh.setBreed(new HorseBreed[]{HorseBreed.randomType()});
+                            }
+                        } catch (Exception e) {
+                            if (mh == null) {
+                                sender.sendMessage("mh is null");
+                                return true;
+                            }
+                            try {
+                                mh.setBreed(new HorseBreed[]{HorseBreed.randomType(), HorseBreed.randomType()});
+                            } catch (Exception ex) {
+                                sender.sendMessage("Error");
+                            }
+                        }
+                    }
+                    sender.sendMessage("Assigned breeds to horses");
+                    return true;
                 }
             }
             return true;
