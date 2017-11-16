@@ -134,31 +134,6 @@ public class MyHorse implements Serializable {
         this.trainingLevel = trainingLevel;
     }
 
-    public MyHorse(long vaccinationTime, boolean vaccination, int gender, UUID uuid, long lastEat, boolean hunger, long hungerSince, long lastDrink, boolean thirst, long thirstSince, long illSince, boolean ill, long wellSince, long lastBreed, boolean defecateSinceEat, HorseBreed[] breedArr, long birthTime, Personality[] personality, int dieat, Illness illness, boolean shod, int trainingLevel) {
-        this.vaccinationTime = vaccinationTime;
-        this.vaccination = vaccination;
-        this.gender = gender;
-        this.uuid = uuid;
-        this.lastEat = lastEat;
-        this.hunger = hunger;
-        this.hungerSince = hungerSince;
-        this.lastDrink = lastDrink;
-        this.thirst = thirst;
-        this.thirstSince = thirstSince;
-        this.illSince = illSince;
-        this.ill = ill;
-        this.wellSince = wellSince;
-        this.lastBreed = lastBreed;
-        this.defecateSinceEat = defecateSinceEat;
-        this.breedArr = breedArr;
-        this.birthTime = birthTime;
-        this.personality = personality;
-        this.dieat = dieat;
-        this.illness = illness;
-        this.shod = shod;
-        this.trainingLevel = trainingLevel;
-    }
-
     public static long getCurrentTime() {
         return new Date().getTime();
     }
