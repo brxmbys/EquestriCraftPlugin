@@ -13,8 +13,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -79,8 +81,8 @@ public abstract class Database {
         Connection conn = null;
         PreparedStatement ps = null;
 
+        conn = getSQLConnection();
         try {
-            conn = getSQLConnection();
             ps = conn.prepareStatement("INSERT INTO " + table + " (uuid, gender, vaccinationTime, last_eat, last_drink, ill_since, well_since, last_breed, defacate_since_eat, breed1, breed2, birth, person1, person2, dieat, illness, shoed, training_level) VALUES ('"
                     + h.getUuid() + "',"
                     + h.getGender() + ","
@@ -102,7 +104,30 @@ public abstract class Database {
                     + h.getTrainingLevel() + ")");
             ps.executeUpdate();
         } catch (SQLException ex) {
-            plugin.getLogger().log(Level.SEVERE, "Database error", ex);
+            try {
+                ps = conn.prepareStatement("UPDATE " + table
+                        + " SET gender = " + h.getGender()
+                        + ", vaccinationTime = " + h.getVaccinationTime()
+                        + ", last_eat = " + h.getLastEat()
+                        + ", last_drink = " + h.getLastDrink()
+                        + ", ill_since = " + h.getIllSince()
+                        + ", well_since = " + h.getWellSince()
+                        + ", last_breed = " + h.getLastBreed()
+                        + ", defacate_since_eat = " + (h.hasDefecate() ? "1" : "0")
+                        + ", breed1 = '" + h.getBreed()[0].toString()
+                        + "', breed2 = '" + h.getBreed()[1].toString()
+                        + "', birth = " + h.getBirthTime()
+                        + ", person1 = '" + h.getPersonalities()[0].toString()
+                        + "', person2 = '" + h.getPersonalities()[1].toString()
+                        + "', dieat = " + h.getDieAt()
+                        + ", illness = '" + h.getIllnessString()
+                        + "', shoed = " + (h.isShod() ? "1" : "0")
+                        + ", training_level = " + h.getTrainingLevel()
+                        + " WHERE uuid = '" + h.getUuid() + "'");
+                ps.executeUpdate();
+            } catch (SQLException ex1) {
+                Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex1);
+            }
         } finally {
             try {
                 if (ps != null) {
@@ -194,28 +219,28 @@ public abstract class Database {
             rs = ps.executeQuery();
             while (rs.next()) {
                 String createHorsesTable = "CREATE TABLE IF NOT EXISTS " + table + "("
-            + "id integer NOT NULL,"
-            + "uuid varchar(60) NOT NULL,"
-            + "gender integer NOT NULL,"
-            + "vaccinationTime long,"
-            + "last_eat long,"
-            + "last_drink long,"
-            + "ill_since long,"
-            + "well_since long,"
-            + "last_breed long,"
-            + "defacate_since_eat boolean NOT NULL,"
-            + "breed1 varchar(30) NOT NULL,"
-            + "breed2 varchar(30),"
-            + "birth long NOT NULL,"
-            + "person1 varchar(30) NOT NULL,"
-            + "person2 varchar(30) NOT NULL,"
-            + "dieat long NOT NULL,"
-            + "illness varchar(30),"
-            + "shoed boolean NOT NULL,"
-            + "training_level integer NOT NULL,"
-            + "PRIMARY KEY (id)"
-            + ")";
-                
+                        + "id integer NOT NULL,"
+                        + "uuid varchar(60) NOT NULL,"
+                        + "gender integer NOT NULL,"
+                        + "vaccinationTime long,"
+                        + "last_eat long,"
+                        + "last_drink long,"
+                        + "ill_since long,"
+                        + "well_since long,"
+                        + "last_breed long,"
+                        + "defacate_since_eat boolean NOT NULL,"
+                        + "breed1 varchar(30) NOT NULL,"
+                        + "breed2 varchar(30),"
+                        + "birth long NOT NULL,"
+                        + "person1 varchar(30) NOT NULL,"
+                        + "person2 varchar(30) NOT NULL,"
+                        + "dieat long NOT NULL,"
+                        + "illness varchar(30),"
+                        + "shoed boolean NOT NULL,"
+                        + "training_level integer NOT NULL,"
+                        + "PRIMARY KEY (id)"
+                        + ")";
+
                 int id = rs.getInt("id");
                 int gender = rs.getInt("gender");
                 long vacc_time = rs.getLong("vaccinationTime");

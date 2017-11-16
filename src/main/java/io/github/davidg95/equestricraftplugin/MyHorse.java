@@ -803,6 +803,28 @@ public class MyHorse implements Serializable {
         this.trainingLevel = trainingLevel;
     }
 
+    public String getInsertValues() {
+        return "('"
+                + getUuid() + "',"
+                + getGender() + ","
+                + getVaccinationTime() + ","
+                + getLastEat() + ","
+                + getLastDrink() + ","
+                + getIllSince() + ","
+                + getWellSince() + ","
+                + getLastBreed() + ","
+                + (hasDefecate() ? "1" : "0") + ",'"
+                + getBreed()[0].toString() + "','"
+                + getBreed()[1].toString() + "',"
+                + getBirthTime() + ",'"
+                + getPersonalities()[0].toString() + "','"
+                + getPersonalities()[1].toString() + "',"
+                + getDieAt() + ",'"
+                + getIllnessString() + "',"
+                + (isShod() ? "1" : "0") + ","
+                + getTrainingLevel() + ")";
+    }
+
     @Override
     public String toString() {
         return "Horse";

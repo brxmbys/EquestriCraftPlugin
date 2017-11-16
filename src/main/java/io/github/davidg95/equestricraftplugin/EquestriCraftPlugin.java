@@ -6,7 +6,6 @@ package io.github.davidg95.equestricraftplugin;
 import io.github.davidg95.equestricraftplugin.auctions.AuctionHandler;
 import io.github.davidg95.equestricraftplugin.database.Database;
 import io.github.davidg95.equestricraftplugin.database.SQLite;
-import io.github.davidg95.equestricraftplugin.disciplines.Discipline;
 import io.github.davidg95.equestricraftplugin.disciplines.DisciplinesHandler;
 import io.github.davidg95.equestricraftplugin.race.*;
 import java.io.*;

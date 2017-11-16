@@ -26,7 +26,6 @@ public class SQLite extends Database {
     }
 
     public String createHorsesTable = "CREATE TABLE IF NOT EXISTS " + table + "("
-            + "id integer NOT NULL,"
             + "uuid varchar(60) NOT NULL,"
             + "gender integer NOT NULL,"
             + "vaccinationTime long,"
@@ -45,7 +44,7 @@ public class SQLite extends Database {
             + "illness varchar(30),"
             + "shoed boolean NOT NULL,"
             + "training_level integer NOT NULL,"
-            + "PRIMARY KEY (id)"
+            + "PRIMARY KEY (uuid)"
             + ")";
 
     @Override
