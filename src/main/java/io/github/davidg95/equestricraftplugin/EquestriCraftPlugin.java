@@ -751,6 +751,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                             breed++;
                         }
                     }
+                    sender.sendMessage("Horses without breed: " + breed);
                     return true;
                 } else if (args[0].equalsIgnoreCase("fix")) {
                     for (MyHorse mh : container.getAllHorses()) {
