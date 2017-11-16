@@ -93,11 +93,11 @@ public abstract class Database {
                     + h.getWellSince() + ","
                     + h.getLastBreed() + ","
                     + (h.hasDefecate() ? "1" : "0") + ",'"
-                    + h.getBreed()[0].toString() + "','"
-                    + h.getBreed()[1].toString() + "',"
+                    + h.getBreed()[0].name() + "','"
+                    + h.getBreed()[1].name() + "',"
                     + h.getBirthTime() + ",'"
-                    + h.getPersonalities()[0].toString() + "','"
-                    + h.getPersonalities()[1].toString() + "',"
+                    + h.getPersonalities()[0].name() + "','"
+                    + h.getPersonalities()[1].name() + "',"
                     + h.getDieAt() + ",'"
                     + h.getIllnessString() + "',"
                     + (h.isShod() ? "1" : "0") + ","
@@ -114,11 +114,11 @@ public abstract class Database {
                         + ", well_since = " + h.getWellSince()
                         + ", last_breed = " + h.getLastBreed()
                         + ", defacate_since_eat = " + (h.hasDefecate() ? "1" : "0")
-                        + ", breed1 = '" + h.getBreed()[0].toString()
-                        + "', breed2 = '" + h.getBreed()[1].toString()
+                        + ", breed1 = '" + h.getBreed()[0].name()
+                        + "', breed2 = '" + h.getBreed()[1].name()
                         + "', birth = " + h.getBirthTime()
-                        + ", person1 = '" + h.getPersonalities()[0].toString()
-                        + "', person2 = '" + h.getPersonalities()[1].toString()
+                        + ", person1 = '" + h.getPersonalities()[0].name()
+                        + "', person2 = '" + h.getPersonalities()[1].name()
                         + "', dieat = " + h.getDieAt()
                         + ", illness = '" + h.getIllnessString()
                         + "', shoed = " + (h.isShod() ? "1" : "0")
@@ -182,7 +182,10 @@ public abstract class Database {
 
                 HorseBreed breed[] = new HorseBreed[]{HorseBreed.valueOf(breed1), HorseBreed.valueOf(breed2)};
                 Personality person[] = new Personality[]{Personality.valueOf(personality1), Personality.valueOf(personality2)};
-                Illness ill_type = Illness.valueOf(illness);
+                Illness ill_type = null;
+                if (illness != null && !illness.equals("") && !illness.equals("null")) {
+                    ill_type = Illness.valueOf(illness);
+                }
 
                 MyHorse horse = new MyHorse(vacc_time, vaccinated, gender, uuid, lastEat, hungry, hungerTime, lastDrink, thirsty, thirstTime, illSince, ill, wellSince, lastBreed, defacateSinceEat, breed, birth, person, dieat, ill_type, shod, trainingLevel);
                 horses.add(horse);
@@ -218,30 +221,6 @@ public abstract class Database {
 
             rs = ps.executeQuery();
             while (rs.next()) {
-                String createHorsesTable = "CREATE TABLE IF NOT EXISTS " + table + "("
-                        + "id integer NOT NULL,"
-                        + "uuid varchar(60) NOT NULL,"
-                        + "gender integer NOT NULL,"
-                        + "vaccinationTime long,"
-                        + "last_eat long,"
-                        + "last_drink long,"
-                        + "ill_since long,"
-                        + "well_since long,"
-                        + "last_breed long,"
-                        + "defacate_since_eat boolean NOT NULL,"
-                        + "breed1 varchar(30) NOT NULL,"
-                        + "breed2 varchar(30),"
-                        + "birth long NOT NULL,"
-                        + "person1 varchar(30) NOT NULL,"
-                        + "person2 varchar(30) NOT NULL,"
-                        + "dieat long NOT NULL,"
-                        + "illness varchar(30),"
-                        + "shoed boolean NOT NULL,"
-                        + "training_level integer NOT NULL,"
-                        + "PRIMARY KEY (id)"
-                        + ")";
-
-                int id = rs.getInt("id");
                 int gender = rs.getInt("gender");
                 long vacc_time = rs.getLong("vaccinationTime");
                 long lastEat = rs.getLong("last_eat");
@@ -262,7 +241,10 @@ public abstract class Database {
 
                 HorseBreed breed[] = new HorseBreed[]{HorseBreed.valueOf(breed1), HorseBreed.valueOf(breed2)};
                 Personality person[] = new Personality[]{Personality.valueOf(personality1), Personality.valueOf(personality2)};
-                Illness ill_type = Illness.valueOf(illness);
+                Illness ill_type = null;
+                if (illness != null && !illness.equals("") && !illness.equals("null")) {
+                    ill_type = Illness.valueOf(illness);
+                }
 
                 horse = new MyHorse(vacc_time, gender, uuid, lastEat, lastDrink, illSince, wellSince, lastBreed, defacateSinceEat, breed, birth, person, dieat, ill_type, shoed, trainingLevel);
                 return horse;

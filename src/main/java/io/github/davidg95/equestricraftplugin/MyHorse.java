@@ -772,7 +772,7 @@ public class MyHorse implements Serializable {
 
     public String getIllnessString() {
         if (illness != null) {
-            return illness.toString();
+            return illness.name();
         } else {
             return null;
         }
