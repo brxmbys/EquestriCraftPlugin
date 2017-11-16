@@ -92,7 +92,7 @@ public abstract class Database {
                     + h.getLastBreed() + ","
                     + (h.hasDefecate() ? "1" : "0") + ",'"
                     + h.getBreed()[0].toString() + "','"
-                    + h.getBreed()[0].toString() + "',"
+                    + h.getBreed()[1].toString() + "',"
                     + h.getBirthTime() + ",'"
                     + h.getPersonalities()[0].toString() + "','"
                     + h.getPersonalities()[1].toString() + "',"
@@ -178,6 +178,85 @@ public abstract class Database {
             }
         }
         return new LinkedList<>();
+    }
+
+    public MyHorse getHorse(UUID uuid) {
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        MyHorse horse;
+
+        try {
+            conn = getSQLConnection();
+            ps = conn.prepareStatement("SELECT * FROM " + table + " WHERE UUID = '" + uuid.toString() + "'");
+
+            rs = ps.executeQuery();
+            while (rs.next()) {
+                String createHorsesTable = "CREATE TABLE IF NOT EXISTS " + table + "("
+            + "id integer NOT NULL,"
+            + "uuid varchar(60) NOT NULL,"
+            + "gender integer NOT NULL,"
+            + "vaccinationTime long,"
+            + "last_eat long,"
+            + "last_drink long,"
+            + "ill_since long,"
+            + "well_since long,"
+            + "last_breed long,"
+            + "defacate_since_eat boolean NOT NULL,"
+            + "breed1 varchar(30) NOT NULL,"
+            + "breed2 varchar(30),"
+            + "birth long NOT NULL,"
+            + "person1 varchar(30) NOT NULL,"
+            + "person2 varchar(30) NOT NULL,"
+            + "dieat long NOT NULL,"
+            + "illness varchar(30),"
+            + "shoed boolean NOT NULL,"
+            + "training_level integer NOT NULL,"
+            + "PRIMARY KEY (id)"
+            + ")";
+                
+                int id = rs.getInt("id");
+                int gender = rs.getInt("gender");
+                long vacc_time = rs.getLong("vaccinationTime");
+                long lastEat = rs.getLong("last_eat");
+                long lastDrink = rs.getLong("last_drink");
+                long illSince = rs.getLong("ill_since");
+                long wellSince = rs.getLong("well_since");
+                long lastBreed = rs.getLong("last_breed");
+                boolean defacateSinceEat = rs.getBoolean("defacate_since_eat");
+                String breed1 = rs.getString("breed1");
+                String breed2 = rs.getString("breed2");
+                long birth = rs.getLong("birth");
+                String personality1 = rs.getString("person1");
+                String personality2 = rs.getString("person2");
+                int dieat = rs.getInt("dieat");
+                String illness = rs.getString("illness");
+                boolean shoed = rs.getBoolean("shoed");
+                int trainingLevel = rs.getInt("training_level");
+
+                HorseBreed breed[] = new HorseBreed[]{HorseBreed.valueOf(breed1), HorseBreed.valueOf(breed2)};
+                Personality person[] = new Personality[]{Personality.valueOf(personality1), Personality.valueOf(personality2)};
+                Illness ill_type = Illness.valueOf(illness);
+
+                horse = new MyHorse(vacc_time, gender, uuid, lastEat, lastDrink, illSince, wellSince, lastBreed, defacateSinceEat, breed, birth, person, dieat, ill_type, shoed, trainingLevel);
+                return horse;
+            }
+        } catch (SQLException ex) {
+            plugin.getLogger().log(Level.SEVERE, Errors.sqlConnectionExecute(), ex);
+        } finally {
+            try {
+                if (ps != null) {
+                    ps.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+                plugin.getLogger().log(Level.SEVERE, Errors.sqlConnectionClose(), ex);
+            }
+        }
+        return null;
     }
 
     public void close(PreparedStatement ps, ResultSet rs) {

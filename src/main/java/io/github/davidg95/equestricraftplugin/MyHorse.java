@@ -28,31 +28,44 @@ public class MyHorse implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private long vaccinationTime;////////////////////////////////////////
-    private boolean vaccination;////////////////////////////////////////
-    private int gender; //The horses gender.////////////////////////////////////////
-    private UUID uuid;////////////////////////////////////////
-    private long lastEat;////////////////////////////////////////
-    private boolean hunger;////////////////////////////////////////
-    private long hungerSince;////////////////////////////////////////
-    private long lastDrink;////////////////////////////////////////
-    private boolean thirst;////////////////////////////////////////
-    private long thirstSince;////////////////////////////////////////
-    private long illSince;////////////////////////////////////////
-    private boolean ill;////////////////////////////////////////
-    private long wellSince;////////////////////////////////////////
-    private long lastBreed;////////////////////////////////////////
-    private boolean defecateSinceEat;////////////////////////////////////////
-    private HorseBreed breed;////////////////////////////////////////
-    private HorseBreed[] breedArr;////////////////////////////////////////
-    private long birthTime;////////////////////////////////////////
-    private final Personality[] personality;////////////////////////////////////////
-    private int dieat;////////////////////////////////////////
-    private Illness illness;////////////////////////////////////////
-    private boolean shod;////////////////////////////////////////
-    private int trainingLevel;////////////////////////////////////////
+    private long vaccinationTime;
+    private boolean vaccination;
+    private int gender;
+    private UUID uuid;
+    private long lastEat;
+    private boolean hunger;
+    private long hungerSince;
+    private long lastDrink;
+    private boolean thirst;
+    private long thirstSince;
+    private long illSince;
+    private boolean ill;
+    private long wellSince;
+    private long lastBreed;
+    private boolean defecateSinceEat;
+    private HorseBreed breed;
+    private HorseBreed[] breedArr;
+    private long birthTime;
+    private Personality[] personality;
+    private int dieat;
+    private Illness illness;
+    private boolean shod;
+    private int trainingLevel;
 
     private transient Horse horse;
+
+    /**
+     * The length of time a vaccination will last.
+     */
+    public static long VACCINATION_DURATION = 2419200000L; //Four weeks.
+    /**
+     * The length of time a horse can go without drinking before getting sick.
+     */
+    public static long DRINK_LIMIT = 604800000L; //One week.
+    /**
+     * The length of time a horse can go without eating before getting sick.
+     */
+    public static long EAT_LIMIT = 604800000; //One week.
 
     /**
      * Indicates the horses gender is a stallion. Value = 1.
@@ -134,8 +147,51 @@ public class MyHorse implements Serializable {
         this.trainingLevel = trainingLevel;
     }
 
+    public MyHorse(long vaccinationTime, int gender, UUID uuid, long lastEat, long lastDrink, long illSince, long wellSince, long lastBreed, boolean defecate, HorseBreed breed[], long birth, Personality person[], long dieat, Illness illness, boolean shoed, int trainingLevel) {
+        this.vaccinationTime = vaccinationTime;
+        this.gender = gender;
+        this.uuid = uuid;
+        this.lastEat = lastEat;
+        this.lastDrink = lastDrink;
+        this.illSince = illSince;
+        this.wellSince = wellSince;
+        this.lastBreed = lastBreed;
+        this.defecateSinceEat = defecate;
+        this.breedArr = breed;
+        this.birthTime = birth;
+        this.personality = person;
+        this.dieat = (int) dieat;
+        this.illness = illness;
+        this.shod = shoed;
+        this.trainingLevel = trainingLevel;
+    }
+
     public static long getCurrentTime() {
         return new Date().getTime();
+    }
+
+    public void checkData() {
+        if (breedArr == null) {
+            HorseBreed br = HorseBreed.randomType();
+            breedArr = new HorseBreed[]{br, br};
+        }
+        if (breedArr.length == 0) {
+            HorseBreed br = HorseBreed.randomType();
+            breedArr = new HorseBreed[]{br, br};
+        }
+        if (breedArr.length == 1) {
+            HorseBreed br = breedArr[0];
+            breedArr = new HorseBreed[]{br, br};
+        }
+        if (breedArr.length == 2) {
+            if (breedArr[1] == null) {
+                breedArr[1] = breedArr[0];
+            }
+        }
+
+        if (personality == null) {
+            personality = new Personality[]{Personality.randomType(), Personality.randomType()};
+        }
     }
 
     private void setSideEffects(boolean set) {
@@ -296,6 +352,7 @@ public class MyHorse implements Serializable {
     }
 
     public boolean isVaccinated() {
+        vaccination = this.getDurationSinceLastVaccinated() < VACCINATION_DURATION;
         return vaccination;
     }
 
@@ -355,28 +412,17 @@ public class MyHorse implements Serializable {
     /**
      * Sets the vaccination state of the horse, if they are being vaccinated,
      * the time will be set.
-     *
-     * @param vaccination the vaccination state as a boolean.
      */
-    public void setVaccinated(boolean vaccination) {
-        if (vaccination) {
-            this.vaccinationTime = getCurrentTime();
-        }
-        this.vaccination = vaccination;
+    public void vaccinate() {
+        this.vaccinationTime = getCurrentTime();
     }
 
     /**
      * Sets the last drink time to the current time.
-     *
-     * @param thirst the thirst state of the horse.
      */
-    public void setThirst(boolean thirst) {
-        if (!thirst) {
-            this.lastDrink = getCurrentTime();
-        } else {
-            this.thirstSince = getCurrentTime();
-        }
-        this.thirst = thirst;
+    public void drink() {
+        this.lastDrink = getCurrentTime();
+        this.thirst = false;
     }
 
     /**
@@ -385,7 +431,8 @@ public class MyHorse implements Serializable {
      * @return the thirst state as a boolean.
      */
     public boolean isThirsty() {
-        return this.thirst;
+        this.thirst = this.getDurationSinceLastDrink() > DRINK_LIMIT; //Check if the horse is thirsty.
+        return thirst;
     }
 
     /**
@@ -394,22 +441,16 @@ public class MyHorse implements Serializable {
      * @return the duration a long.
      */
     public long getThristDuration() {
-        return getCurrentTime() - this.thirstSince;
+        return getCurrentTime() - this.lastDrink - DRINK_LIMIT;
     }
 
     /**
      * Sets the hunger state of the horse.
-     *
-     * @param hunger the hunger as a boolean.
      */
-    public void setHunger(boolean hunger) {
-        if (!hunger) {
-            this.lastEat = getCurrentTime();
-            this.defecateSinceEat = false;
-        } else {
-            this.hungerSince = getCurrentTime();
-        }
-        this.hunger = hunger;
+    public void eat() {
+        this.lastEat = getCurrentTime();
+        this.defecateSinceEat = false;
+        this.hunger = true;
     }
 
     /**
@@ -447,7 +488,8 @@ public class MyHorse implements Serializable {
      * @return the state as a boolean.
      */
     public boolean isHungry() {
-        return this.hunger;
+        this.hunger = this.getDurationSinceLastEat() > EAT_LIMIT; //Check if the horse is thirsty.
+        return hunger;
     }
 
     /**
@@ -456,7 +498,7 @@ public class MyHorse implements Serializable {
      * @return the time as a long.
      */
     public long getHungerDuration() {
-        return getCurrentTime() - this.hungerSince;
+        return getCurrentTime() - this.lastEat - EAT_LIMIT;
     }
 
     /**
@@ -483,7 +525,7 @@ public class MyHorse implements Serializable {
      * @return ill state as a boolean.
      */
     public boolean isSick() {
-        return this.ill;
+        return this.illSince > this.wellSince;
     }
 
     /**
@@ -493,7 +535,6 @@ public class MyHorse implements Serializable {
      */
     public void setSick(boolean sick) {
         if (sick) {
-            this.illSince = getCurrentTime();
             setSideEffects(true);
             while (true) {
                 this.illness = Illness.randomIllness();
@@ -505,6 +546,7 @@ public class MyHorse implements Serializable {
                     break;
                 }
             }
+            this.illSince = getCurrentTime();
         } else {
             this.wellSince = getCurrentTime();
             setSideEffects(false);
@@ -579,6 +621,21 @@ public class MyHorse implements Serializable {
      * @return the HorseBreed.
      */
     public HorseBreed[] getBreed() {
+        if (breedArr == null || breedArr.length == 0) {
+            if (breed == null) {
+                throw new NullPointerException("This horse has not breed");
+            }
+            return new HorseBreed[]{breed, breed};
+        }
+        if (breedArr[0] == null) {
+            breedArr[0] = HorseBreed.randomType();
+        }
+        if (breedArr.length == 1) {
+            breedArr = new HorseBreed[]{breedArr[0], breedArr[0]};
+        }
+        if (breedArr[1] == null) {
+            breedArr[1] = breedArr[0];
+        }
         return breedArr;
     }
 

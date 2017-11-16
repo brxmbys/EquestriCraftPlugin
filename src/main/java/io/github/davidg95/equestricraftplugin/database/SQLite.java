@@ -56,6 +56,7 @@ public class SQLite extends Database {
                 plugin.getLogger().log(Level.INFO, "Database does not exist, creating it");
                 datafolder.createNewFile();
                 plugin.getLogger().log(Level.INFO, "Created database at " + datafolder.getAbsolutePath());
+                load();
             } catch (IOException ex) {
                 plugin.getLogger().log(Level.SEVERE, "Error creating .db file", ex);
             }
@@ -64,7 +65,6 @@ public class SQLite extends Database {
             if (connection != null && !connection.isClosed()) {
                 return connection;
             }
-            plugin.getLogger().log(Level.INFO, "Opening database");
             Class.forName("org.sqlite.JDBC");
             connection = DriverManager.getConnection("jdbc:sqlite:" + datafolder);
             return connection;

@@ -25,14 +25,6 @@ import org.bukkit.scheduler.BukkitRunnable;
 public class HorseCheckerThread extends Thread {
 
     /**
-     * The length of time a horse can go without eating before getting sick.
-     */
-    public static long EAT_LIMIT = 604800000; //One week.
-    /**
-     * The length of time a horse can go without drinking before getting sick.
-     */
-    public static long DRINK_LIMIT = 604800000L; //One week.
-    /**
      * The length of time a horse can be sick for before dying.
      */
     public static long SICK_LIMIT = 604800000L; //One week.
@@ -44,11 +36,6 @@ public class HorseCheckerThread extends Thread {
      * The length of time a horse will wait before getting ill again.
      */
     public static long ILL_WAIT = 259200000L; //Three days.
-
-    /**
-     * The length of time a vaccination will last.
-     */
-    public static long VACCINATION_DURATION = 2419200000L; //Four weeks.
 
     /**
      * The probability of the horse bucking.
@@ -77,7 +64,6 @@ public class HorseCheckerThread extends Thread {
     private final BreedCheckerThread breedThread;
 
     private Thread bAndCThread;
-    private Thread vacThread;
 
     private final List<Block> bales;
     private final List<Block> cauldrons;
@@ -160,35 +146,10 @@ public class HorseCheckerThread extends Thread {
                 }
             }
         };
-        //Create the vaccination checking thread.
-        final Runnable vacRun = new Runnable() {
-            @Override
-            public void run() {
-                while (run) {
-                    try {
-                        for (MyHorse horse : container.getAllHorses()) {
-                            if (horse.getDurationSinceLastVaccinated() > VACCINATION_DURATION) { //Check if any vaccinations have expired.
-                                horse.setVaccinated(false);
-                            }
-                        }
-                    } catch (Exception e) {
-                    }
-                    try {
-                        Thread.sleep(20000);
-                    } catch (Exception ex) {
-                        Logger.getLogger(HorseCheckerThread.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                }
-            }
-        };
 
         bAndCThread = new Thread(baleRun, "Bale_Cauldron_Checker");
         bAndCThread.setDaemon(true);
         bAndCThread.start(); //Start the able and cauldron thread.
-
-        vacThread = new Thread(vacRun, "Vaccination_Checker");
-        vacThread.setDaemon(true);
-        vacThread.start(); //Start the vaccination thread.
     }
 
     @Override
@@ -216,7 +177,7 @@ public class HorseCheckerThread extends Thread {
 //                                if (getFirstEat(cauldron) == -1) {
 //                                    setFirstEat(cauldron);
 //                                }
-                    horse.setThirst(false);
+                    horse.drink();
 //                                final Runnable caulAdd = new Runnable() {
 //                                    @Override
 //                                    public void run() {
@@ -241,7 +202,7 @@ public class HorseCheckerThread extends Thread {
 //                                if (getFirstEat(bale) == -1) {
 //                                    setFirstEat(bale);
 //                                }
-                    horse.setHunger(false);
+                    horse.eat();
 //                                final Runnable baleAdd = new Runnable() {
 //                                    @Override
 //                                    public void run() {
@@ -257,16 +218,9 @@ public class HorseCheckerThread extends Thread {
 //                            }
 //                        }
 //                    }.runTask(EquestriCraftPlugin.plugin);
-
-//                    if (horse.getDurationSinceLastDrink() > DRINK_LIMIT) { //Check if the horse is thirsty.
-//                        horse.setThirst(true);
-//                    }
-//                    if (horse.getDurationSinceLastEat() > EAT_LIMIT) { //Check if the horse is hungry.
-//                        horse.setHunger(true);
-//                    }
                     if (horse.isSick() && horse.getIllDuration() > SICK_LIMIT) { //Check if the horse has been sick fo too long.
-                        EquestriCraftPlugin.LOG.log(Level.INFO, "A horse died of illness");
                         horse.kill();
+                        EquestriCraftPlugin.LOG.log(Level.INFO, "A horse died of illness");
                         it.remove();
                     }
 //                    if (horse.isHungry() && horse.getHungerDuration() > SICK_LIMIT) { //Kill the horse if it has been hungry longer than the limit.
@@ -287,7 +241,7 @@ public class HorseCheckerThread extends Thread {
 
                     if (horse.getWellDuration() > ILL_WAIT) { //Check the horse as not been ill too recently.
                         final double r = Math.random();
-                        if (horse.getDurationSinceLastVaccinated() < VACCINATION_DURATION) {
+                        if (horse.isVaccinated()) {
                             if (r <= VACCINATED_PROBABILITY) {
                                 horse.setSick(true);
                             }

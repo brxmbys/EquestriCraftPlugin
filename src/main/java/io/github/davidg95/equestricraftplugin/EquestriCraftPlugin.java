@@ -730,15 +730,25 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     if (args.length == 2) {
                         if (args[1].equalsIgnoreCase("migrate")) {
                             final Runnable run = () -> {
+                                sender.sendMessage("Migrating horses to database...");
                                 final long start = System.currentTimeMillis();
                                 List<MyHorse> horses = container.getAllHorses();
-                                for (MyHorse h : horses) {
-                                    database.saveHorse(h);
+                                MyHorse mh = null;
+                                try {
+                                    for (MyHorse h : horses) {
+                                        mh = h;
+                                        h.checkData();
+                                        database.saveHorse(h);
+                                    }
+                                    sender.sendMessage("Horses saved to database");
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                    sender.sendMessage("Horse bday: " + new Date(mh.getBirthTime()));
+                                } finally {
+                                    final long end = System.currentTimeMillis();
+                                    final long time = end - start;
+                                    sender.sendMessage("Completed in " + time + "ms");
                                 }
-                                final long end = System.currentTimeMillis();
-                                final long time = end - start;
-                                sender.sendMessage("Horses saved to database");
-                                sender.sendMessage("Completed in " + time + "ms");
                             };
                             final Thread thread = new Thread(run, "DB_MIGRATE");
                             thread.start();
@@ -1164,14 +1174,14 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         event.setCancelled(true);
                         if (event.getEntity() instanceof Horse) {
                             final MyHorse horse = container.getHorse(event.getEntity().getUniqueId());
-                            horse.setVaccinated(true);
+                            horse.vaccinate();
                             player.sendMessage(ChatColor.BOLD + "Horse has been vaccinated");
                         }
                     } else if (inHand.getItemMeta().getDisplayName().equals(ONE_USE_VACCINATION)) {
                         event.setCancelled(true);
                         if (event.getEntity() instanceof Horse) {
                             final MyHorse horse = container.getHorse(event.getEntity().getUniqueId());
-                            horse.setVaccinated(true);
+                            horse.vaccinate();
                             player.sendMessage(ChatColor.BOLD + "Horse has been vaccinated");
                             if (inHand.getAmount() > 1) {
                                 inHand.setAmount(inHand.getAmount() - 1);
@@ -1436,8 +1446,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     private void loadProperties() {
         try (InputStream is = new FileInputStream(PROPERTIES_FILE)) {
             properties.load(is);
-            HorseCheckerThread.EAT_LIMIT = Long.parseLong(properties.getProperty("EAT_LIMIT")) * 60000;
-            HorseCheckerThread.DRINK_LIMIT = Long.parseLong(properties.getProperty("DRINK_LIMIT")) * 60000;
+            MyHorse.EAT_LIMIT = Long.parseLong(properties.getProperty("EAT_LIMIT")) * 60000;
+            MyHorse.DRINK_LIMIT = Long.parseLong(properties.getProperty("DRINK_LIMIT")) * 60000;
             HorseCheckerThread.SICK_LIMIT = Long.parseLong(properties.getProperty("SICK_LIMIT")) * 60000;
             HorseCheckerThread.DEFECATE_INTERVAL = Long.parseLong(properties.getProperty("DEFECATE_INTERVAL")) * 60000;
             HorseCheckerThread.ILL_WAIT = Long.parseLong(properties.getProperty("ILL_WAIT"));
@@ -1465,8 +1475,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             }
         }
         try (OutputStream os = new FileOutputStream(PROPERTIES_FILE)) {
-            properties.setProperty("EAT_LIMIT", Long.toString(HorseCheckerThread.EAT_LIMIT / 60000));
-            properties.setProperty("DRINK_LIMIT", Long.toString(HorseCheckerThread.DRINK_LIMIT / 60000));
+            properties.setProperty("EAT_LIMIT", Long.toString(MyHorse.EAT_LIMIT / 60000));
+            properties.setProperty("DRINK_LIMIT", Long.toString(MyHorse.DRINK_LIMIT / 60000));
             properties.setProperty("SICK_LIMIT", Long.toString(HorseCheckerThread.SICK_LIMIT / 60000));
             properties.setProperty("DEFECATE_INTERVAL", Long.toString(HorseCheckerThread.DEFECATE_INTERVAL / 60000));
             properties.setProperty("ILL_WAIT", Long.toString(HorseCheckerThread.ILL_WAIT / 60000));
