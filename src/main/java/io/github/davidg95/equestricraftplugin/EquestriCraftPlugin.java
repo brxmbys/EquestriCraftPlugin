@@ -740,6 +740,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         }
                     }
                     return true;
+<<<<<<< HEAD
                 } else if (args[0].equalsIgnoreCase("integrity")) {
                     int breed = 0;
                     for (MyHorse mh : container.getAllHorses()) {
