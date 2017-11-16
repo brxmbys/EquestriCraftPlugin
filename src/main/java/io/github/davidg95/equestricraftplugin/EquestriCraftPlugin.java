@@ -1065,7 +1065,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     if (inHand.getItemMeta().getDisplayName().equals(STICK_NAME)) { //Check the stick is the horse wand.
                         event.setCancelled(true);
                         if (event.getEntity() instanceof Horse) {
-                            MyHorse horse = container.getHorse(event.getEntity().getUniqueId()); //Get the horse that was clicked on.
+                            MyHorse horse = database.getHorse(event.getEntity().getUniqueId()); //Get the horse that was clicked on.
                             if (horse == null) {
                                 player.sendMessage("This horse has no details assigned");
                                 return;
@@ -1091,7 +1091,6 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                                     genderStr = genderStr + "None";
                                     break;
                             }
-                            final String name = ChatColor.BOLD + "Name: " + ChatColor.RESET + (horse.getHorse().getCustomName() == null ? "No name" : horse.getHorse().getCustomName());
                             String brStr;
                             if (horse.getBreed().length == 1) {
                                 brStr = horse.getBreed()[0].toString();
