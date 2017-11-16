@@ -234,29 +234,31 @@ public abstract class Database {
 
         try {
             conn = getSQLConnection();
-            ps = conn.prepareStatement("INSERT INTO " + table + " (uuid, gender, vacc_time, last_eat, last_drink, ill_since, ill, well_since, last_breed, defacate_since_eat, breed1, breed2, birth, person1, person2, dieat, illness, shod, training_level) VALUES ('"
-                    + h.getUuid() + "'," 
-                    + h.getGender() + "," 
-                    + h.getVaccinationTime() + "," 
-                    + h.getLastEat() + "," 
-                    + h.getLastDrink() + "," 
-                    + h.getIllDuration() + "," 
-                    + h.isSick() + "," 
-                    + h.getWellSince() + "," 
-                    + h.getLastBreed() + "," 
-                    + h.hasDefecate() + ",'" 
-                    + h.getBreed()[0].toString() + "','" 
-                    + h.getBreed()[0].toString() + "'," 
-                    + h.getBirthTime() + ",'" 
-                    + h.getPersonalities()[0].toString() + "','" 
-                    + h.getPersonalities()[1].toString() + "'," 
-                    + h.getDieAt() + ",'" 
-                    + h.getIllnessString() + "'," 
-                    + h.isShod() + "," 
-                    + h.getTrainingLevel() + ")");
+            ps = conn.prepareStatement("INSERT INTO " + table + " (uuid, gender, vaccinated, vacc_time, last_eat, last_drink, ill_since, ill, well_since, last_breed, defacate_since_eat, breed1, breed2, birth, person1, person2, dieat, illness, shod, training_level, hungry) VALUES ('"
+                    + h.getUuid() + "',"
+                    + h.getGender() + ","
+                    + (h.isVaccinated() ? "1" : "0") + ","
+                    + h.getVaccinationTime() + ","
+                    + h.getLastEat() + ","
+                    + h.getLastDrink() + ","
+                    + h.getIllDuration() + ","
+                    + (h.isSick() ? "1" : "0") + ","
+                    + h.getWellSince() + ","
+                    + h.getLastBreed() + ","
+                    + (h.hasDefecate() ? "1" : "0") + ",'"
+                    + h.getBreed()[0].toString() + "','"
+                    + h.getBreed()[0].toString() + "',"
+                    + h.getBirthTime() + ",'"
+                    + h.getPersonalities()[0].toString() + "','"
+                    + h.getPersonalities()[1].toString() + "',"
+                    + h.getDieAt() + ",'"
+                    + h.getIllnessString() + "',"
+                    + (h.isShod() ? "1" : "0") + ","
+                    + h.getTrainingLevel() + ","
+                    + (h.isHungry()? "1" : "0") + ")");
             ps.executeUpdate();
         } catch (SQLException ex) {
-            plugin.getLogger().log(Level.SEVERE, Errors.sqlConnectionExecute(), ex);
+            plugin.getLogger().log(Level.SEVERE, "Database error", ex);
         } finally {
             try {
                 if (ps != null) {
