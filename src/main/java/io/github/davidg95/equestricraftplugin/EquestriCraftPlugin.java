@@ -357,7 +357,6 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     }
                     if (args[0].equalsIgnoreCase("add")) {
                         container.addDoctor(player);
-                        database.setDocor(player, true);
                         sender.sendMessage(ChatColor.BOLD + "" + ChatColor.GREEN + args[1] + " is now a doctor");
                         if (player.isOnline()) {
                             Player pl = (Player) player;
@@ -366,7 +365,6 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         return true;
                     } else if (args[0].equalsIgnoreCase("remove")) {
                         if (container.removeDoctor(player)) {
-                            database.setDocor(player, false);
                             sender.sendMessage(ChatColor.BOLD + "" + ChatColor.GREEN + args[1] + " is no longer a doctor");
                             if (player.isOnline()) {
                                 Player pl = (Player) player;
@@ -729,16 +727,25 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     }
                     sender.sendMessage("MOTD set to-\n" + motd);
                 } else if (args[0].equalsIgnoreCase("db")) {
-                    if (args.length >= 3) {
-                        if (args[1].equalsIgnoreCase("farrier")) {
-                            OfflinePlayer p = Bukkit.getOfflinePlayer(args[2]);
-                            if (database.isFarrier(p)) {
-                                sender.sendMessage("This player is a farrier");
-                            } else {
-                                sender.sendMessage("This player is not a farrier");
-                            }
+                    if (args.length == 2) {
+                        if (args[1].equalsIgnoreCase("migrate")) {
+                            final Runnable run = () -> {
+                                final long start = System.currentTimeMillis();
+                                List<MyHorse> horses = container.getAllHorses();
+                                for (MyHorse h : horses) {
+                                    database.saveHorse(h);
+                                }
+                                final long end = System.currentTimeMillis();
+                                final long time = end - start;
+                                sender.sendMessage("Horses saved to database");
+                                sender.sendMessage("Completed in " + time + "ms");
+                            };
+                            final Thread thread = new Thread(run, "DB_MIGRATE");
+                            thread.start();
                         }
+                        return true;
                     }
+                    sender.sendMessage(database.horseCount() + " horses in database");
                     return true;
                 } else if (args[0].equalsIgnoreCase("integrity")) {
                     int breed = 0;
@@ -840,7 +847,6 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                             return true;
                         }
                         container.addFarrier(player);
-                        database.setFarrier(player, true);
                         sender.sendMessage(ChatColor.BOLD + "" + ChatColor.GREEN + args[1] + " is now a farrier");
                         if (player.isOnline()) {
                             Player p = (Player) player;
@@ -858,7 +864,6 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                             return true;
                         }
                         if (container.removeFarrier(player)) {
-                            database.setFarrier(player, false);
                             sender.sendMessage(ChatColor.BOLD + "" + ChatColor.GREEN + args[1] + " is no longer a farrier");
                             if (player.isOnline()) {
                                 Player p = (Player) player;
@@ -1283,7 +1288,6 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        database.addMember(player, Discipline.BarrelRacing);
         if (player.getLastPlayed() == 0) {
             final PlayerInventory inventory = player.getInventory();
             final ItemStack navTool = new ItemStack(Material.COMPASS, 1);

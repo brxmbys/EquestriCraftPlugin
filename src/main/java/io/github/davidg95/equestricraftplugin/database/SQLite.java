@@ -25,27 +25,14 @@ public class SQLite extends Database {
         dbname = "EquestriDatabase";
     }
 
-    public String createDisciplinesTable = "CREATE TABLE IF NOT EXISTS " + disciplinesTable + "("
-            + "id integer NOT NULL,"
-            + "uuid varchar(60) NOT NULL,"
-            + "discipline varchar(30) NOT NULL,"
-            + "PRIMARY KEY (id)"
-            + ")";
-
     public String createHorsesTable = "CREATE TABLE IF NOT EXISTS " + table + "("
             + "id integer NOT NULL,"
             + "uuid varchar(60) NOT NULL,"
             + "gender integer NOT NULL,"
-            + "vaccinated boolean NOT NULL,"
-            + "vacc_time long,"
-            + "hungry boolean NOT NULL,"
+            + "vaccinationTime long,"
             + "last_eat long,"
-            + "hunger_time long,"
-            + "thristy boolean NOT NULL,"
             + "last_drink long,"
-            + "thrist_time long,"
             + "ill_since long,"
-            + "ill boolean NOT NULL,"
             + "well_since long,"
             + "last_breed long,"
             + "defacate_since_eat boolean NOT NULL,"
@@ -56,16 +43,9 @@ public class SQLite extends Database {
             + "person2 varchar(30) NOT NULL,"
             + "dieat long NOT NULL,"
             + "illness varchar(30),"
-            + "shod boolean NOT NULL,"
+            + "shoed boolean NOT NULL,"
             + "training_level integer NOT NULL,"
             + "PRIMARY KEY (id)"
-            + ")";
-
-    public String createRolesTable = "CREATE TABLE IF NOT EXISTS " + rolesTable + "("
-            + "uuid varchar(60) NOT NULL,"
-            + "farrier boolean NOT NULL,"
-            + "doctor boolean NOT NULL,"
-            + "PRIMARY KEY (uuid)"
             + ")";
 
     @Override
@@ -101,9 +81,7 @@ public class SQLite extends Database {
         connection = getSQLConnection();
         try {
             Statement s = connection.createStatement();
-            s.executeUpdate(createDisciplinesTable);
             s.executeUpdate(createHorsesTable);
-            s.executeUpdate(createRolesTable);
             s.close();
         } catch (SQLException ex) {
             ex.printStackTrace();
