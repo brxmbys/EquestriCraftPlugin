@@ -1068,6 +1068,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                             MyHorse horse = database.getHorse(event.getEntity().getUniqueId()); //Get the horse that was clicked on.
                             if (horse == null) {
                                 player.sendMessage("This horse has no details assigned");
+                                horse = new MyHorse((Horse) event.getEntity());
+                                database.saveHorse(horse);
                                 return;
                             }
                             boolean sickness = horse.isSick();
