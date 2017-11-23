@@ -52,7 +52,7 @@ public class MyHorse implements Serializable {
     private boolean shod;
     private int trainingLevel;
 
-    private transient Horse horse;
+//    private transient Horse horse;
 
     /**
      * The length of time a vaccination will last.
@@ -113,7 +113,7 @@ public class MyHorse implements Serializable {
             }
         }
         this.personality = new Personality[]{p1, p2};
-        this.horse = h;
+//        this.horse = h;
         this.dieat = randomDieAt();
         this.illness = null;
         h.setBaby();
@@ -194,20 +194,20 @@ public class MyHorse implements Serializable {
         }
     }
 
-    private void setSideEffects(boolean set) {
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (set) {
-//                    horse.setJumpStrength(0.2);
-                    horse.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, (int) (HorseCheckerThread.SICK_LIMIT * 20), 1));
-                } else {
-//                    horse.setJumpStrength(0.7);
-                    horse.removePotionEffect(PotionEffectType.SLOW);
-                }
-            }
-        }.runTask(EquestriCraftPlugin.plugin);
-    }
+//    private void setSideEffects(boolean set) {
+//        new BukkitRunnable() {
+//            @Override
+//            public void run() {
+//                if (set) {
+////                    horse.setJumpStrength(0.2);
+////                    horse.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, (int) (HorseCheckerThread.SICK_LIMIT * 20), 1));
+//                } else {
+////                    horse.setJumpStrength(0.7);
+////                    horse.removePotionEffect(PotionEffectType.SLOW);
+//                }
+//            }
+//        }.runTask(EquestriCraftPlugin.plugin);
+//    }
 
     /**
      * Generate a random month between the age of 25 and 35.
@@ -242,91 +242,91 @@ public class MyHorse implements Serializable {
         return uuid;
     }
 
-    /**
-     * Checks if the horse is next to a cauldron or not.
-     *
-     * @param horse the horse to apply to.
-     * @return the block the cauldron is in, null if there is not one nearby.
-     */
-    public static Block getNearCauldron(MyHorse horse) {
-        if (horse == null || horse.getHorse() == null) {
-            return null;
-        }
-        final Horse h = horse.getHorse();
-        for (Block b : getNearbyBlocks(h)) {
-            if (b.getType() == Material.CAULDRON) {
-                return b;
-            }
-        }
-        return null;
-    }
+//    /**
+//     * Checks if the horse is next to a cauldron or not.
+//     *
+//     * @param horse the horse to apply to.
+//     * @return the block the cauldron is in, null if there is not one nearby.
+//     */
+//    public static Block getNearCauldron(MyHorse horse) {
+//        if (horse == null || horse.getHorse() == null) {
+//            return null;
+//        }
+//        final Horse h = horse.getHorse();
+//        for (Block b : getNearbyBlocks(h)) {
+//            if (b.getType() == Material.CAULDRON) {
+//                return b;
+//            }
+//        }
+//        return null;
+//    }
 
-    /**
-     * Checks if the horse is next to a hay bale.
-     *
-     * @param horse the horse to apply to.
-     * @return the block the hay bale is in, null if there is not one nearby.
-     */
-    public static Block getNearHayBale(MyHorse horse) {
-        if (horse == null || horse.getHorse() == null) {
-            return null;
-        }
-        final Horse h = horse.getHorse();
-        for (Block b : getNearbyBlocks(h)) {
-            if (b.getType() == Material.HAY_BLOCK) {
-                return b;
-            }
-        }
-        return null;
-    }
+//    /**
+//     * Checks if the horse is next to a hay bale.
+//     *
+//     * @param horse the horse to apply to.
+//     * @return the block the hay bale is in, null if there is not one nearby.
+//     */
+//    public static Block getNearHayBale(MyHorse horse) {
+//        if (horse == null || horse.getHorse() == null) {
+//            return null;
+//        }
+//        final Horse h = horse.getHorse();
+//        for (Block b : getNearbyBlocks(h)) {
+//            if (b.getType() == Material.HAY_BLOCK) {
+//                return b;
+//            }
+//        }
+//        return null;
+//    }
 
-    /**
-     * Get a List of all the block next to the horse.
-     *
-     * @param horse the horse object.
-     * @return the blocks as a list.
-     */
-    private static List<Block> getNearbyBlocks(Horse horse) {
-        final Location location = horse.getLocation();
+//    /**
+//     * Get a List of all the block next to the horse.
+//     *
+//     * @param horse the horse object.
+//     * @return the blocks as a list.
+//     */
+//    private static List<Block> getNearbyBlocks(Horse horse) {
+//        final Location location = horse.getLocation();
+//
+//        final List<Block> nearby = new ArrayList<>();
+//        nearby.add(location.getWorld().getBlockAt(location.getBlockX(), location.getBlockY(), location.getBlockZ() - 1));
+//        nearby.add(location.getWorld().getBlockAt(location.getBlockX(), location.getBlockY(), location.getBlockZ() + 1));
+//        nearby.add(location.getWorld().getBlockAt(location.getBlockX() - 1, location.getBlockY(), location.getBlockZ()));
+//        nearby.add(location.getWorld().getBlockAt(location.getBlockX() + 1, location.getBlockY(), location.getBlockZ()));
+//        nearby.add(location.getWorld().getBlockAt(location.getBlockX() - 1, location.getBlockY(), location.getBlockZ() - 1));
+//        nearby.add(location.getWorld().getBlockAt(location.getBlockX() + 1, location.getBlockY(), location.getBlockZ() - 1));
+//        nearby.add(location.getWorld().getBlockAt(location.getBlockX() - 1, location.getBlockY(), location.getBlockZ() + 1));
+//        nearby.add(location.getWorld().getBlockAt(location.getBlockX() + 1, location.getBlockY(), location.getBlockZ() + 1));
+//
+//        return nearby;
+//    }
 
-        final List<Block> nearby = new ArrayList<>();
-        nearby.add(location.getWorld().getBlockAt(location.getBlockX(), location.getBlockY(), location.getBlockZ() - 1));
-        nearby.add(location.getWorld().getBlockAt(location.getBlockX(), location.getBlockY(), location.getBlockZ() + 1));
-        nearby.add(location.getWorld().getBlockAt(location.getBlockX() - 1, location.getBlockY(), location.getBlockZ()));
-        nearby.add(location.getWorld().getBlockAt(location.getBlockX() + 1, location.getBlockY(), location.getBlockZ()));
-        nearby.add(location.getWorld().getBlockAt(location.getBlockX() - 1, location.getBlockY(), location.getBlockZ() - 1));
-        nearby.add(location.getWorld().getBlockAt(location.getBlockX() + 1, location.getBlockY(), location.getBlockZ() - 1));
-        nearby.add(location.getWorld().getBlockAt(location.getBlockX() - 1, location.getBlockY(), location.getBlockZ() + 1));
-        nearby.add(location.getWorld().getBlockAt(location.getBlockX() + 1, location.getBlockY(), location.getBlockZ() + 1));
-
-        return nearby;
-    }
-
-    /**
-     * Check if a horse is near a mate.
-     *
-     * @param horse the horse.
-     * @return true if they are near a mate, false if they are not.
-     */
-    public static HorseBreed nearMate(MyHorse horse) {
-        if (horse.getGender() != MARE) { //If it is not a mare, return false.
-            return null;
-        }
-        final List<Entity> nearby = horse.getHorse().getNearbyEntities(1.5, 1.5, 1.5); //Get entites withing a 1.5 block radius.
-        for (Entity e : nearby) {
-            if (e.getType() == EntityType.HORSE) { //Check if the entity is a horse.
-                final Horse h = (Horse) e;
-                final MyHorse mh = EquestriCraftPlugin.database.getHorse(h.getUniqueId());
-                if (horse.getGender() != STALLION) { //If it is a gelding, return false.
-                    return null;
-                }
-                if (horse.getGender() != mh.getGender()) { //If it is the opposite gender, return true.
-                    return mh.getBreed()[0];
-                }
-            }
-        }
-        return null;
-    }
+//    /**
+//     * Check if a horse is near a mate.
+//     *
+//     * @param horse the horse.
+//     * @return true if they are near a mate, false if they are not.
+//     */
+//    public static HorseBreed nearMate(MyHorse horse) {
+//        if (horse.getGender() != MARE) { //If it is not a mare, return false.
+//            return null;
+//        }
+//        final List<Entity> nearby = horse.getHorse().getNearbyEntities(1.5, 1.5, 1.5); //Get entites withing a 1.5 block radius.
+//        for (Entity e : nearby) {
+//            if (e.getType() == EntityType.HORSE) { //Check if the entity is a horse.
+//                final Horse h = (Horse) e;
+//                final MyHorse mh = EquestriCraftPlugin.database.getHorse(h.getUniqueId());
+//                if (horse.getGender() != STALLION) { //If it is a gelding, return false.
+//                    return null;
+//                }
+//                if (horse.getGender() != mh.getGender()) { //If it is the opposite gender, return true.
+//                    return mh.getBreed()[0];
+//                }
+//            }
+//        }
+//        return null;
+//    }
 
     /**
      * Method to generate a random gender. Either MyHorse.STALLION or
@@ -396,9 +396,9 @@ public class MyHorse implements Serializable {
         this.lastBreed = getCurrentTime();
     }
 
-    public Horse getHorse() {
-        return horse;
-    }
+//    public Horse getHorse() {
+//        return horse;
+//    }
 
     /**
      * Returns the duration in ms since that last vaccination.
@@ -466,19 +466,19 @@ public class MyHorse implements Serializable {
      * Make the horse defecate.
      */
     public void defecate() {
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (horse != null) {
-                    final Block block = horse.getLocation().getBlock();
-                    if (block.getType() == Material.AIR) {
-                        block.setType(Material.CARPET);
-                        byte b = 12;
-                        block.setData(b);
-                    }
-                }
-            }
-        }.runTask(EquestriCraftPlugin.plugin);
+//        new BukkitRunnable() {
+//            @Override
+//            public void run() {
+//                if (horse != null) {
+//                    final Block block = horse.getLocation().getBlock();
+//                    if (block.getType() == Material.AIR) {
+//                        block.setType(Material.CARPET);
+//                        byte b = 12;
+//                        block.setData(b);
+//                    }
+//                }
+//            }
+//        }.runTask(EquestriCraftPlugin.plugin);
         this.defecateSinceEat = true;
     }
 
@@ -535,7 +535,7 @@ public class MyHorse implements Serializable {
      */
     public void setSick(boolean sick) {
         if (sick) {
-            setSideEffects(true);
+//            setSideEffects(true);
             while (true) {
                 this.illness = Illness.randomIllness();
                 if (gender == MyHorse.MARE) {
@@ -549,7 +549,7 @@ public class MyHorse implements Serializable {
             this.illSince = getCurrentTime();
         } else {
             this.wellSince = getCurrentTime();
-            setSideEffects(false);
+//            setSideEffects(false);
         }
         this.ill = sick;
     }
@@ -572,20 +572,20 @@ public class MyHorse implements Serializable {
         return getCurrentTime() - this.wellSince;
     }
 
-    /**
-     * If there is a player on the horse, they will be removed and lose a
-     * fraction of their health.
-     */
-    public void buck() {
-        if (horse == null) {
-            return;
-        }
-        final Player player = (Player) horse.getPassenger();
-        if (player != null) {
-            horse.eject();
-            player.setHealth(player.getHealth() - (player.getHealthScale() / 10));
-        }
-    }
+//    /**
+//     * If there is a player on the horse, they will be removed and lose a
+//     * fraction of their health.
+//     */
+//    public void buck() {
+//        if (horse == null) {
+//            return;
+//        }
+//        final Player player = (Player) horse.getPassenger();
+//        if (player != null) {
+//            horse.eject();
+//            player.setHealth(player.getHealth() - (player.getHealthScale() / 10));
+//        }
+//    }
 
     /**
      * Get the time since the horse last bred in ms.
@@ -605,15 +605,15 @@ public class MyHorse implements Serializable {
         this.gender = gender;
     }
 
-    /**
-     * Set the horse object.
-     *
-     * @param h the horse object.
-     */
-    public void setHorse(Horse h) {
-        this.horse = h;
-        this.uuid = h.getUniqueId();
-    }
+//    /**
+//     * Set the horse object.
+//     *
+//     * @param h the horse object.
+//     */
+//    public void setHorse(Horse h) {
+//        this.horse = h;
+//        this.uuid = h.getUniqueId();
+//    }
 
     /**
      * Get the HorseBreed.
@@ -650,27 +650,27 @@ public class MyHorse implements Serializable {
      */
     public void setBreed(HorseBreed[] br) {
         this.breedArr = br;
-        try {
-            if (this.horse == null) {
-                return;
-            }
-        } catch (Exception e) {
-            return;
-        }
-        if (br[0] == HorseBreed.Donkey) {
-            this.horse.setVariant(Variant.DONKEY);
-        } else if (br[0] == HorseBreed.Mule) {
-            this.horse.setVariant(Variant.MULE);
-        } else if (br[0] == HorseBreed.FjordHorse) {
-            double d = Math.random();
-            if (d > 0.5) {
-                this.horse.setVariant(Variant.SKELETON_HORSE);
-            } else {
-                this.horse.setVariant(Variant.UNDEAD_HORSE);
-            }
-        } else {
-            this.horse.setVariant(Variant.HORSE);
-        }
+//        try {
+//            if (this.horse == null) {
+//                return;
+//            }
+//        } catch (Exception e) {
+//            return;
+//        }
+//        if (br[0] == HorseBreed.Donkey) {
+//            this.horse.setVariant(Variant.DONKEY);
+//        } else if (br[0] == HorseBreed.Mule) {
+//            this.horse.setVariant(Variant.MULE);
+//        } else if (br[0] == HorseBreed.FjordHorse) {
+//            double d = Math.random();
+//            if (d > 0.5) {
+//                this.horse.setVariant(Variant.SKELETON_HORSE);
+//            } else {
+//                this.horse.setVariant(Variant.UNDEAD_HORSE);
+//            }
+//        } else {
+//            this.horse.setVariant(Variant.HORSE);
+//        }
     }
 
     /**

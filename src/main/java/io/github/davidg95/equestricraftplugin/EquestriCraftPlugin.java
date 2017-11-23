@@ -28,6 +28,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.*;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 /**
  *
@@ -157,7 +158,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         loadProperties();
         container = DataContainer.getInstance();
         checkerThread = new HorseCheckerThread();
-        checkerThread.start();
+//        checkerThread.start();
         getServer().getPluginManager().registerEvents(this, this);
         if (!setupEconomy()) {
             LOG.log(Level.SEVERE, "Vault not detected, Disciplines has been disabled");
@@ -436,6 +437,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         } else {
                             return false;
                         }
+                        database.saveHorse(horse);
                         sender.sendMessage(ChatColor.BOLD + "Gender set to " + genderStr);
                     }
                 } else {
@@ -469,6 +471,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                             player.sendMessage("No horse selected");
                             return true;
                         }
+                        Horse h = this.getEntityByUniqueId(horse.getUuid());
                         HorseBreed br1 = null;
                         HorseBreed br2 = null;
                         switch (args.length) {
@@ -496,6 +499,21 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                             horse.setBreed(new HorseBreed[]{br1, br2});
                             sender.sendMessage(ChatColor.BOLD + "Breed set to " + horse.getBreed()[0].toString() + " x " + horse.getBreed()[1].toString());
                         }
+                        if (br1 == HorseBreed.Donkey) {
+                            h.setVariant(Horse.Variant.DONKEY);
+                        } else if (br1 == HorseBreed.Mule) {
+                            h.setVariant(Horse.Variant.MULE);
+                        } else if (br1 == HorseBreed.FjordHorse) {
+                            double d = Math.random();
+                            if (d > 0.5) {
+                                h.setVariant(Horse.Variant.SKELETON_HORSE);
+                            } else {
+                                h.setVariant(Horse.Variant.UNDEAD_HORSE);
+                            }
+                        } else {
+                            h.setVariant(Horse.Variant.HORSE);
+                        }
+                        database.saveHorse(horse);
                     }
                 } else {
                     sender.sendMessage("Only ops can use this command");
@@ -537,6 +555,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                             return true;
                         }
                         horse.setPersonalities(p1, p2);
+                        database.saveHorse(horse);
                         sender.sendMessage(ChatColor.BOLD + "Personality set to " + p1.toString() + " and " + p2.toString());
                     }
                 } else {
@@ -584,6 +603,24 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                                 return true;
                             }
                             mh.setAgeInMonths(months);
+                            if (mh.getAgeInMonths() >= 12) { //Check if the horse can become an adult
+                                Horse h = getEntityByUniqueId(mh.getUuid());
+                                new BukkitRunnable() {
+                                    @Override
+                                    public void run() {
+                                        h.setAdult();
+                                    }
+                                }.runTask(EquestriCraftPlugin.plugin);
+                            } else {
+                                Horse h = getEntityByUniqueId(mh.getUuid());
+                                new BukkitRunnable() {
+                                    @Override
+                                    public void run() {
+                                        h.setBaby();
+                                    }
+                                }.runTask(EquestriCraftPlugin.plugin);
+                            }
+                            database.saveHorse(mh);
                             player.sendMessage("Age set");
                         } catch (NumberFormatException ex) {
                             player.sendMessage("Must enter a number for months");
@@ -1253,6 +1290,11 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         return;
                     }
                     if (!OP_REQ || player.isOp()) {
+                        if (player.hasMetadata("horse")) {
+                            player.removeMetadata("horse", plugin);
+                            player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "You are no longer editing this horse");
+                            return;
+                        }
                         final Horse horse = (Horse) event.getRightClicked(); //Get the horse that was clicked on.
                         MyHorse mh = database.getHorse(horse.getUniqueId());
                         if (mh == null) {
@@ -1260,7 +1302,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                             database.saveHorse(mh);
                         }
                         player.setMetadata("horse", new FixedMetadataValue(EquestriCraftPlugin.plugin, horse.getUniqueId()));
-                        player.sendMessage("You are now editing this horse");
+                        player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "You are now editing this horse");
                     }
                     event.setCancelled(true);
                     break;

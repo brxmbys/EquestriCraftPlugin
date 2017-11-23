@@ -188,59 +188,59 @@ public class DataContainer {
         saveThread.start();
     }
 
-    private void pairHorses() {
-        int horsesInWorld = 0;
-        int horsesPaired = 0;
-
-        int geld = 0;
-        int stal = 0;
-        int mare = 0;
-        for (World world : Bukkit.getWorlds()) {
-            search:
-            for (Entity entity : world.getEntities()) {
-                if (entity.getType() != EntityType.HORSE) {
-                    continue;
-                }
-                final Horse h = (Horse) entity;
-                horsesInWorld++;
-                if (horsesInWorld % 500 == 0) {
-                    EquestriCraftPlugin.LOG.log(Level.INFO, "Scanned: " + horsesInWorld);
-                }
-                for (MyHorse horse : horses) {
-                    if (horse == null || horse.getUuid() == null) {
-                        continue;
-                    }
-                    if (h.getUniqueId().equals(horse.getUuid())) {
-                        horse.setHorse(h);
-                        horsesPaired++;
-                        switch (horse.getGender()) {
-                            case MyHorse.GELDING:
-                                geld++;
-                                break;
-                            case MyHorse.MARE:
-                                mare++;
-                                break;
-                            case MyHorse.STALLION:
-                                stal++;
-                                break;
-                        }
-                        continue search;
-                    }
-                }
-                //If execution get here, then the horse does not exist in the file, so it needes to be initialised.
-//                EquestriCraftPlugin.LOG.log(Level.INFO, "Adding new horse");
-//                final MyHorse mh = new MyHorse(h);
-//                horsesToAdd.add(mh);
-            }
-        }
-        EquestriCraftPlugin.LOG.log(Level.INFO, "Load complete");
-        EquestriCraftPlugin.LOG.log(Level.INFO, "Number of horses in world: " + horsesInWorld);
-        EquestriCraftPlugin.LOG.log(Level.INFO, "Number of horses paired: " + horsesPaired);
-        EquestriCraftPlugin.LOG.log(Level.INFO, "Stallions: " + stal);
-        EquestriCraftPlugin.LOG.log(Level.INFO, "Mares: " + mare);
-        EquestriCraftPlugin.LOG.log(Level.INFO, "Geldings: " + geld);
-        EquestriCraftPlugin.LOG.log(Level.INFO, "None assigned: " + (horsesInWorld - horsesPaired));
-    }
+//    private void pairHorses() {
+//        int horsesInWorld = 0;
+//        int horsesPaired = 0;
+//
+//        int geld = 0;
+//        int stal = 0;
+//        int mare = 0;
+//        for (World world : Bukkit.getWorlds()) {
+//            search:
+//            for (Entity entity : world.getEntities()) {
+//                if (entity.getType() != EntityType.HORSE) {
+//                    continue;
+//                }
+//                final Horse h = (Horse) entity;
+//                horsesInWorld++;
+//                if (horsesInWorld % 500 == 0) {
+//                    EquestriCraftPlugin.LOG.log(Level.INFO, "Scanned: " + horsesInWorld);
+//                }
+//                for (MyHorse horse : horses) {
+//                    if (horse == null || horse.getUuid() == null) {
+//                        continue;
+//                    }
+//                    if (h.getUniqueId().equals(horse.getUuid())) {
+//                        horse.setHorse(h);
+//                        horsesPaired++;
+//                        switch (horse.getGender()) {
+//                            case MyHorse.GELDING:
+//                                geld++;
+//                                break;
+//                            case MyHorse.MARE:
+//                                mare++;
+//                                break;
+//                            case MyHorse.STALLION:
+//                                stal++;
+//                                break;
+//                        }
+//                        continue search;
+//                    }
+//                }
+//                //If execution get here, then the horse does not exist in the file, so it needes to be initialised.
+////                EquestriCraftPlugin.LOG.log(Level.INFO, "Adding new horse");
+////                final MyHorse mh = new MyHorse(h);
+////                horsesToAdd.add(mh);
+//            }
+//        }
+//        EquestriCraftPlugin.LOG.log(Level.INFO, "Load complete");
+//        EquestriCraftPlugin.LOG.log(Level.INFO, "Number of horses in world: " + horsesInWorld);
+//        EquestriCraftPlugin.LOG.log(Level.INFO, "Number of horses paired: " + horsesPaired);
+//        EquestriCraftPlugin.LOG.log(Level.INFO, "Stallions: " + stal);
+//        EquestriCraftPlugin.LOG.log(Level.INFO, "Mares: " + mare);
+//        EquestriCraftPlugin.LOG.log(Level.INFO, "Geldings: " + geld);
+//        EquestriCraftPlugin.LOG.log(Level.INFO, "None assigned: " + (horsesInWorld - horsesPaired));
+//    }
 
     /**
      * Returns an instance of the data container.
@@ -392,7 +392,7 @@ public class DataContainer {
         try (InputStream is = new FileInputStream(HORSES_FILE)) {
             final ObjectInputStream oi = new ObjectInputStream(is);
             List<MyHorse> horses = (List<MyHorse>) oi.readObject();
-            pairHorses();
+//            pairHorses();
             doctors = (List<UUID>) oi.readObject();
             farriers = (List<UUID>) oi.readObject();
         } catch (FileNotFoundException ex) {

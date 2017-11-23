@@ -67,10 +67,8 @@ public class HorseCheckerThread extends Thread {
      */
     public static double VACCINATED_PROBABILITY = 0.0001;
 
-    private final BreedCheckerThread breedThread;
-
-    private Thread bAndCThread;
-
+//    private final BreedCheckerThread breedThread;
+//    private Thread bAndCThread;
     private final List<Block> bales;
     private final List<Block> cauldrons;
 
@@ -90,7 +88,7 @@ public class HorseCheckerThread extends Thread {
         super("Horse_Checker_Thread");
         bales = new LinkedList<>();
         cauldrons = new LinkedList<>();
-        breedThread = new BreedCheckerThread();
+//        breedThread = new BreedCheckerThread();
         baleLock = new StampedLock();
         cauldronLock = new StampedLock();
         database = EquestriCraftPlugin.database;
@@ -152,9 +150,9 @@ public class HorseCheckerThread extends Thread {
             }
         };
 
-        bAndCThread = new Thread(baleRun, "Bale_Cauldron_Checker");
-        bAndCThread.setDaemon(true);
-        bAndCThread.start(); //Start the able and cauldron thread.
+//        bAndCThread = new Thread(baleRun, "Bale_Cauldron_Checker");
+//        bAndCThread.setDaemon(true);
+//        bAndCThread.start(); //Start the able and cauldron thread.
     }
 
     @Override
@@ -170,9 +168,9 @@ public class HorseCheckerThread extends Thread {
                     if (horse == null) {
                         continue;
                     }
-                    if (horse.getHorse() == null) {
-                        continue;
-                    }
+//                    if (horse.getHorse() == null) {
+//                        continue;
+//                    }
 
 //                    new BukkitRunnable() {
 //                        @Override
@@ -274,17 +272,19 @@ public class HorseCheckerThread extends Thread {
                     }
 
                     if (horse.getAgeInMonths() >= 12) { //Check if the horse can become an adult
+                        Horse h = getEntityByUniqueId(horse.getUuid());
                         new BukkitRunnable() {
                             @Override
                             public void run() {
-                                horse.getHorse().setAdult();
+                                h.setAdult();
                             }
                         }.runTask(EquestriCraftPlugin.plugin);
                     } else {
+                        Horse h = getEntityByUniqueId(horse.getUuid());
                         new BukkitRunnable() {
                             @Override
                             public void run() {
-                                horse.getHorse().setBaby();
+                                h.setBaby();
                             }
                         }.runTask(EquestriCraftPlugin.plugin);
                     }
@@ -357,51 +357,51 @@ public class HorseCheckerThread extends Thread {
         this.run = run;
     }
 
-    public class BreedCheckerThread extends Thread {
-
-        public BreedCheckerThread() {
-            super("Breed_Checker_Thread");
-        }
-
-        @Override
-        public void run() {
-            while (run) {
-                try {
-                    Iterator<MyHorse> it = database.getHorses().iterator();
-                    while (it.hasNext()) {
-                        MyHorse horse = it.next();
-                        if (horse.getAgeInMonths() < 12) {
-                            continue;
-                        }
-                        final double r = Math.random();
-                        if (r <= BREED_PROBABILITY) { //If the breed probability is met.
-                            final long timeSinceLast = horse.getDurationSinceLastBreed(); //Get the time since the horse last bred.
-                            if (timeSinceLast > BREED_INTERVAL) { //Check if it is greater then the breed inverval.
-                                HorseBreed br = MyHorse.nearMate(horse);
-                                if (br != null) { //Check if the horse is near a valid mate.
-                                    horse.setLastBreed();
-                                    new BukkitRunnable() {
-                                        @Override
-                                        public void run() {
-                                            final Horse h = horse.getHorse().getWorld().spawn(horse.getHorse().getLocation(), Horse.class); //Spawn a new horse.
-                                            h.setStyle(horse.getHorse().getStyle()); //Copy the parent style.
-                                            h.setMetadata("breed1", new FixedMetadataValue(EquestriCraftPlugin.plugin, horse.getBreed()[0].name()));
-                                            h.setMetadata("breed2", new FixedMetadataValue(EquestriCraftPlugin.plugin, br.name()));
-                                        }
-                                    }.runTask(EquestriCraftPlugin.plugin);
-                                }
-                            }
-                        }
-                    }
-                } catch (Exception e) {
-
-                }
-                try {
-                    Thread.sleep(BREED_THREAD_INTERVAL); //Wait
-                } catch (Exception ex) {
-                    Logger.getLogger(HorseCheckerThread.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-        }
-    }
+//    public class BreedCheckerThread extends Thread {
+//
+//        public BreedCheckerThread() {
+//            super("Breed_Checker_Thread");
+//        }
+//
+//        @Override
+//        public void run() {
+//            while (run) {
+//                try {
+//                    Iterator<MyHorse> it = database.getHorses().iterator();
+//                    while (it.hasNext()) {
+//                        MyHorse horse = it.next();
+//                        if (horse.getAgeInMonths() < 12) {
+//                            continue;
+//                        }
+//                        final double r = Math.random();
+//                        if (r <= BREED_PROBABILITY) { //If the breed probability is met.
+//                            final long timeSinceLast = horse.getDurationSinceLastBreed(); //Get the time since the horse last bred.
+//                            if (timeSinceLast > BREED_INTERVAL) { //Check if it is greater then the breed inverval.
+//                                HorseBreed br = MyHorse.nearMate(horse);
+//                                if (br != null) { //Check if the horse is near a valid mate.
+//                                    horse.setLastBreed();
+//                                    new BukkitRunnable() {
+//                                        @Override
+//                                        public void run() {
+//                                            final Horse h = horse.getHorse().getWorld().spawn(horse.getHorse().getLocation(), Horse.class); //Spawn a new horse.
+//                                            h.setStyle(horse.getHorse().getStyle()); //Copy the parent style.
+//                                            h.setMetadata("breed1", new FixedMetadataValue(EquestriCraftPlugin.plugin, horse.getBreed()[0].name()));
+//                                            h.setMetadata("breed2", new FixedMetadataValue(EquestriCraftPlugin.plugin, br.name()));
+//                                        }
+//                                    }.runTask(EquestriCraftPlugin.plugin);
+//                                }
+//                            }
+//                        }
+//                    }
+//                } catch (Exception e) {
+//
+//                }
+//                try {
+//                    Thread.sleep(BREED_THREAD_INTERVAL); //Wait
+//                } catch (Exception ex) {
+//                    Logger.getLogger(HorseCheckerThread.class.getName()).log(Level.SEVERE, null, ex);
+//                }
+//            }
+//        }
+//    }
 }
