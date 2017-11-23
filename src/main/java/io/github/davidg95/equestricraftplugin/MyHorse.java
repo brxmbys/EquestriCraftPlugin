@@ -316,7 +316,7 @@ public class MyHorse implements Serializable {
         for (Entity e : nearby) {
             if (e.getType() == EntityType.HORSE) { //Check if the entity is a horse.
                 final Horse h = (Horse) e;
-                final MyHorse mh = DataContainer.getInstance().getHorse(h.getUniqueId());
+                final MyHorse mh = EquestriCraftPlugin.database.getHorse(h.getUniqueId());
                 if (horse.getGender() != STALLION) { //If it is a gelding, return false.
                     return null;
                 }

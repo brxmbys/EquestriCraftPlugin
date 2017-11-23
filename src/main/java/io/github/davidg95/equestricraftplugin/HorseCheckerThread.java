@@ -3,6 +3,7 @@
  */
 package io.github.davidg95.equestricraftplugin;
 
+import io.github.davidg95.equestricraftplugin.database.Database;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -75,8 +76,7 @@ public class HorseCheckerThread extends Thread {
 
     public static long MAIN_THREAD_INTERVAL = 2000;
 
-    private final DataContainer container;
-
+    private final Database database;
     private volatile boolean run;
 
     public static boolean SHOW_TIME = false;
@@ -88,12 +88,12 @@ public class HorseCheckerThread extends Thread {
         breedThread = new BreedCheckerThread();
         baleLock = new StampedLock();
         cauldronLock = new StampedLock();
-        container = DataContainer.getInstance();
+        database = EquestriCraftPlugin.database;
         run = true;
     }
 
     private void init() {
-        breedThread.start();
+//        breedThread.start();
         //Create the bale and cauldron checking thread.
         final Runnable baleRun = new Runnable() {
             @Override
@@ -159,7 +159,7 @@ public class HorseCheckerThread extends Thread {
             final long start = new Date().getTime();
             int horsesChecked = 0;
             try {
-                Iterator it = container.getAllHorses().iterator();
+                Iterator it = database.getHorses().iterator();
                 while (it.hasNext()) {
                     final MyHorse horse = (MyHorse) it.next();
                     if (horse == null) {
@@ -279,6 +279,7 @@ public class HorseCheckerThread extends Thread {
                             }
                         }.runTask(EquestriCraftPlugin.plugin);
                     }
+                    database.saveHorse(horse);
                     horsesChecked++;
                 }
             } catch (Exception e) {
@@ -344,8 +345,9 @@ public class HorseCheckerThread extends Thread {
         public void run() {
             while (run) {
                 try {
-                    for (int i = 0; i < container.getAllHorses().size(); i++) {
-                        MyHorse horse = container.getAllHorses().get(i);
+                    Iterator<MyHorse> it = database.getHorses().iterator();
+                    while (it.hasNext()) {
+                        MyHorse horse = it.next();
                         if (horse.getAgeInMonths() < 12) {
                             continue;
                         }

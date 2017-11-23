@@ -13,7 +13,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -45,6 +44,31 @@ public abstract class Database {
             close(ps, rs);
         } catch (SQLException ex) {
             plugin.getLogger().log(Level.SEVERE, "Unable to retrieve connection", ex);
+        }
+    }
+
+    public void removeHorse(UUID uuid) {
+        Connection conn = null;
+        PreparedStatement ps = null;
+
+        try {
+            conn = getSQLConnection();
+            ps = conn.prepareStatement("DELETE FROM " + table + " WHERE uuid='" + uuid.toString() + "'");
+            ps.executeUpdate();
+            plugin.getLogger().log(Level.INFO, "Horse " + uuid + " has been removed from the database");
+        } catch (SQLException ex) {
+            plugin.getLogger().log(Level.SEVERE, Errors.sqlConnectionExecute(), ex);
+        } finally {
+            try {
+                if (ps != null) {
+                    ps.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+                plugin.getLogger().log(Level.SEVERE, Errors.sqlConnectionClose(), ex);
+            }
         }
     }
 
@@ -157,16 +181,10 @@ public abstract class Database {
             while (rs.next()) {
                 UUID uuid = UUID.fromString(rs.getString("uuid"));
                 int gender = rs.getInt("gender");
-                boolean vaccinated = rs.getBoolean("vaccinated");
-                long vacc_time = rs.getLong("vacc_time");
-                boolean hungry = rs.getBoolean("hungry");
+                long vacc_time = rs.getLong("vaccinationTime");
                 long lastEat = rs.getLong("last_eat");
-                long hungerTime = rs.getLong("hunger_time");
-                boolean thirsty = rs.getBoolean("thristy");
                 long lastDrink = rs.getLong("last_drink");
-                long thirstTime = rs.getLong("thrist_time");
                 long illSince = rs.getLong("ill_since");
-                boolean ill = rs.getBoolean("ill");
                 long wellSince = rs.getLong("well_since");
                 long lastBreed = rs.getLong("last_breed");
                 boolean defacateSinceEat = rs.getBoolean("defacate_since_eat");
@@ -177,7 +195,7 @@ public abstract class Database {
                 String personality2 = rs.getString("person2");
                 int dieat = rs.getInt("dieat");
                 String illness = rs.getString("illness");
-                boolean shod = rs.getBoolean("shod");
+                boolean shoed = rs.getBoolean("shoed");
                 int trainingLevel = rs.getInt("training_level");
 
                 HorseBreed breed[] = new HorseBreed[]{HorseBreed.valueOf(breed1), HorseBreed.valueOf(breed2)};
@@ -187,7 +205,7 @@ public abstract class Database {
                     ill_type = Illness.valueOf(illness);
                 }
 
-                MyHorse horse = new MyHorse(vacc_time, vaccinated, gender, uuid, lastEat, hungry, hungerTime, lastDrink, thirsty, thirstTime, illSince, ill, wellSince, lastBreed, defacateSinceEat, breed, birth, person, dieat, ill_type, shod, trainingLevel);
+                MyHorse horse = new MyHorse(vacc_time, gender, uuid, lastEat, lastDrink, illSince, wellSince, lastBreed, defacateSinceEat, breed, birth, person, dieat, ill_type, shoed, trainingLevel);
                 horses.add(horse);
             }
             return horses;

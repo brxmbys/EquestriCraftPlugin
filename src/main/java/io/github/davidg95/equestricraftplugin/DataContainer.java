@@ -359,31 +359,24 @@ public class DataContainer {
         final long stamp = fileLock.writeLock();
         try {
             EquestriCraftPlugin.LOG.log(Level.INFO, "Saving horses...");
-//            final File file = new File(HORSES_FILE);
-//            if (file.exists()) {
-//                file.delete();
-//            }
-//            try {
-//                file.createNewFile();
-//            } catch (IOException ex) {
-//                EquestriCraftPlugin.plugin.getLogger().log(Level.SEVERE, null, ex);
-//            }
-//            try (OutputStream os = new FileOutputStream(HORSES_FILE)) {
-//                final ObjectOutputStream oo = new ObjectOutputStream(os);
-//                oo.writeObject(horses);
-//                oo.writeObject(doctors);
-//                oo.writeObject(farriers);
-//            } catch (FileNotFoundException ex) {
-//                EquestriCraftPlugin.plugin.getLogger().log(Level.SEVERE, null, ex);
-//            } catch (IOException ex) {
-//                EquestriCraftPlugin.plugin.getLogger().log(Level.SEVERE, null, ex);
-//            }
+            final File file = new File(HORSES_FILE);
+            if (file.exists()) {
+                file.delete();
+            }
             try {
-                for (MyHorse mh : horses) {
-                    EquestriCraftPlugin.database.saveHorse(mh);
-                }
-            } catch (Throwable th) {
-                EquestriCraftPlugin.LOG.log(Level.SEVERE, "Error", th);
+                file.createNewFile();
+            } catch (IOException ex) {
+                EquestriCraftPlugin.plugin.getLogger().log(Level.SEVERE, null, ex);
+            }
+            try (OutputStream os = new FileOutputStream(HORSES_FILE)) {
+                final ObjectOutputStream oo = new ObjectOutputStream(os);
+                oo.writeObject(horses);
+                oo.writeObject(doctors);
+                oo.writeObject(farriers);
+            } catch (FileNotFoundException ex) {
+                EquestriCraftPlugin.plugin.getLogger().log(Level.SEVERE, null, ex);
+            } catch (IOException ex) {
+                EquestriCraftPlugin.plugin.getLogger().log(Level.SEVERE, null, ex);
             }
         } finally {
             fileLock.unlockWrite(stamp);
@@ -398,7 +391,7 @@ public class DataContainer {
         final long stamp = fileLock.readLock();
         try (InputStream is = new FileInputStream(HORSES_FILE)) {
             final ObjectInputStream oi = new ObjectInputStream(is);
-            horses = (List<MyHorse>) oi.readObject();
+            List<MyHorse> horses = (List<MyHorse>) oi.readObject();
             pairHorses();
             doctors = (List<UUID>) oi.readObject();
             farriers = (List<UUID>) oi.readObject();
