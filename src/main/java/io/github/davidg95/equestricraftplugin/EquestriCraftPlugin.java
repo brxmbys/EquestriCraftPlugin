@@ -226,6 +226,9 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             sender.sendMessage("Checker Thread: " + checkerThread.isAlive());
             return true;
         } else if (cmd.getName().equalsIgnoreCase("createhorse")) {   //createhorse command
+            if (!sender.hasPermission("equestricraft.spawnhorse")) {
+                return true;
+            }
             switch (args.length) {
                 case 0:
                     if (sender instanceof Player) {
@@ -256,6 +259,10 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         } else if (cmd.getName().equalsIgnoreCase("geldingtool")) {   //geldingtool command
             if (sender instanceof Player) {
                 final Player player = (Player) sender;
+                if (!player.hasPermission("equestricraft.tools.gelding")) {
+                    player.sendMessage(ChatColor.RED + "You do not have permission to use this");
+                    return true;
+                }
                 final PlayerInventory inventory = player.getInventory();
                 final ItemStack shears = new ItemStack(Material.SHEARS, 1);
                 final ItemMeta im = shears.getItemMeta();
@@ -1289,7 +1296,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     if (!inHand.getItemMeta().getDisplayName().equals(HORSE_WAND)) { //Check it is the horse wand.
                         return;
                     }
-                    if (!OP_REQ || player.isOp()) {
+                    if (player.hasPermission("equestricraft.tools.edithorse")) {
                         if (player.hasMetadata("horse")) {
                             player.removeMetadata("horse", plugin);
                             player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "You are no longer editing this horse");

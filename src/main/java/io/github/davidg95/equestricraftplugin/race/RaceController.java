@@ -42,11 +42,11 @@ public class RaceController implements CommandExecutor {
                     double prize1 = Double.parseDouble(args[2]);
                     double prize2 = Double.parseDouble(args[3]);
                     double prize3 = Double.parseDouble(args[4]);
-                    if (!serverOrOp(sender)) {
+                    if (!sender.hasPermission("equestricraft.race.prize")) {
                         prize1 = 0;
                         prize2 = 0;
                         prize3 = 0;
-                        sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Only staff can start races with a prize");
+                        sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "You do not have permission to set a race with a prize");
                     }
                     race = new Race(laps, prize1, prize2, prize3);
                     Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "***" + laps + " lap race is now open for entries" + (prize1 > 0 ? ". $" + new DecimalFormat("0").format(prize1) + " reward for first place!" : "") + "***");
