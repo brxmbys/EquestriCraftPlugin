@@ -219,19 +219,19 @@ public class MyHorse implements Serializable {
         return (int) (r * 120) + 300;
     }
 
-    /**
-     * Kill the horse.
-     */
-    public void kill() {
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (horse != null) {
-                    horse.setHealth(0);
-                }
-            }
-        }.runTask(EquestriCraftPlugin.plugin);
-    }
+//    /**
+//     * Kill the horse.
+//     */
+//    public void kill() {
+//        new BukkitRunnable() {
+//            @Override
+//            public void run() {
+//                if (horse != null) {
+//                    horse.setHealth(0);
+//                }
+//            }
+//        }.runTask(EquestriCraftPlugin.plugin);
+//    }
 
     /**
      * Get the UUID of the horse.

@@ -22,7 +22,6 @@ import org.bukkit.event.entity.*;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.event.server.ServerListPingEvent;
-import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -46,10 +45,10 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     private Properties properties;
     private static final String PROPERTIES_FILE = "equestricraftplugin.properties";
 
-    public static final String POTION_NAME = "Healer";
-    public static final String SHEARS_NAME = "Gelding Shears";
-    public static final String STICK_NAME = "Horse checking wand";
-    public static final String VACCINE_NAME = "Vaccination";
+    public static final String MEDICINE = "Healer";
+    public static final String GELDING_TOOL = "Gelding Shears";
+    public static final String HORSE_WAND = "Horse checking wand";
+    public static final String VACCINATION_TOOL = "Vaccination";
     public static final String ONE_USE_VACCINATION = "One use vaccination";
     public static int ONE_USE_COST = 150;
     public static final String DOCTOR_TOOL = "Doctor's Tool";
@@ -259,7 +258,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                 final PlayerInventory inventory = player.getInventory();
                 final ItemStack shears = new ItemStack(Material.SHEARS, 1);
                 final ItemMeta im = shears.getItemMeta();
-                im.setDisplayName(SHEARS_NAME);
+                im.setDisplayName(GELDING_TOOL);
                 final List<String> comments = new ArrayList<>();
                 comments.add("Used for gelding a Stallion");
                 im.setLore(comments);
@@ -276,7 +275,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     final PlayerInventory inventory = player.getInventory();
                     final ItemStack medicine = new ItemStack(Material.REDSTONE_TORCH_ON, 1);
                     final ItemMeta im = medicine.getItemMeta();
-                    im.setDisplayName(POTION_NAME);
+                    im.setDisplayName(MEDICINE);
                     final List<String> comments = new ArrayList<>();
                     comments.add("Used to heal an ill horse");
                     im.setLore(comments);
@@ -293,7 +292,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                 final PlayerInventory inventory = player.getInventory();
                 final ItemStack stick = new ItemStack(Material.STICK, 1);
                 final ItemMeta im = stick.getItemMeta();
-                im.setDisplayName(STICK_NAME);
+                im.setDisplayName(HORSE_WAND);
                 final List<String> comments = new ArrayList<>();
                 comments.add("Used to check a horses gender and health");
                 im.setLore(comments);
@@ -332,7 +331,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     final PlayerInventory inventory = player.getInventory();
                     final ItemStack vaccine = new ItemStack(Material.BLAZE_ROD, 1);
                     final ItemMeta im = vaccine.getItemMeta();
-                    im.setDisplayName(VACCINE_NAME);
+                    im.setDisplayName(VACCINATION_TOOL);
                     final List<String> comments = new ArrayList<>();
                     comments.add("Used to vaccinate horses.");
                     comments.add("Vaccinations last for 4 weeks");
@@ -672,21 +671,6 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             }
             sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/eqhelp - " + ChatColor.RESET + "shows this message");
             return true;
-        } else if (cmd.getName().equalsIgnoreCase("cleanup")) {
-            sender.sendMessage("Command disabled");
-            return true;
-//            if (sender instanceof Player) {
-//                sender.sendMessage("This command can only be run from the console");
-//                return true;
-//            }
-//            final Runnable run = new Runnable() {
-//                @Override
-//                public void run() {
-//                    container.cleanHorses();
-//                }
-//            };
-//            final Thread thread = new Thread(run, "Cleanup_Thread");
-//            thread.start();
         } else if (cmd.getName().equalsIgnoreCase("eqh")) {
             if (args.length >= 1) {
                 String arg = args[0];
@@ -705,7 +689,10 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                                 sender.sendMessage("No horse selected");
                                 return true;
                             }
-                            mh.kill();
+                            Horse h = getEntityByUniqueId(mh.getUuid());
+                            if (h != null) {
+                                h.setHealth(0);
+                            }
                             return true;
                         }
                         return true;
@@ -992,6 +979,19 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         return false;
     }
 
+    public Horse getEntityByUniqueId(UUID uniqueId) {
+        for (World world : Bukkit.getWorlds()) {
+            for (Chunk chunk : world.getLoadedChunks()) {
+                for (Entity entity : chunk.getEntities()) {
+                    if (entity.getUniqueId().equals(uniqueId)) {
+                        return (Horse) entity;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
     /**
      * This method ejects players from horses when they leave.
      *
@@ -1008,29 +1008,6 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         h.eject();
     }
 
-//    /**
-//     * This method will get the horses from a chunk load event and ensure pair
-//     * them with horses from the file.
-//     *
-//     * @param event
-//     */
-//    @EventHandler
-//    public void onChunkLoad(ChunkLoadEvent event) {
-//        try {
-//            for (final Entity e : event.getChunk().getEntities()) {
-//                if (e.getType() == EntityType.HORSE) {
-//                    final MyHorse mh = database.getHorse(e.getUniqueId());
-//                    if (mh == null) {
-//                        database.saveHorse(mh);
-//                    } else {
-//                        database.getHorse(e.getUniqueId()).setHorse((Horse) e);
-//                    }
-//                }
-//            }
-//        } catch (Throwable e) {
-//            LOG.log(Level.SEVERE, "Error on chunk load", e);
-//        }
-//    }
     @EventHandler
     public void onFoodChangeEvent(FoodLevelChangeEvent evt) {
         if (BLOCK_HUNGER) {
@@ -1060,7 +1037,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     if (!inHand.getItemMeta().hasDisplayName()) { //Check the shears have a display name.
                         return;
                     }
-                    if (!inHand.getItemMeta().getDisplayName().equals(SHEARS_NAME)) { //Check the shears are the Gelding Shears.
+                    if (!inHand.getItemMeta().getDisplayName().equals(GELDING_TOOL)) { //Check the shears are the Gelding Shears.
                         return;
                     }
                     event.setCancelled(true);
@@ -1080,7 +1057,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     if (!inHand.getItemMeta().hasDisplayName()) { //Check the stick has a display name.
                         return;
                     }
-                    if (inHand.getItemMeta().getDisplayName().equals(STICK_NAME)) { //Check the stick is the horse wand.
+                    if (inHand.getItemMeta().getDisplayName().equals(HORSE_WAND)) { //Check the stick is the horse wand.
                         event.setCancelled(true);
                         if (event.getEntity() instanceof Horse) {
                             MyHorse horse = database.getHorse(event.getEntity().getUniqueId()); //Get the horse that was clicked on.
@@ -1188,7 +1165,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     if (!inHand.getItemMeta().hasDisplayName()) {
                         return;
                     }
-                    if (inHand.getItemMeta().getDisplayName().equals(VACCINE_NAME)) {
+                    if (inHand.getItemMeta().getDisplayName().equals(VACCINATION_TOOL)) {
                         event.setCancelled(true);
                         if (event.getEntity() instanceof Horse) {
                             final MyHorse horse = database.getHorse(event.getEntity().getUniqueId());
@@ -1223,7 +1200,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     if (!inHand.getItemMeta().hasDisplayName()) {
                         return;
                     }
-                    if (!inHand.getItemMeta().getDisplayName().equals(POTION_NAME)) {
+                    if (!inHand.getItemMeta().getDisplayName().equals(MEDICINE)) {
                         return;
                     }
                     event.setCancelled(true);
@@ -1272,7 +1249,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     if (!inHand.getItemMeta().hasDisplayName()) { //Check the shears have a display name.
                         return;
                     }
-                    if (!inHand.getItemMeta().getDisplayName().equals(STICK_NAME)) { //Check it is the horse wand.
+                    if (!inHand.getItemMeta().getDisplayName().equals(HORSE_WAND)) { //Check it is the horse wand.
                         return;
                     }
                     if (!OP_REQ || player.isOp()) {
@@ -1284,13 +1261,6 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         }
                         player.setMetadata("horse", new FixedMetadataValue(EquestriCraftPlugin.plugin, horse.getUniqueId()));
                         player.sendMessage("You are now editing this horse");
-//                    if (horse.getTarget() == null) {
-//                        horse.setTarget(player);
-//                        player.sendMessage("Horse will follow you");
-//                    } else {
-//                        horse.setTarget(null);
-//                        player.sendMessage("Horse will not follow you");
-//                    }
                     }
                     event.setCancelled(true);
                     break;

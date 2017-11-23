@@ -8,11 +8,16 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.locks.StampedLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.bukkit.Bukkit;
+import org.bukkit.Chunk;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Horse;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.metadata.MetadataValue;
@@ -219,9 +224,11 @@ public class HorseCheckerThread extends Thread {
 //                        }
 //                    }.runTask(EquestriCraftPlugin.plugin);
                     if (horse.isSick() && horse.getIllDuration() > SICK_LIMIT) { //Check if the horse has been sick fo too long.
-                        horse.kill();
-                        EquestriCraftPlugin.LOG.log(Level.INFO, "A horse died of illness");
-                        it.remove();
+                        Horse h = getEntityByUniqueId(horse.getUuid());
+                        if (h != null) {
+                            h.setHealth(0);
+                            EquestriCraftPlugin.LOG.log(Level.INFO, "A horse died of illness");
+                        }
                     }
 //                    if (horse.isHungry() && horse.getHungerDuration() > SICK_LIMIT) { //Kill the horse if it has been hungry longer than the limit.
 //                        EquestriCraftPlugin.LOG.log(Level.INFO, "A horse died of hunger");
@@ -254,9 +261,11 @@ public class HorseCheckerThread extends Thread {
 
                     if (horse.getAgeInMonths() > horse.getDieAt() && horse.getDieAt() > 300) { //Check if the horse is too old.
                         if (horse.getAgeInMonths() > 300) {
-                            EquestriCraftPlugin.LOG.log(Level.INFO, "A horse died at the age of " + horse.getAgeInMonths() + " months old");
-                            horse.kill();
-                            it.remove();
+                            Horse h = getEntityByUniqueId(horse.getUuid());
+                            if (h != null) {
+                                h.setHealth(0);
+                                EquestriCraftPlugin.LOG.log(Level.INFO, "A horse died at the age of " + horse.getAgeInMonths() + " months old");
+                            }
                         }
                     }
 
@@ -298,6 +307,19 @@ public class HorseCheckerThread extends Thread {
                 Logger.getLogger(HorseCheckerThread.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
+    }
+
+    public Horse getEntityByUniqueId(UUID uniqueId) {
+        for (World world : Bukkit.getWorlds()) {
+            for (Chunk chunk : world.getLoadedChunks()) {
+                for (Entity entity : chunk.getEntities()) {
+                    if (entity.getUniqueId().equals(uniqueId)) {
+                        return (Horse) entity;
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     /**
