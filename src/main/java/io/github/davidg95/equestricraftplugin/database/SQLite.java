@@ -47,6 +47,13 @@ public class SQLite extends Database {
             + "PRIMARY KEY (uuid)"
             + ")";
 
+    public String createBreedLogTable = "CREATE TABLE IF NOT EXISTS " + breedTable + "("
+            + "id int NOT NULL,"
+            + "uuid varchar(60) NOT NULL,"
+            + "time long NOT NULL,"
+            + "PRIMARY KEY (id)"
+            + ")";
+
     @Override
     public Connection getSQLConnection() {
         File datafolder = new File(plugin.getDataFolder(), dbname + ".db");
@@ -81,6 +88,7 @@ public class SQLite extends Database {
         try {
             Statement s = connection.createStatement();
             s.executeUpdate(createHorsesTable);
+            s.executeUpdate(createBreedLogTable);
             s.close();
         } catch (SQLException ex) {
             ex.printStackTrace();

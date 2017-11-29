@@ -71,3 +71,6 @@ commands:
     auction:
         description: Auction commands.
         usage: /auction [open|bid|sell]
+    breeding:
+        description: breeding commands.
+        usage: /breeding [gapple|check]

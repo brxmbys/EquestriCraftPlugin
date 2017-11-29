@@ -381,6 +381,9 @@ public class MyHorse implements Serializable {
         return lastBreed;
     }
 
+    /**
+     * Sets the current time to the horses last breed time.
+     */
     public void setLastBreed() {
         this.lastBreed = getCurrentTime();
     }

@@ -9,7 +9,6 @@ import io.github.davidg95.equestricraftplugin.database.SQLite;
 import io.github.davidg95.equestricraftplugin.disciplines.DisciplinesHandler;
 import io.github.davidg95.equestricraftplugin.race.*;
 import java.io.*;
-import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.logging.*;
@@ -56,6 +55,9 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     public static final String DOCTOR_TOOL = "Doctor's Tool";
     public static final String FARRIER_TOOL = "Farrier's Tool";
     public static final String NAVIGATOR_TOOL = "Navigator";
+
+    public static final String BREEDING_APPLE = "Breeding Apple";
+    public static int GAPPLE_PRICE = 0;
 
     public static boolean OP_REQ = true;
     public static boolean BLOCK_HUNGER = true;
@@ -155,6 +157,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             LOG.log(Level.SEVERE, "Error loading race.yml", ex);
         }
         ONE_USE_COST = getConfig().getInt("tools.one_use_vaccination_price");
+        GAPPLE_PRICE = getConfig().getInt("tools.gapple_price");
         properties = new Properties();
         loadProperties();
         container = DataContainer.getInstance();
@@ -201,7 +204,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         getConfig().set("check.yl", 20);
 
         getConfig().set("tools.one_use_vaccination_price", 100);
-            try {
+        try {
             getConfig().save(getDataFolder().getAbsolutePath() + File.separator + "race.yml");
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error saving race.yml", ex);
@@ -975,6 +978,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         } else if (cmd.getName().equalsIgnoreCase("navigator")) {
             if (!(sender instanceof Player)) {
                 sender.sendMessage("Only players can use this command");
+                return true;
             }
             Player player = (Player) sender;
             final PlayerInventory inventory = player.getInventory();
@@ -987,6 +991,63 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             navTool.setItemMeta(im);
             inventory.addItem(navTool);
             return true;
+        } else if (cmd.getName().equalsIgnoreCase("breeding")) {
+            if (args.length > 0) {
+                if (args[0].equalsIgnoreCase("gapple")) {
+                    if (!getConfig().getBoolean("tools.enable_breeding")) {
+                        sender.sendMessage(ChatColor.RED + "This command has been disabled for now");
+                        return true;
+                    }
+                    if (!(sender instanceof Player)) {
+                        sender.sendMessage("Only players can use this command");
+                        return true;
+                    }
+                    Player player = (Player) sender;
+                    if (economy.getBalance(player) >= GAPPLE_PRICE) {
+                        economy.withdrawPlayer(player, GAPPLE_PRICE);
+                    } else {
+                        sender.sendMessage(ChatColor.RED + "You do not have enough money for a Breeding Apple");
+                        return true;
+                    }
+                    final PlayerInventory inventory = player.getInventory();
+                    final ItemStack gapple = new ItemStack(Material.GOLDEN_APPLE, 1);
+                    final ItemMeta im = gapple.getItemMeta();
+                    im.setDisplayName(BREEDING_APPLE);
+                    final List<String> comments = new ArrayList<>();
+                    comments.add("Breed a horse");
+                    im.setLore(comments);
+                    gapple.setItemMeta(im);
+                    inventory.addItem(gapple);
+                    sender.sendMessage(ChatColor.GREEN + "You have purchased a Golden Apple for " + ChatColor.AQUA + "$" + GAPPLE_PRICE);
+                    return true;
+                } else if (args[0].equalsIgnoreCase("check")) {
+                    OfflinePlayer player;
+                    if (args.length > 1) {
+                        if (sender.hasPermission("equestricraft.breeding.check")) {
+                            player = Bukkit.getOfflinePlayer(args[1]);
+                        } else {
+                            sender.sendMessage(ChatColor.RED + "You do not have permission to check other peoples breeding");
+                            return true;
+                        }
+                    } else if (!(sender instanceof Player)) {
+                        sender.sendMessage("Only players can use this command");
+                        return true;
+                    } else {
+                        player = (OfflinePlayer) sender;
+                    }
+                    if (player == null) {
+                        sender.sendMessage(ChatColor.RED + "Player not found");
+                        return true;
+                    }
+                    int breeds = database.getTotalBreeds(player);
+                    long lastBreed = database.getLastBreed(player);
+                    sender.sendMessage(ChatColor.GREEN + "Total breeds: " + ChatColor.AQUA + breeds);
+                    if (lastBreed != -1) {
+                        sender.sendMessage(ChatColor.GREEN + "Last breed: " + ChatColor.AQUA + new Date(lastBreed));
+                    }
+                    return true;
+                }
+            }
         } else if (cmd.getName().equalsIgnoreCase("build")) {
             if (!(sender instanceof Player)) {
                 sender.sendMessage("Only players can use this command");
@@ -1284,10 +1345,11 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         if (inHand == null) {
             return;
         }
+        final Entity rightClicked = event.getRightClicked();
         if (null != inHand.getType()) {
             switch (inHand.getType()) {
                 case STICK: //Horse wand
-                    if (!(event.getRightClicked() instanceof Horse)) {
+                    if (!(rightClicked instanceof Horse)) {
                         return;
                     }
                     //Horse checking stick
@@ -1313,6 +1375,70 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "You are now editing this horse");
                     }
                     event.setCancelled(true);
+                    break;
+                case GOLDEN_APPLE:
+                    if (!(rightClicked instanceof Horse)) {
+                        return;
+                    }
+                    if (!getConfig().getBoolean("tools.enable_breeding")) {
+                        return;
+                    }
+                    final Horse horse = (Horse) rightClicked;
+                    MyHorse mh1 = database.getHorse(horse.getUniqueId());
+                    event.setCancelled(true);
+                    if (!inHand.getItemMeta().hasDisplayName()) {
+                        return;
+                    }
+                    if (!inHand.getItemMeta().getDisplayName().equals(BREEDING_APPLE)) {
+                        return;
+                    }
+                    if (database.hadBredRecently(player)) {
+                        player.sendMessage(ChatColor.RED + "You have already bred a horse recently");
+                        return;
+                    }
+                    if (mh1.getGender() == MyHorse.GELDING) {
+                        player.sendMessage(ChatColor.RED + "Cannot breed a gelding");
+                        return;
+                    }
+                    if (mh1.getDurationSinceLastBreed() < HorseCheckerThread.BREED_INTERVAL) {
+                        player.sendMessage(ChatColor.RED + "This horse has already bred recently, you must wait before it can breed again");
+                        return;
+                    }
+                    if (player.hasMetadata("HORSE_BREED")) {
+                        UUID uuid = UUID.fromString(player.getMetadata("HORSE_BREED").get(0).asString());
+                        MyHorse mh2 = database.getHorse(uuid);
+                        if (mh1.getBreed() == mh2.getBreed()) {
+                            player.sendMessage(ChatColor.RED + "Horses must be a different gender");
+                            return;
+                        }
+                        mh2.setLastBreed();
+                        mh1.setLastBreed();
+                        Horse foal = (Horse) horse.getWorld().spawnEntity(horse.getLocation(), EntityType.HORSE);
+                        MyHorse mhFoal = new MyHorse(foal);
+                        horse.setBaby();
+                        HorseBreed br1 = mh1.getBreed()[0];
+                        HorseBreed br2 = mh2.getBreed()[1];
+                        mhFoal.setBreed(new HorseBreed[]{br1, br2});
+                        if (br1 == HorseBreed.Donkey) {
+                            horse.setVariant(Horse.Variant.DONKEY);
+                        } else if (br1 == HorseBreed.Mule) {
+                            horse.setVariant(Horse.Variant.MULE);
+                        } else if (br1 == HorseBreed.FjordHorse) {
+                            double d = Math.random();
+                            if (d > 0.5) {
+                                horse.setVariant(Horse.Variant.SKELETON_HORSE);
+                            } else {
+                                horse.setVariant(Horse.Variant.UNDEAD_HORSE);
+                            }
+                        }
+                        database.saveHorse(mhFoal);
+                        database.saveHorse(mh1);
+                        database.saveHorse(mh2);
+                        database.breedNow(player);
+                        inHand.setAmount(inHand.getAmount() - 1);
+                    } else {
+                        player.setMetadata("HORES_BREED", new FixedMetadataValue(plugin, horse.getUniqueId().toString()));
+                    }
                     break;
                 default:
                     break;
@@ -1408,29 +1534,29 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onCreatureSpawn(CreatureSpawnEvent evt) {
-        if (evt.getEntityType() == EntityType.HORSE) {
-            final Horse horse = (Horse) evt.getEntity();
-            MyHorse mh = new MyHorse(horse);
-            horse.setBaby();
-            if (evt.getEntity().getMetadata("breed").size() > 1) {
-                String breed = evt.getEntity().getMetadata("breed").get(0).asString();
-                HorseBreed br = HorseBreed.valueOf(breed);
-                mh.setBreed(new HorseBreed[]{br});
-                if (br == HorseBreed.Donkey) {
-                    horse.setVariant(Horse.Variant.DONKEY);
-                } else if (br == HorseBreed.Mule) {
-                    horse.setVariant(Horse.Variant.MULE);
-                } else if (br == HorseBreed.FjordHorse) {
-                    double d = Math.random();
-                    if (d > 0.5) {
-                        horse.setVariant(Horse.Variant.SKELETON_HORSE);
-                    } else {
-                        horse.setVariant(Horse.Variant.UNDEAD_HORSE);
-                    }
-                }
-            }
-            database.saveHorse(mh);
-        }
+//        if (evt.getEntityType() == EntityType.HORSE) {
+//            final Horse horse = (Horse) evt.getEntity();
+//            MyHorse mh = new MyHorse(horse);
+//            horse.setBaby();
+//            if (evt.getEntity().getMetadata("breed").size() > 1) {
+//                String breed = evt.getEntity().getMetadata("breed").get(0).asString();
+//                HorseBreed br = HorseBreed.valueOf(breed);
+//                mh.setBreed(new HorseBreed[]{br});
+//                if (br == HorseBreed.Donkey) {
+//                    horse.setVariant(Horse.Variant.DONKEY);
+//                } else if (br == HorseBreed.Mule) {
+//                    horse.setVariant(Horse.Variant.MULE);
+//                } else if (br == HorseBreed.FjordHorse) {
+//                    double d = Math.random();
+//                    if (d > 0.5) {
+//                        horse.setVariant(Horse.Variant.SKELETON_HORSE);
+//                    } else {
+//                        horse.setVariant(Horse.Variant.UNDEAD_HORSE);
+//                    }
+//                }
+//            }
+//            database.saveHorse(mh);
+//        }
     }
 
     @EventHandler

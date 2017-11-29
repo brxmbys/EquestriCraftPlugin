@@ -12,10 +12,13 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Player;
 
 /**
  *
@@ -26,6 +29,7 @@ public abstract class Database {
     EquestriCraftPlugin plugin;
     Connection connection;
     public String table = "horses";
+    public String breedTable = "breedLog";
     public int tokens = 0;
 
     public Database(EquestriCraftPlugin plugin) {
@@ -282,6 +286,124 @@ public abstract class Database {
             }
         }
         return null;
+    }
+
+    public boolean hadBredRecently(Player p) {
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            conn = getSQLConnection();
+            ps = conn.prepareStatement("SELECT * FROM " + breedTable + " WHERE UUID = '" + p.getUniqueId().toString() + "' ORDER BY time DESC");
+
+            rs = ps.executeQuery();
+            while (rs.next()) {
+                long breedTime = rs.getLong("time");
+                if (new Date().getTime() < breedTime) {
+                    return true;
+                }
+                return false;
+            }
+        } catch (SQLException ex) {
+            plugin.getLogger().log(Level.SEVERE, Errors.sqlConnectionExecute(), ex);
+        } finally {
+            try {
+                if (ps != null) {
+                    ps.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+                plugin.getLogger().log(Level.SEVERE, Errors.sqlConnectionClose(), ex);
+            }
+        }
+        return false;
+    }
+
+    public void breedNow(Player p) {
+        Connection conn = null;
+        PreparedStatement ps = null;
+
+        try {
+            conn = getSQLConnection();
+            ps = conn.prepareStatement("INSERT INTO " + breedTable + " (uuid, time) VALUES('" + p.getUniqueId() + "'," + new Date().getTime() + ")");
+            ps.executeUpdate();
+        } catch (SQLException ex) {
+            plugin.getLogger().log(Level.SEVERE, Errors.sqlConnectionExecute(), ex);
+        } finally {
+            try {
+                if (ps != null) {
+                    ps.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+                plugin.getLogger().log(Level.SEVERE, Errors.sqlConnectionClose(), ex);
+            }
+        }
+    }
+
+    public int getTotalBreeds(OfflinePlayer p) {
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            conn = getSQLConnection();
+            ps = conn.prepareStatement("SELECT COUNT(*) FROM " + breedTable + " WHERE UUID = '" + p.getUniqueId().toString() + "'");
+
+            rs = ps.executeQuery();
+            while (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException ex) {
+            plugin.getLogger().log(Level.SEVERE, Errors.sqlConnectionExecute(), ex);
+        } finally {
+            try {
+                if (ps != null) {
+                    ps.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+                plugin.getLogger().log(Level.SEVERE, Errors.sqlConnectionClose(), ex);
+            }
+        }
+        return 0;
+    }
+    
+    public long getLastBreed(OfflinePlayer p){
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            conn = getSQLConnection();
+            ps = conn.prepareStatement("SELECT * FROM " + breedTable + " WHERE UUID = '" + p.getUniqueId().toString() + "' ORDER BY time DESC");
+
+            rs = ps.executeQuery();
+            while (rs.next()) {
+                return rs.getLong("time");
+            }
+        } catch (SQLException ex) {
+            plugin.getLogger().log(Level.SEVERE, Errors.sqlConnectionExecute(), ex);
+        } finally {
+            try {
+                if (ps != null) {
+                    ps.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+                plugin.getLogger().log(Level.SEVERE, Errors.sqlConnectionClose(), ex);
+            }
+        }
+        return -1;
     }
 
     public void close(PreparedStatement ps, ResultSet rs) {
