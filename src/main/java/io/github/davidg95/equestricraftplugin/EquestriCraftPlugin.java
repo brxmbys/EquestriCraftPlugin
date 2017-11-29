@@ -9,6 +9,7 @@ import io.github.davidg95.equestricraftplugin.database.SQLite;
 import io.github.davidg95.equestricraftplugin.disciplines.DisciplinesHandler;
 import io.github.davidg95.equestricraftplugin.race.*;
 import java.io.*;
+import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.logging.*;
@@ -158,7 +159,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         loadProperties();
         container = DataContainer.getInstance();
         checkerThread = new HorseCheckerThread();
-//        checkerThread.start();
+        checkerThread.start();
         getServer().getPluginManager().registerEvents(this, this);
         if (!setupEconomy()) {
             LOG.log(Level.SEVERE, "Vault not detected, Disciplines has been disabled");
@@ -200,7 +201,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         getConfig().set("check.yl", 20);
 
         getConfig().set("tools.one_use_vaccination_price", 100);
-        try {
+            try {
             getConfig().save(getDataFolder().getAbsolutePath() + File.separator + "race.yml");
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error saving race.yml", ex);

@@ -1,0 +1,22 @@
+#Config File for EquestriCraftPlugin
+
+#Race configuration
+race:
+    #Defines the coords for the finish line.
+    finish:
+        z1: 11135
+        z2: 11130
+        x1: -2126
+        x2: -2090
+        yl: 20
+    #Defines the coords for the check point.
+    check:
+        z1: 11155
+        z2: 11150
+        x1: -2126
+        x2: -2090
+        yl: 20
+
+tools:
+    #The cost of a single use vaccination tool.
+    one_use_vaccination_price: 150
