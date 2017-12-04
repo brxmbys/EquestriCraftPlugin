@@ -40,7 +40,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     public static Logger LOG;
 
     public static Plugin plugin;
-    
+
     private HorseCheckerThread checkerThread;
 
     private Properties properties;
@@ -54,6 +54,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     public static int ONE_USE_COST = 150;
     public static final String DOCTOR_TOOL = "Doctor's Tool";
     public static final String FARRIER_TOOL = "Farrier's Tool";
+    public static final String DENTIST_TOOL = "Dentist's Tool";
+    public static final String DENTIST_HEALING_TOOL = "Dentist's Healing Tool";
     public static final String NAVIGATOR_TOOL = "Navigator";
 
     public static final String BREEDING_APPLE = "Breeding Apple";
@@ -760,14 +762,14 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         final Player player = (Player) sender;
                         if (player.hasPermission("equestricraft.role.farrier")) {
                             final PlayerInventory inventory = player.getInventory();
-                            final ItemStack doctorTool = new ItemStack(Material.TRIPWIRE_HOOK, 1);
-                            final ItemMeta im = doctorTool.getItemMeta();
+                            final ItemStack farrierTool = new ItemStack(Material.TRIPWIRE_HOOK, 1);
+                            final ItemMeta im = farrierTool.getItemMeta();
                             im.setDisplayName(FARRIER_TOOL);
                             final List<String> comments = new ArrayList<>();
-                            comments.add("Used to shod a horse");
+                            comments.add("Used to shoe a horse");
                             im.setLore(comments);
-                            doctorTool.setItemMeta(im);
-                            inventory.addItem(doctorTool);
+                            farrierTool.setItemMeta(im);
+                            inventory.addItem(farrierTool);
                         } else {
                             sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "Only a farrier can use this command");
                         }
@@ -918,6 +920,38 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                 player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Must enter a numerical value");
             }
             return true;
+        } else if (cmd.getName().equalsIgnoreCase("dentist")) {
+            if (args.length == 1) {
+                if (sender instanceof Player) {
+                    Player player = (Player) sender;
+                    if (player.hasPermission("equestricraft.role.dentist")) {
+                        if (args[0].equalsIgnoreCase("tool")) {
+                            final PlayerInventory inventory = player.getInventory();
+                            final ItemStack dentistTool = new ItemStack(Material.FLINT_AND_STEEL, 1);
+                            final ItemMeta im = dentistTool.getItemMeta();
+                            im.setDisplayName(DENTIST_TOOL);
+                            final List<String> comments = new ArrayList<>();
+                            comments.add("For checking a horses teeth");
+                            im.setLore(comments);
+                            dentistTool.setItemMeta(im);
+                            inventory.addItem(dentistTool);
+                        } else if (args[0].equalsIgnoreCase("healing-tool")) {
+                            final PlayerInventory inventory = player.getInventory();
+                            final ItemStack dentistHealingTool = new ItemStack(Material.STRING, 1);
+                            final ItemMeta im = dentistHealingTool.getItemMeta();
+                            im.setDisplayName(DENTIST_HEALING_TOOL);
+                            final List<String> comments = new ArrayList<>();
+                            comments.add("Floss for healing teeth");
+                            im.setLore(comments);
+                            dentistHealingTool.setItemMeta(im);
+                            inventory.addItem(dentistHealingTool);
+                        }
+                    } else {
+                        player.sendMessage(ChatColor.RED + "Only dentists can use this tool");
+                    }
+                }
+                return true;
+            }
         }
         return false;
     }
