@@ -17,6 +17,7 @@ import org.bukkit.*;
 import org.bukkit.command.*;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.entity.*;
+import org.bukkit.entity.Villager.Profession;
 import org.bukkit.event.*;
 import org.bukkit.event.entity.*;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -26,6 +27,7 @@ import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.metadata.MetadataValue;
 import org.bukkit.plugin.*;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -615,18 +617,18 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                             }
                             mh.setAgeInMonths(months);
                             if (mh.getAgeInMonths() >= 12) { //Check if the horse can become an adult
-                                Horse h = getEntityByUniqueId(mh.getUuid());
                                 new BukkitRunnable() {
                                     @Override
                                     public void run() {
+                                        Horse h = getEntityByUniqueId(mh.getUuid());
                                         h.setAdult();
                                     }
                                 }.runTask(EquestriCraftPlugin.plugin);
                             } else {
-                                Horse h = getEntityByUniqueId(mh.getUuid());
                                 new BukkitRunnable() {
                                     @Override
                                     public void run() {
+                                        Horse h = getEntityByUniqueId(mh.getUuid());
                                         h.setBaby();
                                     }
                                 }.runTask(EquestriCraftPlugin.plugin);
@@ -745,9 +747,9 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         }
                         return true;
                     }
-                } else if (args[0].equalsIgnoreCase("times")) {
+                } else if (arg.equalsIgnoreCase("times")) {
                     HorseCheckerThread.SHOW_TIME = !HorseCheckerThread.SHOW_TIME;
-                } else if (args[0].equalsIgnoreCase("motd")) {
+                } else if (arg.equalsIgnoreCase("motd")) {
                     motd = ChatColor.RESET + "";
                     for (int i = 1; i < args.length; i++) {
                         motd += args[i] + " ";
@@ -762,7 +764,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         }
                     }
                     sender.sendMessage("MOTD set to-\n" + motd);
-                } else if (args[0].equalsIgnoreCase("db")) {
+                } else if (arg.equalsIgnoreCase("db")) {
                     if (args.length == 2) {
                         if (args[1].equalsIgnoreCase("migrate")) {
 
@@ -794,7 +796,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     }
                     sender.sendMessage(database.horseCount() + " horses in database");
                     return true;
-                } else if (args[0].equalsIgnoreCase("integrity")) {
+                } else if (arg.equalsIgnoreCase("integrity")) {
                     int breed = 0;
                     int uuid = 0;
                     int other = 0;
@@ -814,7 +816,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     sender.sendMessage("Horses without uuid: " + uuid);
                     sender.sendMessage("Horses without anything: " + other);
                     return true;
-                } else if (args[0].equalsIgnoreCase("fix")) {
+                } else if (arg.equalsIgnoreCase("fix")) {
                     for (MyHorse mh : database.getHorses()) {
                         try {
                             if (mh.getBreed() == null || mh.getBreed().length == 0) {
@@ -842,6 +844,14 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     }
                     sender.sendMessage("Assigned breeds to horses");
                     return true;
+                } else if (arg.equalsIgnoreCase("velo")) {
+                    if (args.length > 1) {
+                        Player p = Bukkit.getPlayer(args[1]);
+                        if (p == null) {
+                            sender.sendMessage("Player not found");
+                            return true;
+                        }
+                    }
                 }
             }
             return true;
@@ -1216,6 +1226,10 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                             final String vaccinationStr = ChatColor.BOLD + "Vaccinated: " + ChatColor.RESET + "" + (vaccination ? ChatColor.GREEN + "Yes" : ChatColor.RED + "No");
                             final String shodStr = ChatColor.BOLD + "Shoed: " + ChatColor.RESET + "" + (shod ? ChatColor.GREEN + "Yes" : ChatColor.RED + "No");
                             final String levelStr = ChatColor.BOLD + "Training Level: " + ChatColor.RESET + horse.getTrainingLevel();
+
+                            Horse h = this.getEntityByUniqueId(horse.getUuid());
+                            final double jump = h.getJumpStrength();
+                            final String jumpStr = ChatColor.BOLD + "Jump Strength: " + ChatColor.RESET + jump;
                             player.sendMessage(">------------------------------<");
                             player.sendMessage(genderStr);
                             player.sendMessage(breedStr);
@@ -1227,6 +1241,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                             player.sendMessage(vaccinationStr);
                             player.sendMessage(shodStr);
                             player.sendMessage(levelStr);
+//                            player.sendMessage(jumpStr);
                             player.sendMessage(">------------------------------<");
                         } else {
                             player.sendMessage("You must click on a horse");
@@ -1376,70 +1391,98 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     }
                     event.setCancelled(true);
                     break;
-                case GOLDEN_APPLE:
-                    if (!(rightClicked instanceof Horse)) {
-                        return;
-                    }
-                    if (!getConfig().getBoolean("tools.enable_breeding")) {
-                        return;
-                    }
-                    final Horse horse = (Horse) rightClicked;
-                    MyHorse mh1 = database.getHorse(horse.getUniqueId());
-                    event.setCancelled(true);
-                    if (!inHand.getItemMeta().hasDisplayName()) {
-                        return;
-                    }
-                    if (!inHand.getItemMeta().getDisplayName().equals(BREEDING_APPLE)) {
-                        return;
-                    }
-                    if (database.hadBredRecently(player)) {
-                        player.sendMessage(ChatColor.RED + "You have already bred a horse recently");
-                        return;
-                    }
-                    if (mh1.getGender() == MyHorse.GELDING) {
-                        player.sendMessage(ChatColor.RED + "Cannot breed a gelding");
-                        return;
-                    }
-                    if (mh1.getDurationSinceLastBreed() < HorseCheckerThread.BREED_INTERVAL) {
-                        player.sendMessage(ChatColor.RED + "This horse has already bred recently, you must wait before it can breed again");
-                        return;
-                    }
-                    if (player.hasMetadata("HORSE_BREED")) {
-                        UUID uuid = UUID.fromString(player.getMetadata("HORSE_BREED").get(0).asString());
-                        MyHorse mh2 = database.getHorse(uuid);
-                        if (mh1.getBreed() == mh2.getBreed()) {
-                            player.sendMessage(ChatColor.RED + "Horses must be a different gender");
-                            return;
-                        }
-                        mh2.setLastBreed();
-                        mh1.setLastBreed();
-                        Horse foal = (Horse) horse.getWorld().spawnEntity(horse.getLocation(), EntityType.HORSE);
-                        MyHorse mhFoal = new MyHorse(foal);
-                        horse.setBaby();
-                        HorseBreed br1 = mh1.getBreed()[0];
-                        HorseBreed br2 = mh2.getBreed()[1];
-                        mhFoal.setBreed(new HorseBreed[]{br1, br2});
-                        if (br1 == HorseBreed.Donkey) {
-                            horse.setVariant(Horse.Variant.DONKEY);
-                        } else if (br1 == HorseBreed.Mule) {
-                            horse.setVariant(Horse.Variant.MULE);
-                        } else if (br1 == HorseBreed.FjordHorse) {
-                            double d = Math.random();
-                            if (d > 0.5) {
-                                horse.setVariant(Horse.Variant.SKELETON_HORSE);
-                            } else {
-                                horse.setVariant(Horse.Variant.UNDEAD_HORSE);
-                            }
-                        }
-                        database.saveHorse(mhFoal);
-                        database.saveHorse(mh1);
-                        database.saveHorse(mh2);
-                        database.breedNow(player);
-                        inHand.setAmount(inHand.getAmount() - 1);
-                    } else {
-                        player.setMetadata("HORES_BREED", new FixedMetadataValue(plugin, horse.getUniqueId().toString()));
-                    }
-                    break;
+//                case GOLDEN_APPLE:
+//                    player.sendMessage("You are breeding with a golden apple");
+//                    try {
+//                        event.setCancelled(true);
+//                        if (!inHand.getItemMeta().hasDisplayName()) {
+//                            player.sendMessage(ChatColor.RED + "You must purchase a breeding apple using " + ChatColor.AQUA + "/breeding gapple");
+//                            return;
+//                        }
+//                        if (!inHand.getItemMeta().getDisplayName().equals(BREEDING_APPLE)) {
+//                            return;
+//                        }
+//                        if (!(rightClicked instanceof Horse)) {
+//                            player.sendMessage(ChatColor.RED + "You must click on a horse");
+//                            return;
+//                        }
+//                        if (!getConfig().getBoolean("tools.enable_breeding")) {
+//                            player.sendMessage(ChatColor.RED + "Breeding disabled");
+//                            return;
+//                        }
+//                        final Horse horse = (Horse) rightClicked;
+//                        MyHorse mh1 = database.getHorse(horse.getUniqueId());
+//                        if (database.hadBredRecently(player)) {
+//                            player.sendMessage(ChatColor.RED + "You have already bred a horse recently");
+//                            return;
+//                        }
+//                        if (mh1.getGender() == MyHorse.GELDING) {
+//                            player.sendMessage(ChatColor.RED + "Cannot breed a gelding");
+//                            return;
+//                        }
+//                        if (mh1.getDurationSinceLastBreed() < HorseCheckerThread.BREED_INTERVAL) {
+//                            player.sendMessage(ChatColor.RED + "This horse has already bred recently, you must wait before it can breed again");
+//                            return;
+//                        }
+//                        if (player.hasMetadata("HORSE_BREED")) {
+//                            List<MetadataValue> md = player.getMetadata("HORSE_BREED");
+//                            UUID uuid = null;
+//                            for (MetadataValue m : md) {
+//                                if (m.getOwningPlugin() == plugin) {
+//                                    uuid = UUID.fromString(m.asString());
+//                                }
+//                            }
+//                            if (uuid == null) {
+//                                player.sendMessage(ChatColor.RED + "Breeding failed. Error code 1");
+//                                player.removeMetadata("HORSE_BREED", plugin);
+//                                return;
+//                            }
+//                            MyHorse mh2 = database.getHorse(uuid);
+//                            if (mh1.getBreed() == mh2.getBreed()) {
+//                                player.sendMessage(ChatColor.RED + "Horses must be a different gender");
+//                                return;
+//                            }
+//                            mh2.setLastBreed();
+//                            mh1.setLastBreed();
+//                            Horse foal = (Horse) horse.getWorld().spawnEntity(horse.getLocation(), EntityType.HORSE);
+//                            MyHorse mhFoal = new MyHorse(foal);
+//                            horse.setBaby();
+//                            HorseBreed br1 = mh1.getBreed()[0];
+//                            HorseBreed br2 = mh2.getBreed()[1];
+//                            mhFoal.setBreed(new HorseBreed[]{br1, br2});
+//                            if (br1 == HorseBreed.Donkey) {
+//                                horse.setVariant(Horse.Variant.DONKEY);
+//                            } else if (br1 == HorseBreed.Mule) {
+//                                horse.setVariant(Horse.Variant.MULE);
+//                            } else if (br1 == HorseBreed.FjordHorse) {
+//                                double d = Math.random();
+//                                if (d > 0.5) {
+//                                    horse.setVariant(Horse.Variant.SKELETON_HORSE);
+//                                } else {
+//                                    horse.setVariant(Horse.Variant.UNDEAD_HORSE);
+//                                }
+//                            }
+//                            database.saveHorse(mhFoal);
+//                            database.saveHorse(mh1);
+//                            database.saveHorse(mh2);
+//                            database.breedNow(player);
+//                            inHand.setAmount(inHand.getAmount() - 1);
+//                            player.removeMetadata("HORSE_BREED", plugin);
+//                            player.sendMessage(ChatColor.GREEN + "Breeding Successful");
+//                            plugin.getLogger().log(Level.INFO, player.getName() + " has bred a horse");
+//                        } else {
+//                            player.setMetadata("HORES_BREED", new FixedMetadataValue(plugin, horse.getUniqueId().toString()));
+//                            player.sendMessage(ChatColor.GREEN + "First horse set");
+//                            if (mh1.getGender() == MyHorse.STALLION) {
+//                                player.sendMessage(ChatColor.GREEN + "Select a mare");
+//                            } else {
+//                                player.sendMessage(ChatColor.GREEN + "Select a stallion");
+//                            }
+//                        }
+//                    } catch (Exception e) {
+//                        player.sendMessage(ChatColor.RED + "Error breeding. Error code 2");
+//                    }
+//                    break;
                 default:
                     break;
             }
@@ -1534,29 +1577,29 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onCreatureSpawn(CreatureSpawnEvent evt) {
-//        if (evt.getEntityType() == EntityType.HORSE) {
-//            final Horse horse = (Horse) evt.getEntity();
-//            MyHorse mh = new MyHorse(horse);
-//            horse.setBaby();
-//            if (evt.getEntity().getMetadata("breed").size() > 1) {
-//                String breed = evt.getEntity().getMetadata("breed").get(0).asString();
-//                HorseBreed br = HorseBreed.valueOf(breed);
-//                mh.setBreed(new HorseBreed[]{br});
-//                if (br == HorseBreed.Donkey) {
-//                    horse.setVariant(Horse.Variant.DONKEY);
-//                } else if (br == HorseBreed.Mule) {
-//                    horse.setVariant(Horse.Variant.MULE);
-//                } else if (br == HorseBreed.FjordHorse) {
-//                    double d = Math.random();
-//                    if (d > 0.5) {
-//                        horse.setVariant(Horse.Variant.SKELETON_HORSE);
-//                    } else {
-//                        horse.setVariant(Horse.Variant.UNDEAD_HORSE);
-//                    }
-//                }
-//            }
-//            database.saveHorse(mh);
-//        }
+        if (evt.getEntityType() == EntityType.HORSE) {
+            final Horse horse = (Horse) evt.getEntity();
+            MyHorse mh = new MyHorse(horse);
+            horse.setBaby();
+            if (evt.getEntity().getMetadata("breed").size() > 1) {
+                String breed = evt.getEntity().getMetadata("breed").get(0).asString();
+                HorseBreed br = HorseBreed.valueOf(breed);
+                mh.setBreed(new HorseBreed[]{br});
+                if (br == HorseBreed.Donkey) {
+                    horse.setVariant(Horse.Variant.DONKEY);
+                } else if (br == HorseBreed.Mule) {
+                    horse.setVariant(Horse.Variant.MULE);
+                } else if (br == HorseBreed.FjordHorse) {
+                    double d = Math.random();
+                    if (d > 0.5) {
+                        horse.setVariant(Horse.Variant.SKELETON_HORSE);
+                    } else {
+                        horse.setVariant(Horse.Variant.UNDEAD_HORSE);
+                    }
+                }
+            }
+            database.saveHorse(mh);
+        }
     }
 
     @EventHandler
@@ -1573,7 +1616,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         Location l;
         if (clicked.getType() == Material.MONSTER_EGG) {
             //Spawn
-            l = new Location(w, 4111, 5, -2264, 180, 0);
+            l = new Location(w, 3442, 7, 215, 90, 0);
             player.sendMessage("Teleporting to Spawn...");
         } else if (clicked.getType() == Material.NAME_TAG) {
             //Lease Barn
@@ -1627,6 +1670,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         }
 
         player.teleport(l);
+        player.closeInventory();
     }
 
     private void loadProperties() {

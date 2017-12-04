@@ -67,14 +67,6 @@ public class HorseCheckerThread extends Thread {
      */
     public static double VACCINATED_PROBABILITY = 0.0001;
 
-//    private final BreedCheckerThread breedThread;
-//    private Thread bAndCThread;
-    private final List<Block> bales;
-    private final List<Block> cauldrons;
-
-    private final StampedLock baleLock;
-    private final StampedLock cauldronLock;
-
     public static long BREED_THREAD_INTERVAL = 20000;
 
     public static long MAIN_THREAD_INTERVAL = 2000;
@@ -86,78 +78,18 @@ public class HorseCheckerThread extends Thread {
 
     public HorseCheckerThread() {
         super("Horse_Checker_Thread");
-        bales = new LinkedList<>();
-        cauldrons = new LinkedList<>();
 //        breedThread = new BreedCheckerThread();
-        baleLock = new StampedLock();
-        cauldronLock = new StampedLock();
         database = EquestriCraftPlugin.database;
         run = true;
     }
 
     private void init() {
 //        breedThread.start();
-        //Create the bale and cauldron checking thread.
-        final Runnable baleRun = new Runnable() {
-            @Override
-            public void run() {
-                while (run) {
-                    final long bstamp = baleLock.readLock();
-                    try {
-                        for (Block ba : bales) { //Check if any bales need removed.
-                            if ((getCurrentTime() - HorseCheckerThread.this.getFirstEat(ba)) > 10800000L) {
-                                new BukkitRunnable() {
-                                    @Override
-                                    public void run() {
-                                        ba.setType(Material.AIR);
-                                    }
-                                }.runTask(EquestriCraftPlugin.plugin);
-                            }
-                        }
-                    } catch (Exception e) {
-
-                    } finally {
-                        baleLock.unlockRead(bstamp);
-                    }
-                    try {
-                        Thread.sleep(10000);
-                    } catch (Exception ex) {
-                        Logger.getLogger(HorseCheckerThread.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                    final long cstamp = cauldronLock.readLock();
-                    try {
-                        for (Block ba : cauldrons) { //Check if any cauldrons need emptied.
-                            if ((getCurrentTime() - HorseCheckerThread.this.getFirstEat(ba)) > 10800000L) {
-                                new BukkitRunnable() {
-                                    @Override
-                                    public void run() {
-                                        ba.setData((byte) 0);
-                                    }
-                                }.runTask(EquestriCraftPlugin.plugin);
-                            }
-                        }
-                    } catch (Exception e) {
-
-                    } finally {
-                        cauldronLock.unlockRead(cstamp);
-                    }
-                    try {
-                        Thread.sleep(10000);
-                    } catch (Exception ex) {
-                        Logger.getLogger(HorseCheckerThread.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                }
-            }
-        };
-
-//        bAndCThread = new Thread(baleRun, "Bale_Cauldron_Checker");
-//        bAndCThread.setDaemon(true);
-//        bAndCThread.start(); //Start the bale and cauldron thread.
     }
 
     @Override
     public void run() {
-//        init(); //Start the secondary threads.
+        init(); //Start the secondary threads.
         while (run) {
             final long start = new Date().getTime();
             int horsesChecked = 0;
@@ -368,14 +300,6 @@ public class HorseCheckerThread extends Thread {
 
     private void setFirstEat(Block b) {
         b.setMetadata("FIRSTEAT", new FixedMetadataValue(EquestriCraftPlugin.plugin, getCurrentTime()));
-    }
-
-    public int getEatenBales() {
-        return bales.size();
-    }
-
-    public int getDrunkCauldrons() {
-        return cauldrons.size();
     }
 
     public void setRun(boolean run) {
