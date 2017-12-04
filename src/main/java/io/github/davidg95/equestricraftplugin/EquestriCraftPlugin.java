@@ -1354,6 +1354,18 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     }
 
     @EventHandler
+    public void onCompassUse(PlayerInteractEvent evt) {
+        if (evt.getItem().getType() != Material.COMPASS) {
+            return;
+        }
+        if (!evt.getItem().getItemMeta().getDisplayName().equals(NAVIGATOR_TOOL)) {
+            return;
+        }
+        evt.setCancelled(true);
+        evt.getPlayer().openInventory(navigator);
+    }
+
+    @EventHandler
     public void playerUse(PlayerInteractEntityEvent event) {
         final Player player = event.getPlayer();
         final ItemStack inHand = player.getItemInHand(); //Get the item in hand.
@@ -1483,31 +1495,6 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
 //                        player.sendMessage(ChatColor.RED + "Error breeding. Error code 2");
 //                    }
 //                    break;
-                default:
-                    break;
-            }
-        }
-    }
-
-    @EventHandler
-    public void onPlayerClick(PlayerInteractEvent event) {
-        final Player player = event.getPlayer();
-        final ItemStack inHand = player.getItemInHand(); //Get the item in hand.
-        if (inHand == null) {
-            return;
-        }
-        if (null != inHand.getType()) {
-            switch (inHand.getType()) {
-                case COMPASS:
-                    if (!inHand.getItemMeta().hasDisplayName()) {
-                        return;
-                    }
-                    if (!inHand.getItemMeta().getDisplayName().equals(NAVIGATOR_TOOL)) {
-                        return;
-                    }
-                    event.setCancelled(true);
-                    player.openInventory(navigator);
-                    break;
                 default:
                     break;
             }
