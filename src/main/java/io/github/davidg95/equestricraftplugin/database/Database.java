@@ -66,7 +66,7 @@ public abstract class Database {
             ps.executeUpdate();
             plugin.getLogger().log(Level.INFO, "Horse " + uuid + " has been removed from the database");
         } catch (SQLException ex) {
-            plugin.getLogger().log(Level.SEVERE, Errors.sqlConnectionExecute(), ex);
+            plugin.getLogger().log(Level.SEVERE, "Error removing horse", ex);
         } finally {
             lock.unlockWrite(stamp);
             try {
@@ -77,7 +77,7 @@ public abstract class Database {
                     conn.close();
                 }
             } catch (SQLException ex) {
-                plugin.getLogger().log(Level.SEVERE, Errors.sqlConnectionClose(), ex);
+                plugin.getLogger().log(Level.SEVERE, "Error closing connection", ex);
             }
         }
     }
@@ -96,7 +96,7 @@ public abstract class Database {
                 return rs.getInt(1);
             }
         } catch (SQLException ex) {
-            plugin.getLogger().log(Level.SEVERE, Errors.sqlConnectionExecute(), ex);
+            plugin.getLogger().log(Level.SEVERE, "Error getting horse count", ex);
         } finally {
             lock.unlockWrite(stamp);
             try {
@@ -107,7 +107,7 @@ public abstract class Database {
                     conn.close();
                 }
             } catch (SQLException ex) {
-                plugin.getLogger().log(Level.SEVERE, Errors.sqlConnectionClose(), ex);
+                plugin.getLogger().log(Level.SEVERE, "Error closing connection", ex);
             }
         }
         return 0;
@@ -176,7 +176,7 @@ public abstract class Database {
                     conn.close();
                 }
             } catch (SQLException ex) {
-                plugin.getLogger().log(Level.SEVERE, Errors.sqlConnectionClose(), ex);
+                plugin.getLogger().log(Level.SEVERE, "Error closing connection", ex);
             }
         }
     }
@@ -226,7 +226,7 @@ public abstract class Database {
             }
             return horses;
         } catch (SQLException ex) {
-            plugin.getLogger().log(Level.SEVERE, Errors.sqlConnectionExecute(), ex);
+            plugin.getLogger().log(Level.SEVERE, "Error getting horses", ex);
         } finally {
             lock.unlockWrite(stamp);
             try {
@@ -237,7 +237,7 @@ public abstract class Database {
                     conn.close();
                 }
             } catch (SQLException ex) {
-                plugin.getLogger().log(Level.SEVERE, Errors.sqlConnectionClose(), ex);
+                plugin.getLogger().log(Level.SEVERE, "Error closing connection", ex);
             }
         }
         return new LinkedList<>();
@@ -287,7 +287,7 @@ public abstract class Database {
                 return horse;
             }
         } catch (SQLException ex) {
-            plugin.getLogger().log(Level.SEVERE, Errors.sqlConnectionExecute(), ex);
+            plugin.getLogger().log(Level.SEVERE, "Error getting horse", ex);
         } finally {
             lock.unlockWrite(stamp);
             try {
@@ -298,7 +298,7 @@ public abstract class Database {
                     conn.close();
                 }
             } catch (SQLException ex) {
-                plugin.getLogger().log(Level.SEVERE, Errors.sqlConnectionClose(), ex);
+                plugin.getLogger().log(Level.SEVERE, "Error closing connection", ex);
             }
         }
         return null;
@@ -322,7 +322,7 @@ public abstract class Database {
                 return false;
             }
         } catch (SQLException ex) {
-            plugin.getLogger().log(Level.SEVERE, Errors.sqlConnectionExecute(), ex);
+            plugin.getLogger().log(Level.SEVERE, "DB Error", ex);
         } finally {
             try {
                 if (ps != null) {
@@ -332,7 +332,7 @@ public abstract class Database {
                     conn.close();
                 }
             } catch (SQLException ex) {
-                plugin.getLogger().log(Level.SEVERE, Errors.sqlConnectionClose(), ex);
+                plugin.getLogger().log(Level.SEVERE, "DB Error", ex);
             }
         }
         return false;
@@ -347,7 +347,7 @@ public abstract class Database {
             ps = conn.prepareStatement("INSERT INTO " + breedTable + " (uuid, time) VALUES('" + p.getUniqueId() + "'," + new Date().getTime() + ")");
             ps.executeUpdate();
         } catch (SQLException ex) {
-            plugin.getLogger().log(Level.SEVERE, Errors.sqlConnectionExecute(), ex);
+            plugin.getLogger().log(Level.SEVERE, "DB Error", ex);
         } finally {
             try {
                 if (ps != null) {
@@ -357,7 +357,7 @@ public abstract class Database {
                     conn.close();
                 }
             } catch (SQLException ex) {
-                plugin.getLogger().log(Level.SEVERE, Errors.sqlConnectionClose(), ex);
+                plugin.getLogger().log(Level.SEVERE, "DB Error", ex);
             }
         }
     }
@@ -376,7 +376,7 @@ public abstract class Database {
                 return rs.getInt(1);
             }
         } catch (SQLException ex) {
-            plugin.getLogger().log(Level.SEVERE, Errors.sqlConnectionExecute(), ex);
+            plugin.getLogger().log(Level.SEVERE, "DB Error", ex);
         } finally {
             try {
                 if (ps != null) {
@@ -386,7 +386,7 @@ public abstract class Database {
                     conn.close();
                 }
             } catch (SQLException ex) {
-                plugin.getLogger().log(Level.SEVERE, Errors.sqlConnectionClose(), ex);
+                plugin.getLogger().log(Level.SEVERE, "DB Error", ex);
             }
         }
         return 0;
@@ -406,7 +406,7 @@ public abstract class Database {
                 return rs.getLong("time");
             }
         } catch (SQLException ex) {
-            plugin.getLogger().log(Level.SEVERE, Errors.sqlConnectionExecute(), ex);
+            plugin.getLogger().log(Level.SEVERE, "DB Error", ex);
         } finally {
             try {
                 if (ps != null) {
@@ -416,7 +416,7 @@ public abstract class Database {
                     conn.close();
                 }
             } catch (SQLException ex) {
-                plugin.getLogger().log(Level.SEVERE, Errors.sqlConnectionClose(), ex);
+                plugin.getLogger().log(Level.SEVERE, "DB Error", ex);
             }
         }
         return -1;
@@ -431,7 +431,7 @@ public abstract class Database {
                 rs.close();
             }
         } catch (SQLException ex) {
-            Error.close(plugin, ex);
+            plugin.getLogger().log(Level.SEVERE, null, ex);
         }
     }
 }
