@@ -51,10 +51,9 @@ public class FoodController implements CommandExecutor, Listener {
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         if (args.length == 0) {
-            sender.sendMessage("Usage-\n"
-                    + "/food buy-seeds\n"
-                    + "/food buy-wheat\n"
-                    + "/food buy-water\n");
+            sender.sendMessage(ChatColor.GREEN + "Usage-\n"
+                    + "/food buy-wheat - " + ChatColor.AQUA + "$" + wheat_cost + "\n"
+                    + ChatColor.GREEN + "/food buy-water - " + ChatColor.AQUA + "$" + water_cost + "\n");
             return true;
         }
         Player player = null;
@@ -78,6 +77,7 @@ public class FoodController implements CommandExecutor, Listener {
             player.getInventory().addItem(seeds);
             econ.withdrawPlayer(player, seeds_cost);
             player.sendMessage(ChatColor.GREEN + "You have been charged " + ChatColor.AQUA + "$" + seeds_cost);
+            plugin.getLogger().log(Level.INFO, player.getDisplayName() + " has bought some feeding seeds for $" + seeds_cost);
         } else if (args[0].equalsIgnoreCase("buy-wheat")) {
             if (econ.getBalance(player) < wheat_cost) {
                 player.sendMessage(ChatColor.RED + "You do not have enough money");
@@ -92,6 +92,7 @@ public class FoodController implements CommandExecutor, Listener {
             player.getInventory().addItem(seeds);
             econ.withdrawPlayer(player, wheat_cost);
             player.sendMessage(ChatColor.GREEN + "You have been charged " + ChatColor.AQUA + "$" + wheat_cost);
+            plugin.getLogger().log(Level.INFO, player.getDisplayName() + " has bought some feeding wheat for $" + wheat_cost);
         } else if (args[0].equalsIgnoreCase("buy-water")) {
             if (econ.getBalance(player) < water_cost) {
                 player.sendMessage(ChatColor.RED + "You do not have enough money");
@@ -105,6 +106,7 @@ public class FoodController implements CommandExecutor, Listener {
             player.getInventory().addItem(seeds);
             econ.withdrawPlayer(player, water_cost);
             player.sendMessage(ChatColor.GREEN + "You have been charged " + ChatColor.AQUA + "$" + water_cost);
+            plugin.getLogger().log(Level.INFO, player.getDisplayName() + " has bought some drinking water for $" + water_cost);
         }
         return true;
     }
