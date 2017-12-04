@@ -88,6 +88,7 @@ public class SQLite extends Database {
         try {
             Statement s = connection.createStatement();
             s.executeUpdate(createHorsesTable);
+            s.executeUpdate("DROP TABLE " + breedTable);
             s.executeUpdate(createBreedLogTable);
             s.close();
         } catch (SQLException ex) {

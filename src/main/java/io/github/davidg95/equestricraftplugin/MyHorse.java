@@ -387,6 +387,10 @@ public class MyHorse implements Serializable {
     public void setLastBreed() {
         this.lastBreed = getCurrentTime();
     }
+    
+    public void allowBreed(){
+        this.lastBreed = 0;
+    }
 
 //    public Horse getHorse() {
 //        return horse;
