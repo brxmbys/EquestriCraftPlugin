@@ -74,3 +74,6 @@ commands:
     breeding:
         description: breeding commands.
         usage: /breeding [gapple|check]
+    food:
+        description: food commands.
+        usage: /food [buy-seeds|buy-wheat|buy-water]

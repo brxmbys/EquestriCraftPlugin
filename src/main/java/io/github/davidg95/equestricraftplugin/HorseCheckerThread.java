@@ -172,9 +172,6 @@ public class HorseCheckerThread extends Thread {
                         }
                     }
                     horsesChecked++;
-                    if(horsesChecked % 50 == 0){
-                        EquestriCraftPlugin.plugin.getLogger().log(Level.INFO, "Checked " + horsesChecked + " horses");
-                    }
                 }
             } catch (Exception e) {
                 EquestriCraftPlugin.LOG.log(Level.WARNING, "Error", e);
@@ -182,10 +179,10 @@ public class HorseCheckerThread extends Thread {
             final long end = new Date().getTime();
             final long time = end - start;
             double s = time / 1000D;
-//            if (SHOW_TIME) {
-            EquestriCraftPlugin.LOG.log(Level.INFO, "Thread run time: " + s + "s");
-            EquestriCraftPlugin.LOG.log(Level.INFO, "Horses checked: " + horsesChecked);
-//            }
+            if (SHOW_TIME) {
+                EquestriCraftPlugin.LOG.log(Level.INFO, "Thread run time: " + s + "s");
+                EquestriCraftPlugin.LOG.log(Level.INFO, "Horses checked: " + horsesChecked);
+            }
             try {
                 Thread.sleep(MAIN_THREAD_INTERVAL); //Wait
             } catch (Exception ex) {
@@ -212,6 +209,7 @@ public class HorseCheckerThread extends Thread {
                             if (entity.getUniqueId().equals(uniqueId)) {
                                 cont.horse = (Horse) entity;
                                 cont.found = true;
+                                EquestriCraftPlugin.plugin.getLogger().log(Level.INFO, "Horse found in world");
                                 return;
                             }
                         }

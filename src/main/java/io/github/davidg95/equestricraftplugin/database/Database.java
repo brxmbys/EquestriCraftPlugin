@@ -15,6 +15,7 @@ import java.sql.SQLException;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.UUID;
+import java.util.concurrent.locks.StampedLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.bukkit.OfflinePlayer;
@@ -31,9 +32,12 @@ public abstract class Database {
     public String table = "horses";
     public String breedTable = "breedLog";
     public int tokens = 0;
+    
+    private final StampedLock lock;
 
     public Database(EquestriCraftPlugin plugin) {
         this.plugin = plugin;
+        lock = new StampedLock();
     }
 
     public abstract Connection getSQLConnection();
@@ -55,6 +59,7 @@ public abstract class Database {
         Connection conn = null;
         PreparedStatement ps = null;
 
+        final long stamp = lock.writeLock();
         try {
             conn = getSQLConnection();
             ps = conn.prepareStatement("DELETE FROM " + table + " WHERE uuid='" + uuid.toString() + "'");
@@ -63,6 +68,7 @@ public abstract class Database {
         } catch (SQLException ex) {
             plugin.getLogger().log(Level.SEVERE, Errors.sqlConnectionExecute(), ex);
         } finally {
+            lock.unlockWrite(stamp);
             try {
                 if (ps != null) {
                     ps.close();
@@ -80,6 +86,7 @@ public abstract class Database {
         Connection conn = null;
         PreparedStatement ps = null;
 
+        final long stamp = lock.writeLock();
         try {
             conn = getSQLConnection();
             ps = conn.prepareStatement("SELECT COUNT(*) FROM " + table);
@@ -91,6 +98,7 @@ public abstract class Database {
         } catch (SQLException ex) {
             plugin.getLogger().log(Level.SEVERE, Errors.sqlConnectionExecute(), ex);
         } finally {
+            lock.unlockWrite(stamp);
             try {
                 if (ps != null) {
                     ps.close();
@@ -110,6 +118,8 @@ public abstract class Database {
         PreparedStatement ps = null;
 
         conn = getSQLConnection();
+        
+        final long stamp = lock.writeLock();
         try {
             ps = conn.prepareStatement("INSERT INTO " + table + " (uuid, gender, vaccinationTime, last_eat, last_drink, ill_since, well_since, last_breed, defacate_since_eat, breed1, breed2, birth, person1, person2, dieat, illness, shoed, training_level) VALUES ('"
                     + h.getUuid() + "',"
@@ -157,6 +167,7 @@ public abstract class Database {
                 Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex1);
             }
         } finally {
+            lock.unlockWrite(stamp);
             try {
                 if (ps != null) {
                     ps.close();
@@ -177,6 +188,7 @@ public abstract class Database {
 
         LinkedList<MyHorse> horses = new LinkedList<>();
 
+        final long stamp = lock.writeLock();
         try {
             conn = getSQLConnection();
             ps = conn.prepareStatement("SELECT * FROM " + table);
@@ -216,6 +228,7 @@ public abstract class Database {
         } catch (SQLException ex) {
             plugin.getLogger().log(Level.SEVERE, Errors.sqlConnectionExecute(), ex);
         } finally {
+            lock.unlockWrite(stamp);
             try {
                 if (ps != null) {
                     ps.close();
@@ -236,6 +249,8 @@ public abstract class Database {
         ResultSet rs = null;
 
         MyHorse horse;
+        
+        final long stamp = lock.writeLock();
 
         try {
             conn = getSQLConnection();
@@ -274,6 +289,7 @@ public abstract class Database {
         } catch (SQLException ex) {
             plugin.getLogger().log(Level.SEVERE, Errors.sqlConnectionExecute(), ex);
         } finally {
+            lock.unlockWrite(stamp);
             try {
                 if (ps != null) {
                     ps.close();
@@ -292,7 +308,7 @@ public abstract class Database {
         Connection conn = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
-
+        
         try {
             conn = getSQLConnection();
             ps = conn.prepareStatement("SELECT * FROM " + breedTable + " WHERE UUID = '" + p.getUniqueId().toString() + "' ORDER BY time DESC");
@@ -325,7 +341,7 @@ public abstract class Database {
     public void breedNow(Player p) {
         Connection conn = null;
         PreparedStatement ps = null;
-
+        
         try {
             conn = getSQLConnection();
             ps = conn.prepareStatement("INSERT INTO " + breedTable + " (uuid, time) VALUES('" + p.getUniqueId() + "'," + new Date().getTime() + ")");

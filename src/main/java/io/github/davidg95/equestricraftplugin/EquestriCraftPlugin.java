@@ -17,7 +17,6 @@ import org.bukkit.*;
 import org.bukkit.command.*;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.entity.*;
-import org.bukkit.entity.Villager.Profession;
 import org.bukkit.event.*;
 import org.bukkit.event.entity.*;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -173,6 +172,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         }
         this.getCommand("race").setExecutor(new RaceController(this));
         this.getCommand("auction").setExecutor(new AuctionHandler());
+        this.getCommand("food").setExecutor(new FoodController(this, economy, database));
     }
 
     private void setupDatabase() {
