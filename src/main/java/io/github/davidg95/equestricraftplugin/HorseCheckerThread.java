@@ -6,21 +6,14 @@ package io.github.davidg95.equestricraftplugin;
 import io.github.davidg95.equestricraftplugin.database.Database;
 import java.util.Date;
 import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.locks.StampedLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
-import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Horse;
-import org.bukkit.metadata.FixedMetadataValue;
-import org.bukkit.metadata.MetadataValue;
 import org.bukkit.scheduler.BukkitRunnable;
 
 /**
@@ -78,81 +71,26 @@ public class HorseCheckerThread extends Thread {
 
     public HorseCheckerThread() {
         super("Horse_Checker_Thread");
-//        breedThread = new BreedCheckerThread();
         database = EquestriCraftPlugin.database;
         run = true;
     }
 
-    private void init() {
-//        breedThread.start();
-    }
-
     @Override
     public void run() {
-        init(); //Start the secondary threads.
+        EquestriCraftPlugin.plugin.getLogger().log(Level.INFO, "Starting checker thread");
         while (run) {
             final long start = new Date().getTime();
             int horsesChecked = 0;
             try {
                 Iterator it = database.getHorses().iterator();
+                EquestriCraftPlugin.plugin.getLogger().log(Level.INFO, "Checking " + database.horseCount() + " horses...");
                 while (it.hasNext()) {
                     final MyHorse horse = (MyHorse) it.next();
                     if (horse == null) {
                         continue;
                     }
-//                    if (horse.getHorse() == null) {
-//                        continue;
-//                    }
-
-//                    new BukkitRunnable() {
-//                        @Override
-//                        public void run() {
-//                            final Block cauldron = MyHorse.getNearCauldron(horse); //Get the nearby cauldron if there is one.
-//                            if (cauldron != null) { //Check if they are next to a cauldron.
-//                                if (getFirstEat(cauldron) == -1) {
-//                                    setFirstEat(cauldron);
-//                                }
-                    horse.drink();
-//                                final Runnable caulAdd = new Runnable() {
-//                                    @Override
-//                                    public void run() {
-//                                        final long cstamp = cauldronLock.writeLock();
-//                                        try {
-//                                            cauldrons.add(cauldron);
-//                                        } finally {
-//                                            cauldronLock.unlockWrite(cstamp);
-//                                        }
-//                                    }
-//                                };
-//                                new Thread(caulAdd, "Caul_Add").start();
-//                            }
-//                        }
-//                    }.runTask(EquestriCraftPlugin.plugin);
-//
-//                    new BukkitRunnable() {
-//                        @Override
-//                        public void run() {
-//                            final Block bale = MyHorse.getNearHayBale(horse); //Get the nearby hay bale if there is one.
-//                            if (bale != null) { //Check if they are next to a hay bale.
-//                                if (getFirstEat(bale) == -1) {
-//                                    setFirstEat(bale);
-//                                }
-                    horse.eat();
-//                                final Runnable baleAdd = new Runnable() {
-//                                    @Override
-//                                    public void run() {
-//                                        final long bstamp = baleLock.writeLock();
-//                                        try {
-//                                            bales.add(bale);
-//                                        } finally {
-//                                            baleLock.unlockWrite(bstamp);
-//                                        }
-//                                    }
-//                                };
-//                                new Thread(baleAdd, "Bale_Add").start();
-//                            }
-//                        }
-//                    }.runTask(EquestriCraftPlugin.plugin);
+//                    horse.drink();
+//                    horse.eat();
                     if (horse.isSick() && horse.getIllDuration() > SICK_LIMIT) { //Check if the horse has been sick for too long.
                         Horse h = getEntityByUniqueId(horse.getUuid());
                         if (h != null) {
@@ -160,19 +98,26 @@ public class HorseCheckerThread extends Thread {
                             EquestriCraftPlugin.LOG.log(Level.INFO, "A horse died of illness");
                         }
                     }
-//                    if (horse.isHungry() && horse.getHungerDuration() > SICK_LIMIT) { //Kill the horse if it has been hungry longer than the limit.
-//                        EquestriCraftPlugin.LOG.log(Level.INFO, "A horse died of hunger");
-//                        horse.kill();
-//                        it.remove();
-//                    }
-//                    if (horse.isThirsty() && horse.getThristDuration() > SICK_LIMIT) { //Kill the horse if it has been thirsty longer than the limit.
-//                        EquestriCraftPlugin.LOG.log(Level.INFO, "A horse died of thirst");
-//                        horse.kill();
-//                        it.remove();
-//                    }
+                    if (horse.isHungry() && horse.getHungerDuration() > SICK_LIMIT) { //Kill the horse if it has been hungry longer than the limit.
+                        EquestriCraftPlugin.LOG.log(Level.INFO, "A horse died of hunger");
+                        Horse h = getEntityByUniqueId(horse.getUuid());
+                        if (h != null) {
+                            h.setHealth(0);
+                        }
+                        it.remove();
+                    }
+                    if (horse.isThirsty() && horse.getThristDuration() > SICK_LIMIT) { //Kill the horse if it has been thirsty longer than the limit.
+                        EquestriCraftPlugin.LOG.log(Level.INFO, "A horse died of thirst");
+                        Horse h = getEntityByUniqueId(horse.getUuid());
+                        if (h != null) {
+                            h.setHealth(0);
+                        }
+                        it.remove();
+                    }
                     if (horse.getDurationSinceLastEat() > DEFECATE_INTERVAL) { //Check if the horse needs to defecate.
                         if (!horse.hasDefecate()) {
                             horse.defecate();
+                            database.saveHorse(horse);
                         }
                     }
 
@@ -187,6 +132,7 @@ public class HorseCheckerThread extends Thread {
                                 horse.setSick(true);
                             }
                         }
+                        database.saveHorse(horse);
                     }
 
                     if (horse.getAgeInMonths() > horse.getDieAt() && horse.getDieAt() > 300) { //Check if the horse is too old.
@@ -201,6 +147,7 @@ public class HorseCheckerThread extends Thread {
 
                     if (horse.getBreed() == null) {
                         horse.setBreed(new HorseBreed[]{horse.getOldBreed(), horse.getOldBreed()});
+                        database.saveHorse(horse);
                     }
 
                     if (horse.getAgeInMonths() >= 12) { //Check if the horse can become an adult
@@ -224,8 +171,10 @@ public class HorseCheckerThread extends Thread {
                             }.runTask(EquestriCraftPlugin.plugin);
                         }
                     }
-                    database.saveHorse(horse);
                     horsesChecked++;
+                    if(horsesChecked % 50 == 0){
+                        EquestriCraftPlugin.plugin.getLogger().log(Level.INFO, "Checked " + horsesChecked + " horses");
+                    }
                 }
             } catch (Exception e) {
                 EquestriCraftPlugin.LOG.log(Level.WARNING, "Error", e);
@@ -233,16 +182,17 @@ public class HorseCheckerThread extends Thread {
             final long end = new Date().getTime();
             final long time = end - start;
             double s = time / 1000D;
-            if (SHOW_TIME) {
-                EquestriCraftPlugin.LOG.log(Level.INFO, "Thread run time: " + s + "s");
-                EquestriCraftPlugin.LOG.log(Level.INFO, "Horses checked: " + horsesChecked);
-            }
+//            if (SHOW_TIME) {
+            EquestriCraftPlugin.LOG.log(Level.INFO, "Thread run time: " + s + "s");
+            EquestriCraftPlugin.LOG.log(Level.INFO, "Horses checked: " + horsesChecked);
+//            }
             try {
                 Thread.sleep(MAIN_THREAD_INTERVAL); //Wait
             } catch (Exception ex) {
                 Logger.getLogger(HorseCheckerThread.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
+        EquestriCraftPlugin.plugin.getLogger().log(Level.INFO, "Stopping checker thread");
     }
 
     private class HorseCont {
@@ -267,6 +217,7 @@ public class HorseCheckerThread extends Thread {
                         }
                     }
                 }
+                cont.found = true;
             }
         }.runTask(EquestriCraftPlugin.plugin);
         while (!cont.found) {
@@ -288,69 +239,7 @@ public class HorseCheckerThread extends Thread {
         return new Date().getTime();
     }
 
-    private long getFirstEat(Block b) {
-        final List<MetadataValue> mdvs = b.getMetadata("FIRSTEAT");
-        for (MetadataValue md : mdvs) {
-            if (md.getOwningPlugin() == EquestriCraftPlugin.plugin) {
-                return md.asLong();
-            }
-        }
-        return -1;
-    }
-
-    private void setFirstEat(Block b) {
-        b.setMetadata("FIRSTEAT", new FixedMetadataValue(EquestriCraftPlugin.plugin, getCurrentTime()));
-    }
-
     public void setRun(boolean run) {
         this.run = run;
     }
-
-//    public class BreedCheckerThread extends Thread {
-//
-//        public BreedCheckerThread() {
-//            super("Breed_Checker_Thread");
-//        }
-//
-//        @Override
-//        public void run() {
-//            while (run) {
-//                try {
-//                    Iterator<MyHorse> it = database.getHorses().iterator();
-//                    while (it.hasNext()) {
-//                        MyHorse horse = it.next();
-//                        if (horse.getAgeInMonths() < 12) {
-//                            continue;
-//                        }
-//                        final double r = Math.random();
-//                        if (r <= BREED_PROBABILITY) { //If the breed probability is met.
-//                            final long timeSinceLast = horse.getDurationSinceLastBreed(); //Get the time since the horse last bred.
-//                            if (timeSinceLast > BREED_INTERVAL) { //Check if it is greater then the breed inverval.
-//                                HorseBreed br = MyHorse.nearMate(horse);
-//                                if (br != null) { //Check if the horse is near a valid mate.
-//                                    horse.setLastBreed();
-//                                    new BukkitRunnable() {
-//                                        @Override
-//                                        public void run() {
-//                                            final Horse h = horse.getHorse().getWorld().spawn(horse.getHorse().getLocation(), Horse.class); //Spawn a new horse.
-//                                            h.setStyle(horse.getHorse().getStyle()); //Copy the parent style.
-//                                            h.setMetadata("breed1", new FixedMetadataValue(EquestriCraftPlugin.plugin, horse.getBreed()[0].name()));
-//                                            h.setMetadata("breed2", new FixedMetadataValue(EquestriCraftPlugin.plugin, br.name()));
-//                                        }
-//                                    }.runTask(EquestriCraftPlugin.plugin);
-//                                }
-//                            }
-//                        }
-//                    }
-//                } catch (Exception e) {
-//
-//                }
-//                try {
-//                    Thread.sleep(BREED_THREAD_INTERVAL); //Wait
-//                } catch (Exception ex) {
-//                    Logger.getLogger(HorseCheckerThread.class.getName()).log(Level.SEVERE, null, ex);
-//                }
-//            }
-//        }
-//    }
 }
