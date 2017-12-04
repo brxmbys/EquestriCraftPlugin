@@ -209,7 +209,6 @@ public class HorseCheckerThread extends Thread {
                             if (entity.getUniqueId().equals(uniqueId)) {
                                 cont.horse = (Horse) entity;
                                 cont.found = true;
-                                EquestriCraftPlugin.plugin.getLogger().log(Level.INFO, "Horse found in world");
                                 return;
                             }
                         }
