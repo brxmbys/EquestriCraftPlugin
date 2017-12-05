@@ -764,7 +764,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             }
             return true;
         } else if (cmd.getName().equalsIgnoreCase("farrier")) {
-            if (args.length == 1) {
+            if (args.length > 0) {
                 if (args[0].equalsIgnoreCase("tool")) {
                     if (sender instanceof Player) {
                         final Player player = (Player) sender;
@@ -785,6 +785,30 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         sender.sendMessage("Only a player can use this command");
                     }
                     return true;
+                } else if (args[0].equalsIgnoreCase("show-online")) {
+                    String list = ChatColor.GREEN + "Online Farriers-";
+                    int count = 0;
+                    for (Player player : Bukkit.getOnlinePlayers()) {
+                        if (player.hasPermission(farrierPerm)) {
+                            list += "\n - " + player.getDisplayName();
+                            count++;
+                        }
+                    }
+                    if (count == 0) {
+                        sender.sendMessage(ChatColor.RED + "There are no Farriers online");
+                    } else {
+                        sender.sendMessage(list);
+                    }
+                    return true;
+                } else if (args[0].equalsIgnoreCase("broadcast")) {
+                    if (args.length > 1) {
+                        String message = ChatColor.GREEN + "Message from " + sender.getName() + " to all farriers - \n";
+                        for (int i = 1; i < args.length; i++) {
+                            message += args[i] + " ";
+                        }
+                        Bukkit.broadcast(message, farrierPerm.getName());
+                        return true;
+                    }
                 }
             }
         } else if (cmd.getName().equalsIgnoreCase("setlevel")) {
@@ -895,41 +919,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     return true;
                 }
             }
-        } else if (cmd.getName().equalsIgnoreCase("build")) {
-            if (!(sender instanceof Player)) {
-                sender.sendMessage("Only players can use this command");
-                return true;
-            }
-            final Player player = (Player) sender;
-            if (args.length < 3) {
-                return false;
-            }
-            try {
-                String op = args[0];
-                int width = Integer.parseInt(args[1]);
-                int height = Integer.parseInt(args[2]);
-                if (width <= 0 || height <= 0) {
-                    player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Must be a value greater than 0");
-                    return true;
-                }
-                double value = width * height;
-                if (op.equalsIgnoreCase("pay")) {
-                    if (!economy.has(player, value)) {
-                        player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "You do not have enough money");
-                        return true;
-                    }
-                    economy.withdrawPlayer(player, value);
-                    player.sendMessage(ChatColor.AQUA + "$" + new DecimalFormat("0").format(value) + ChatColor.GREEN + " has been withdrawn for a build");
-                    Bukkit.getLogger().log(Level.INFO, player.getName() + " has paid $" + new DecimalFormat("0").format(value) + " for a build");
-                } else if (op.equalsIgnoreCase("enq")) {
-                    player.sendMessage(ChatColor.GREEN + "This build will cost " + ChatColor.AQUA + "$" + new DecimalFormat("0").format(value) + ChatColor.GREEN + ". /build pay " + width + " " + height + " to pay");
-                }
-            } catch (NumberFormatException e) {
-                player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Must enter a numerical value");
-            }
-            return true;
         } else if (cmd.getName().equalsIgnoreCase("dentist")) {
-            if (args.length == 1) {
+            if (args.length > 0) {
                 if (sender instanceof Player) {
                     Player player = (Player) sender;
                     if (player.hasPermission(dentistPerm)) {
@@ -958,7 +949,59 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         player.sendMessage(ChatColor.RED + "Only dentists can use this tool");
                     }
                 }
+                if (args[0].equalsIgnoreCase("show-online")) {
+                    String list = ChatColor.GREEN + "Online Dentists-";
+                    int count = 0;
+                    for (Player p : Bukkit.getOnlinePlayers()) {
+                        if (p.hasPermission(dentistPerm)) {
+                            list += "\n - " + p.getDisplayName();
+                            count++;
+                        }
+                    }
+                    if (count == 0) {
+                        sender.sendMessage(ChatColor.RED + "There are no Dentists online");
+                    } else {
+                        sender.sendMessage(list);
+                    }
+                } else if (args[0].equalsIgnoreCase("broadcast")) {
+                    if (args.length > 1) {
+                        String message = ChatColor.GREEN + "Message from " + sender.getName() + " to all dentists - \n";
+                        for (int i = 1; i < args.length; i++) {
+                            message += args[i] + " ";
+                        }
+                        Bukkit.broadcast(message, dentistPerm.getName());
+                        return true;
+                    }
+                    return false;
+                }
                 return true;
+            }
+        } else if (cmd.getName().equalsIgnoreCase("vet")) {
+            if (args.length > 0) {
+                if (args[0].equalsIgnoreCase("show-online")) {
+                    String list = ChatColor.GREEN + "Online Vets-";
+                    int count = 0;
+                    for (Player p : Bukkit.getOnlinePlayers()) {
+                        list += "\n - " + p.getDisplayName();
+                        count++;
+                    }
+                    if (count == 0) {
+                        sender.sendMessage(ChatColor.RED + "There are no online Vets");
+                    } else {
+                        sender.sendMessage(list);
+                    }
+                    return true;
+                } else if(args[0].equalsIgnoreCase("broadcast")){
+                    if(args.length > 1){
+                        String message = ChatColor.GREEN + "Message from " + sender.getName() + " to all vets - \n";
+                        for(int i = 1; i < args.length; i++){
+                            message += args[i] + " ";
+                        }
+                        Bukkit.broadcast(message, doctorPerm.getName());
+                        return true;
+                    }
+                    return false;
+                }
             }
         }
         return false;
@@ -983,7 +1026,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
      * @param evt the PlayerQuitEvent.
      */
     @EventHandler
-    public void onLeave(PlayerQuitEvent evt) {
+    public void ejectHorseOnLeave(PlayerQuitEvent evt) {
         Player player = evt.getPlayer();
         Entity e = player.getVehicle();
         if (e == null || !(e instanceof Horse)) {
@@ -1398,7 +1441,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     }
 
     @EventHandler
-    public void onPlayerJoin(PlayerJoinEvent event) {
+    public void giveNavigatorNewPlayer(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         if (player.getLastPlayed() == 0) {
             final PlayerInventory inventory = player.getInventory();
@@ -1411,11 +1454,6 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             navTool.setItemMeta(im);
             inventory.addItem(navTool);
         }
-    }
-
-    @EventHandler
-    public void onPing(ServerListPingEvent event) {
-        event.setMotd(event.getMotd() + motd);
     }
 
     /**

@@ -55,7 +55,7 @@ commands:
         usage: /eqh
     farrier:
         description: farrier commands.
-        usage: /farrier tool.
+        usage: /farrier <tool|show-online|broadcast [message]>.
     disciplines:
         description: disciplines commands.
         usage: /disciplines
@@ -76,4 +76,7 @@ commands:
         usage: /food [buy-seeds|buy-wheat|buy-water]
     dentist:
         description: dentist commands.
-        usage: /dentist tool
+        usage: /dentist <tool|show-online|broadcast [message]>
+    vet:
+        description: show online vets.
+        usage: /vet <show-online|broadcast [message]>
