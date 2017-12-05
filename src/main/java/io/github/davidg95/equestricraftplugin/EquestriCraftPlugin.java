@@ -268,7 +268,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         } else if (cmd.getName().equalsIgnoreCase("geldingtool")) {   //geldingtool command
             if (sender instanceof Player) {
                 final Player player = (Player) sender;
-                if (!player.hasPermission("equestricraft.tools.gelding")) {
+                if (!player.hasPermission("equestricraft.role.doctor")) {
                     player.sendMessage(ChatColor.RED + "You do not have permission to use this");
                     return true;
                 }
@@ -599,25 +599,16 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             }
             return true;
         } else if (cmd.getName().equalsIgnoreCase("eqhelp")) {   //eqhelp command
-            boolean op = false;
-            boolean console = false;
-
-            if (op || console) {
+            if (sender.isOp()) {
                 sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/equestristatus - " + ChatColor.RESET + "shows horse numbers");
-            }
-            if (op) {
                 sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/createhorse - " + ChatColor.RESET + "create a horse");
             }
-            if (!console) {
-                sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/geldingtool - " + ChatColor.RESET + "spawn the gelding tool");
-            }
-            if (!console) {
-                sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/horsewand - " + ChatColor.RESET + "spawn the horse wand tool");
-            }
+            sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/horsewand - " + ChatColor.RESET + "spawn the horse wand tool");
             if (sender.hasPermission(doctorPerm)) {
                 sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "/horsemedicine - " + ChatColor.RESET + "spawn the horse healing tool");
                 sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "/vaccination - " + ChatColor.RESET + "spawn the vaccination tool");
                 sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "/doctortool - " + ChatColor.RESET + "spawn the doctor tool for checking a horses health");
+                sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "/geldingtool - " + ChatColor.RESET + "spawn the gelding tool");
             }
             sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/vet show-online - " + ChatColor.RESET + "shows online vets");
             sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/vet broadcast <message> - " + ChatColor.RESET + "broadcast a message to online vets");
@@ -634,7 +625,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                 sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "/dentist tool - " + ChatColor.RESET + "spawns the dentist tool");
                 sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "/dentist healing-tool - " + ChatColor.RESET + "spawns the dentist healing tool");
             }
-            if (op) {
+            if (sender.isOp()) {
                 sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/changegender <stallion|gelding|mare> - " + ChatColor.RESET + "set the gender of a horse. Must be on the horse");
                 sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/setbreed <breed> - " + ChatColor.RESET + "set the breed of the horse");
                 sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/setpersonality <personality> - " + ChatColor.RESET + "set the personality of the horse");
@@ -1396,12 +1387,13 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                                 } else {
                                     horse.setVariant(Horse.Variant.UNDEAD_HORSE);
                                 }
+                            } else{
+                                horse.setVariant(Horse.Variant.HORSE);
                             }
                             foal.setBaby();
                             database.saveHorse(mhFoal);
                             database.saveHorse(mh1);
                             database.saveHorse(mh2);
-//                            database.breedNow(player);
                             if (inHand.getAmount() == 1) {
                                 player.getInventory().removeItem(inHand);
                             } else {
