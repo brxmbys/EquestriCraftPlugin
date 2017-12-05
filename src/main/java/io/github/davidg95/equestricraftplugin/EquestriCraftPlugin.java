@@ -9,7 +9,6 @@ import io.github.davidg95.equestricraftplugin.database.SQLite;
 import io.github.davidg95.equestricraftplugin.disciplines.DisciplinesHandler;
 import io.github.davidg95.equestricraftplugin.race.*;
 import java.io.*;
-import java.text.DecimalFormat;
 import java.util.*;
 import java.util.logging.*;
 import net.milkbowl.vault.economy.Economy;
@@ -21,7 +20,6 @@ import org.bukkit.event.*;
 import org.bukkit.event.entity.*;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.*;
-import org.bukkit.event.server.ServerListPingEvent;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -621,14 +619,21 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                 sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "/vaccination - " + ChatColor.RESET + "spawn the vaccination tool");
                 sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "/doctortool - " + ChatColor.RESET + "spawn the doctor tool for checking a horses health");
             }
-            sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/doctor list - " + ChatColor.RESET + "list all doctors");
-            if (op || console) {
-                sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/farrier add <player> - " + ChatColor.RESET + "make a player a farrier");
-                sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/farrier remove <player> - " + ChatColor.RESET + "remove a farrier");
-                sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/farrier reset - " + ChatColor.RESET + "reset the farriers");
+            sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/vet show-online - " + ChatColor.RESET + "shows online vets");
+            sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/vet broadcast <message> - " + ChatColor.RESET + "broadcast a message to online vets");
+            if (sender.hasPermission(farrierPerm)) {
+                sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/farrier tool - " + ChatColor.RESET + "spawns the farrier tool");
             }
-            sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/farrier list - " + ChatColor.RESET + "list all farriers");
-            sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/farrier tool - " + ChatColor.RESET + "equip the farriers tool (farriers only)");
+            sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/farrier show-online - " + ChatColor.RESET + "shows online farriers");
+            sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/farrier broadcast <message> - " + ChatColor.RESET + "broadcast a message to online farriers");
+
+            sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/dentist show-online - " + ChatColor.RESET + "shows online dentists");
+            sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/dentist broadcast <message> - " + ChatColor.RESET + "broadcast a message to online dentists");
+
+            if (sender.hasPermission(dentistPerm)) {
+                sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "/dentist tool - " + ChatColor.RESET + "spawns the dentist tool");
+                sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "/dentist healing-tool - " + ChatColor.RESET + "spawns the dentist healing tool");
+            }
             if (op) {
                 sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/changegender <stallion|gelding|mare> - " + ChatColor.RESET + "set the gender of a horse. Must be on the horse");
                 sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/setbreed <breed> - " + ChatColor.RESET + "set the breed of the horse");
@@ -637,9 +642,6 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             }
             sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/showbreeds - " + ChatColor.RESET + "show the list of breeds");
             sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/showtraits - " + ChatColor.RESET + "show the list of personalities");
-            if (op || console) {
-                sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/savehorses - " + ChatColor.RESET + "save the horses to file");
-            }
             sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/eqhelp - " + ChatColor.RESET + "shows this message");
             return true;
         } else if (cmd.getName().equalsIgnoreCase("eqh")) {
@@ -788,9 +790,9 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                 } else if (args[0].equalsIgnoreCase("show-online")) {
                     String list = ChatColor.GREEN + "Online Farriers-";
                     int count = 0;
-                    for (Player player : Bukkit.getOnlinePlayers()) {
-                        if (player.hasPermission(farrierPerm)) {
-                            list += "\n - " + player.getDisplayName();
+                    for (Player p : Bukkit.getOnlinePlayers()) {
+                        if (p.hasPermission(farrierPerm)) {
+                            list += "\n - " + p.getDisplayName() + (p.isOp() ? "*" : "");
                             count++;
                         }
                     }
@@ -954,7 +956,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     int count = 0;
                     for (Player p : Bukkit.getOnlinePlayers()) {
                         if (p.hasPermission(dentistPerm)) {
-                            list += "\n - " + p.getDisplayName();
+                            list += "\n - " + p.getDisplayName() + (p.isOp() ? "*" : "");
                             count++;
                         }
                     }
@@ -982,7 +984,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     String list = ChatColor.GREEN + "Online Vets-";
                     int count = 0;
                     for (Player p : Bukkit.getOnlinePlayers()) {
-                        list += "\n - " + p.getDisplayName();
+                        list += "\n - " + p.getDisplayName() + (p.isOp() ? "*" : "");
                         count++;
                     }
                     if (count == 0) {
@@ -991,10 +993,10 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         sender.sendMessage(list);
                     }
                     return true;
-                } else if(args[0].equalsIgnoreCase("broadcast")){
-                    if(args.length > 1){
+                } else if (args[0].equalsIgnoreCase("broadcast")) {
+                    if (args.length > 1) {
                         String message = ChatColor.GREEN + "Message from " + sender.getName() + " to all vets - \n";
-                        for(int i = 1; i < args.length; i++){
+                        for (int i = 1; i < args.length; i++) {
                             message += args[i] + " ";
                         }
                         Bukkit.broadcast(message, doctorPerm.getName());
