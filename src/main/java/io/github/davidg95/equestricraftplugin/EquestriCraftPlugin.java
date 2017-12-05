@@ -27,6 +27,7 @@ import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.metadata.MetadataValue;
+import org.bukkit.permissions.Permission;
 import org.bukkit.plugin.*;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -57,6 +58,10 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     public static final String DENTIST_TOOL = "Dentist's Tool";
     public static final String DENTIST_HEALING_TOOL = "Dentist's Healing Tool";
     public static final String NAVIGATOR_TOOL = "Navigator";
+
+    private Permission doctorPerm;
+    private Permission farrierPerm;
+    private Permission dentistPerm;
 
     public static final String BREEDING_APPLE = "Breeding Apple";
     public static int GAPPLE_PRICE = 0;
@@ -147,6 +152,9 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     @Override
     public void onEnable() {
         plugin = this;
+        doctorPerm = new Permission("equestricraft.role.doctor");
+        farrierPerm = new Permission("equestricraft.role.farrier");
+        dentistPerm = new Permission("equestricraft.role.dentist");
         LOG = plugin.getLogger();
         if (!this.getDataFolder().exists()) {
             this.getDataFolder().mkdir();
@@ -282,7 +290,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         } else if (cmd.getName().equalsIgnoreCase("horsemedicine")) {   //horsemedicine command
             if (sender instanceof Player) {
                 final Player player = (Player) sender;
-                if (player.hasPermission("equestricraft.role.doctor")) {
+                if (player.hasPermission(doctorPerm)) {
                     final PlayerInventory inventory = player.getInventory();
                     final ItemStack medicine = new ItemStack(Material.REDSTONE_TORCH_ON, 1);
                     final ItemMeta im = medicine.getItemMeta();
@@ -338,7 +346,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     }
                     return false;
                 }
-                if (player.hasPermission("equestricraft.role.doctor")) {
+                if (player.hasPermission(doctorPerm)) {
                     final PlayerInventory inventory = player.getInventory();
                     final ItemStack vaccine = new ItemStack(Material.BLAZE_ROD, 1);
                     final ItemMeta im = vaccine.getItemMeta();
@@ -574,7 +582,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         } else if (cmd.getName().equalsIgnoreCase("doctortool")) {   //doctortool command
             if (sender instanceof Player) {
                 final Player player = (Player) sender;
-                if (player.hasPermission("equestricraft.role.doctor")) {
+                if (player.hasPermission(doctorPerm)) {
                     final PlayerInventory inventory = player.getInventory();
                     final ItemStack doctorTool = new ItemStack(Material.STICK, 1);
                     final ItemMeta im = doctorTool.getItemMeta();
@@ -608,7 +616,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             if (!console) {
                 sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/horsewand - " + ChatColor.RESET + "spawn the horse wand tool");
             }
-            if (sender.hasPermission("equestricraft.role.doctor")) {
+            if (sender.hasPermission(doctorPerm)) {
                 sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "/horsemedicine - " + ChatColor.RESET + "spawn the horse healing tool");
                 sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "/vaccination - " + ChatColor.RESET + "spawn the vaccination tool");
                 sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "/doctortool - " + ChatColor.RESET + "spawn the doctor tool for checking a horses health");
@@ -760,7 +768,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                 if (args[0].equalsIgnoreCase("tool")) {
                     if (sender instanceof Player) {
                         final Player player = (Player) sender;
-                        if (player.hasPermission("equestricraft.role.farrier")) {
+                        if (player.hasPermission(farrierPerm)) {
                             final PlayerInventory inventory = player.getInventory();
                             final ItemStack farrierTool = new ItemStack(Material.TRIPWIRE_HOOK, 1);
                             final ItemMeta im = farrierTool.getItemMeta();
@@ -924,7 +932,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             if (args.length == 1) {
                 if (sender instanceof Player) {
                     Player player = (Player) sender;
-                    if (player.hasPermission("equestricraft.role.dentist")) {
+                    if (player.hasPermission(dentistPerm)) {
                         if (args[0].equalsIgnoreCase("tool")) {
                             final PlayerInventory inventory = player.getInventory();
                             final ItemStack dentistTool = new ItemStack(Material.FLINT_AND_STEEL, 1);
