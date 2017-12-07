@@ -70,7 +70,8 @@ public class Auction implements Listener {
         team = board.registerNewTeam(ChatColor.BOLD + "" + ChatColor.GREEN + "Auction");
         objective = board.registerNewObjective("Auction", "Bid");
         objective.setDisplaySlot(DisplaySlot.SIDEBAR);
-        objective.setDisplayName(ChatColor.BOLD + "" + ChatColor.GREEN + "Auction - " + ChatColor.BOLD + "" + ChatColor.AQUA + seller.getName());
+//        objective.setDisplayName(ChatColor.BOLD + "" + ChatColor.GREEN + "Auction - " + ChatColor.BOLD + "" + ChatColor.AQUA + seller.getDisplayName());
+        objective.setDisplayName(ChatColor.BOLD + "" + ChatColor.GREEN + "Auction");
         score = objective.getScore("Current Bid");
         score.setScore(currentBid);
     }

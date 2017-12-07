@@ -1193,6 +1193,10 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         event.setCancelled(true);
                         if (event.getEntity() instanceof Horse) {
                             final MyHorse horse = database.getHorse(event.getEntity().getUniqueId());
+                            if (horse == null) {
+                                player.sendMessage(ChatColor.RED + "Error retrieving horse details. Error code 4");
+                                return;
+                            }
                             if (horse.isVaccinated()) {
                                 player.sendMessage(ChatColor.BOLD + "Horse already vaccinated");
                                 return;
@@ -1205,6 +1209,10 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         event.setCancelled(true);
                         if (event.getEntity() instanceof Horse) {
                             final MyHorse horse = database.getHorse(event.getEntity().getUniqueId());
+                            if (horse == null) {
+                                player.sendMessage(ChatColor.RED + "Error retrieving horse details. Error code 3");
+                                return;
+                            }
                             if (horse.isVaccinated()) {
                                 player.sendMessage(ChatColor.BOLD + "Horse already vaccinated");
                                 return;
