@@ -67,6 +67,11 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     public static boolean OP_REQ = true;
     public static boolean BLOCK_HUNGER = true;
 
+    /**
+     * The amount of time a horse must wait to breed again.
+     */
+    public static final long BREED_INTERVAL = 86400000L; //One week.
+
     public static Economy economy;
 
     private static final Inventory navigator = Bukkit.createInventory(null, 45, "Navigator");
@@ -244,6 +249,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         final Player player = (Player) sender;
                         if (player.isOp()) {
                             final Horse h = player.getWorld().spawn(player.getLocation(), Horse.class);
+                            final MyHorse mh = new MyHorse(h);
+                            database.addHorse(mh);
                         } else {
                             player.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "You must be an op to use this command!");
                         }
@@ -259,6 +266,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         return true;
                     }
                     final Horse h = pl.getWorld().spawn(pl.getLocation(), Horse.class);
+                    final MyHorse mh = new MyHorse(h);
+                    database.saveHorse(mh);
                     sender.sendMessage(ChatColor.BOLD + "Created horse for " + pl.getName());
                     break;
                 default:
@@ -656,6 +665,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                             Horse h = getEntityByUniqueId(mh.getUuid());
                             if (h != null) {
                                 h.setHealth(0);
+                                database.removeHorse(mh.getUuid());
                             }
                             return true;
                         }
@@ -679,6 +689,24 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     }
                     sender.sendMessage("MOTD set to-\n" + motd);
                 } else if (arg.equalsIgnoreCase("db")) {
+                    if (args.length == 2) {
+                        if (args[1].equalsIgnoreCase("show-hungry")) {
+                            int hungry = database.hungryHorses();
+                            sender.sendMessage("There are " + hungry + " hungry horses");
+                        } else if (args[1].equalsIgnoreCase("show-thirsty")) {
+                            int thirsty = database.thirstyHorses();
+                            sender.sendMessage("There are " + thirsty + " thirsty horses");
+                        } else if (args[1].equalsIgnoreCase("show-ill")) {
+                            int ill = database.illHorses();
+                            sender.sendMessage("There are " + ill + " ill horses");
+                        } else if (args[1].equalsIgnoreCase("show-vaccs")) {
+                            int vaccs = database.vaccedHorses();
+                            sender.sendMessage("There are " + vaccs + " vacced horses");
+                        } else if (args[1].equalsIgnoreCase("show-shoed")) {
+                            int shoed = database.shoedHorses();
+                            sender.sendMessage("There are " + shoed + " shoed horses");
+                        }
+                    }
                     return true;
                 } else if (arg.equalsIgnoreCase("integrity")) {
                     int breed = 0;
@@ -753,6 +781,19 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     database.saveHorse(horse);
                     player.sendMessage("This horse can now breed");
                     return true;
+                } else if (arg.equalsIgnoreCase("handt")) {
+                    database.removeHungerAndThrist();
+                    sender.sendMessage("Hunger and thirst reset on ALL horses");
+                } else if (arg.equalsIgnoreCase("set")) {
+                    Player player = (Player) sender;
+                    UUID uuid = UUID.fromString(player.getMetadata("horse").get(0).asString());
+                    Horse h = this.getEntityByUniqueId(uuid);
+                    MyHorse horse = new MyHorse(h);
+                    database.addHorse(horse);
+                    sender.sendMessage("Horse set");
+                } else if (arg.equalsIgnoreCase("cure-all")) {
+                    database.cureAll();
+                    sender.sendMessage("All horses have been cured");
                 }
             }
             return true;
@@ -854,6 +895,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             im.setLore(comments);
             navTool.setItemMeta(im);
             inventory.addItem(navTool);
+            sender.sendMessage("Use to navigate Equestricraft");
             return true;
         } else if (cmd.getName().equalsIgnoreCase("breeding")) {
             if (args.length > 0) {
@@ -1309,10 +1351,6 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         return;
                     }
                     if (player.hasPermission("equestricraft.tools.edithorse")) {
-                        if (player.hasMetadata("horse")) {
-                            player.removeMetadata("horse", plugin);
-//                            player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "You are no longer editing this horse");
-                        }
                         final Horse horse = (Horse) event.getRightClicked(); //Get the horse that was clicked on.
                         MyHorse mh = database.getHorse(horse.getUniqueId());
                         if (mh == null) {
@@ -1352,8 +1390,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                             player.sendMessage(ChatColor.RED + "Cannot breed a gelding");
                             return;
                         }
-                        if (mh1.getDurationSinceLastBreed() < HorseCheckerThread.BREED_INTERVAL) {
-                            player.sendMessage(ChatColor.RED + "This horse breed " + mh1.getDurationSinceLastBreed() / 1000 + "s ago, you must wait before it can breed again");
+                        if (mh1.getDurationSinceLastBreed() < BREED_INTERVAL) {
+                            player.sendMessage(ChatColor.RED + "This horse breed " + mh1.getDurationSinceLastBreed() / 1000 / 60 + "m ago, you must wait before it can breed again");
                             return;
                         }
                         if (player.hasMetadata("HORSE_BREED")) {
@@ -1393,11 +1431,11 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                                 } else {
                                     horse.setVariant(Horse.Variant.UNDEAD_HORSE);
                                 }
-                            } else{
+                            } else {
                                 horse.setVariant(Horse.Variant.HORSE);
                             }
                             foal.setBaby();
-                            database.saveHorse(mhFoal);
+                            database.addHorse(mhFoal);
                             database.saveHorse(mh1);
                             database.saveHorse(mh2);
                             if (inHand.getAmount() == 1) {
@@ -1518,6 +1556,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     }
                 }
             }
+            getLogger().log(Level.INFO, "Saving new horse");
             database.saveHorse(mh);
         }
     }

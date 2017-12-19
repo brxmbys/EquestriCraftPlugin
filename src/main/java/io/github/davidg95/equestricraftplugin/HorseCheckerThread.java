@@ -47,11 +47,6 @@ public class HorseCheckerThread extends Thread {
     public static double BREED_PROBABILITY = 0.2;
 
     /**
-     * The amount of time a horse must wait to breed again.
-     */
-    public static final long BREED_INTERVAL = 86400000L; //One week.
-
-    /**
      * The probability of an un vaccinated horse getting sick.
      */
     public static double SICK_PROBABILITY = 0.002;
@@ -59,8 +54,6 @@ public class HorseCheckerThread extends Thread {
      * The probability of a vaccinated horse getting sick.
      */
     public static double VACCINATED_PROBABILITY = 0.0001;
-
-    public static long BREED_THREAD_INTERVAL = 20000;
 
     public static long MAIN_THREAD_INTERVAL = 2000;
 
@@ -89,12 +82,11 @@ public class HorseCheckerThread extends Thread {
                     if (horse == null) {
                         continue;
                     }
-//                    horse.drink();
-//                    horse.eat();
                     if (horse.isSick() && horse.getIllDuration() > SICK_LIMIT) { //Check if the horse has been sick for too long.
                         Horse h = getEntityByUniqueId(horse.getUuid());
                         if (h != null) {
                             h.setHealth(0);
+                            database.removeHorse(horse.getUuid());
                             EquestriCraftPlugin.LOG.log(Level.INFO, "A horse died of illness");
                         }
                     }
@@ -103,16 +95,16 @@ public class HorseCheckerThread extends Thread {
                         Horse h = getEntityByUniqueId(horse.getUuid());
                         if (h != null) {
                             h.setHealth(0);
+                            database.removeHorse(horse.getUuid());
                         }
-                        it.remove();
                     }
                     if (horse.isThirsty() && horse.getThristDuration() > SICK_LIMIT) { //Kill the horse if it has been thirsty longer than the limit.
                         EquestriCraftPlugin.LOG.log(Level.INFO, "A horse died of thirst");
                         Horse h = getEntityByUniqueId(horse.getUuid());
                         if (h != null) {
                             h.setHealth(0);
+                            database.removeHorse(horse.getUuid());
                         }
-                        it.remove();
                     }
                     if (horse.getDurationSinceLastEat() > DEFECATE_INTERVAL) { //Check if the horse needs to defecate.
                         if (!horse.hasDefecate()) {
@@ -225,15 +217,6 @@ public class HorseCheckerThread extends Thread {
             }
         }
         return cont.horse;
-    }
-
-    /**
-     * Get the current time in ms.
-     *
-     * @return the current time as a long.
-     */
-    private long getCurrentTime() {
-        return new Date().getTime();
     }
 
     public void setRun(boolean run) {
