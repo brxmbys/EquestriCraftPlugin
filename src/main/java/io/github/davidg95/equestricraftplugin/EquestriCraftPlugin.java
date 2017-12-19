@@ -1352,11 +1352,6 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     }
                     if (player.hasPermission("equestricraft.tools.edithorse")) {
                         final Horse horse = (Horse) event.getRightClicked(); //Get the horse that was clicked on.
-                        MyHorse mh = database.getHorse(horse.getUniqueId());
-                        if (mh == null) {
-                            mh = new MyHorse(horse);
-                            database.saveHorse(mh);
-                        }
                         player.setMetadata("horse", new FixedMetadataValue(EquestriCraftPlugin.plugin, horse.getUniqueId()));
                         player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "You are now editing this horse");
                     }
