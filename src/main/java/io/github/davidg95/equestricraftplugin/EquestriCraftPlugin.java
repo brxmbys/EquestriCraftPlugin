@@ -525,8 +525,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             }
             sender.sendMessage(breeds);
             return true;
-        } else if (cmd.getName()
-                .equalsIgnoreCase("showtraits")) {   //showtraits command
+        } else if (cmd.getName().equalsIgnoreCase("showtraits")) {   //showtraits command
             String traits = "";
             for (Personality per : Personality.values()) {
                 traits += per.toString() + ", ";
@@ -673,6 +672,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     }
                 } else if (arg.equalsIgnoreCase("times")) {
                     HorseCheckerThread.SHOW_TIME = !HorseCheckerThread.SHOW_TIME;
+                    sender.sendMessage("Horse checker times " + (HorseCheckerThread.SHOW_TIME ? "activated" : "deactivated"));
                 } else if (arg.equalsIgnoreCase("motd")) {
                     motd = ChatColor.RESET + "";
                     for (int i = 1; i < args.length; i++) {
@@ -868,9 +868,10 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                                 return true;
                             }
                             mh.setTrainingLevel(level);
+                            database.saveHorse(mh);
                             player.sendMessage("Level set");
                         } catch (NumberFormatException ex) {
-                            player.sendMessage("Must enter a number for months");
+                            player.sendMessage("Must enter a number for level between 1 and 10");
                         }
                         return true;
                     }
@@ -1168,7 +1169,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                             final String hungerStr = ChatColor.BOLD + "Hunger: " + ChatColor.RESET + "" + (hunger ? ChatColor.RED + "Hungry" + ChatColor.RESET + " for " + hungerSince : ChatColor.GREEN + "Not Hungry");
                             String thirstSince = durToString(horse.getThristDuration());
                             final String thirstStr = ChatColor.BOLD + "Thirst: " + ChatColor.RESET + "" + (thirst ? ChatColor.RED + "Thirsty" + ChatColor.RESET + " for " + thirstSince : ChatColor.GREEN + "Not Thirsty");
-                            final String vaccinationStr = ChatColor.BOLD + "Vaccinated: " + ChatColor.RESET + "" + (vaccination ? ChatColor.GREEN + "Yes" : ChatColor.RED + "No");
+                            final String vaccinationStr = ChatColor.BOLD + "Vaccinated: " + ChatColor.RESET + "" + (vaccination ? ChatColor.GREEN + "Yes" : ChatColor.RED + "No") + "\nVaccinated on " + new Date(horse.getVaccinationTime());
                             final String shodStr = ChatColor.BOLD + "Shoed: " + ChatColor.RESET + "" + (shod ? ChatColor.GREEN + "Yes" : ChatColor.RED + "No");
                             final String levelStr = ChatColor.BOLD + "Training Level: " + ChatColor.RESET + horse.getTrainingLevel();
 

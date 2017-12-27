@@ -74,12 +74,18 @@ public class HorseCheckerThread extends Thread {
         while (run) {
             final long start = new Date().getTime();
             int horsesChecked = 0;
+            int nulls = 0;
             try {
                 Iterator it = database.getHorses().iterator();
                 EquestriCraftPlugin.plugin.getLogger().log(Level.INFO, "Checking " + database.horseCount() + " horses...");
                 while (it.hasNext()) {
                     final MyHorse horse = (MyHorse) it.next();
+                    horsesChecked++;
                     if (horse == null) {
+                        nulls++;
+                        if (nulls % 50 == 0) {
+                            EquestriCraftPlugin.LOG.log(Level.WARNING, nulls + " null horses");
+                        }
                         continue;
                     }
                     if (horse.isSick() && horse.getIllDuration() > SICK_LIMIT) { //Check if the horse has been sick for too long.
@@ -137,33 +143,33 @@ public class HorseCheckerThread extends Thread {
                         }
                     }
 
-                    if (horse.getBreed() == null) {
-                        horse.setBreed(new HorseBreed[]{horse.getOldBreed(), horse.getOldBreed()});
-                        database.saveHorse(horse);
-                    }
-
-                    if (horse.getAgeInMonths() >= 12) { //Check if the horse can become an adult
+                    int months = (int) horse.getAgeInMonths();
+                    if (months >= 12 && months <= 24) {//Check if the horse can become an adult
                         Horse h = getEntityByUniqueId(horse.getUuid());
                         if (h != null) {
-                            new BukkitRunnable() {
-                                @Override
-                                public void run() {
-                                    h.setAdult();
-                                }
-                            }.runTask(EquestriCraftPlugin.plugin);
+//                            new BukkitRunnable() {
+//                                @Override
+//                                public void run() {
+                            h.setAdult();
+//                                }
+//                            }.runTask(EquestriCraftPlugin.plugin);
                         }
-                    } else {
+                    } else if (months < 12) {
                         Horse h = getEntityByUniqueId(horse.getUuid());
                         if (h != null) {
-                            new BukkitRunnable() {
-                                @Override
-                                public void run() {
-                                    h.setBaby();
-                                }
-                            }.runTask(EquestriCraftPlugin.plugin);
+//                            new BukkitRunnable() {
+//                                @Override
+//                                public void run() {
+                            h.setBaby();
+//                                }
+//                            }.runTask(EquestriCraftPlugin.plugin);
                         }
                     }
-                    horsesChecked++;
+                    if (SHOW_TIME) {
+                        if (horsesChecked % 500 == 0) {
+                            EquestriCraftPlugin.LOG.log(Level.INFO, "Checked " + horsesChecked + " horses");
+                        }
+                    }
                 }
             } catch (Exception e) {
                 EquestriCraftPlugin.LOG.log(Level.WARNING, "Error", e);
