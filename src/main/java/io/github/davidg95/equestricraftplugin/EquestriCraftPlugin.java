@@ -250,6 +250,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         if (player.isOp()) {
                             final Horse h = player.getWorld().spawn(player.getLocation(), Horse.class);
                             final MyHorse mh = new MyHorse(h);
+                            h.setBaby();
                             database.addHorse(mh);
                         } else {
                             player.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "You must be an op to use this command!");
@@ -383,7 +384,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                             horse = database.getHorse(UUID.fromString(player.getMetadata("horse").get(0).asString()));
                         }
                         if (horse == null) {
-                            player.sendMessage("No horse selected");
+                            player.sendMessage(ChatColor.RED + "No horse selected");
                             return true;
                         }
                         String genderStr;
@@ -661,6 +662,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                                 sender.sendMessage("No horse selected");
                                 return true;
                             }
+                            
                             Horse h = getEntityByUniqueId(mh.getUuid());
                             if (h != null) {
                                 h.setHealth(0);

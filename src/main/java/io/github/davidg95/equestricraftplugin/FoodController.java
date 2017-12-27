@@ -61,38 +61,42 @@ public class FoodController implements CommandExecutor, Listener {
             player = (Player) sender;
         }
         if (args[0].equalsIgnoreCase("buy-seeds")) {
+            int quantity = 1;
             if (args.length == 2) {
-                String name = args[1];
-                player = Bukkit.getPlayer(name);
+                quantity = Integer.parseInt(args[1]);
             }
-            if (econ.getBalance(player) < seeds_cost) {
+            if (econ.getBalance(player) < seeds_cost * quantity) {
                 player.sendMessage(ChatColor.RED + "You do not have enough money");
                 return true;
             }
-            ItemStack seeds = new ItemStack(Material.SEEDS, 1);
+            ItemStack seeds = new ItemStack(Material.SEEDS, quantity);
             ItemMeta meta = seeds.getItemMeta();
             meta.setDisplayName("Feeding Seeds");
             meta.setLore(createLore("Used to feed your horse"));
             seeds.setItemMeta(meta);
             player.getInventory().addItem(seeds);
-            econ.withdrawPlayer(player, seeds_cost);
-            player.sendMessage(ChatColor.GREEN + "You have been charged " + ChatColor.AQUA + "$" + seeds_cost);
-            plugin.getLogger().log(Level.INFO, player.getDisplayName() + " has bought some feeding seeds for $" + seeds_cost);
+            econ.withdrawPlayer(player, seeds_cost * quantity);
+            player.sendMessage(ChatColor.GREEN + "You have been charged " + ChatColor.AQUA + "$" + seeds_cost * quantity);
+            plugin.getLogger().log(Level.INFO, player.getDisplayName() + " has bought some feeding seeds for $" + seeds_cost * quantity);
         } else if (args[0].equalsIgnoreCase("buy-wheat")) {
-            if (econ.getBalance(player) < wheat_cost) {
+            int quantity = 1;
+            if (args.length == 2) {
+                quantity = Integer.parseInt(args[1]);
+            }
+            if (econ.getBalance(player) < wheat_cost * quantity) {
                 player.sendMessage(ChatColor.RED + "You do not have enough money");
                 return true;
             }
             econ.withdrawPlayer(player, wheat_cost);
-            ItemStack seeds = new ItemStack(Material.WHEAT, 1);
+            ItemStack seeds = new ItemStack(Material.WHEAT, quantity);
             ItemMeta meta = seeds.getItemMeta();
             meta.setDisplayName("Feeding Wheat");
             meta.setLore(createLore("Used to feed your horse"));
             seeds.setItemMeta(meta);
             player.getInventory().addItem(seeds);
-            econ.withdrawPlayer(player, wheat_cost);
-            player.sendMessage(ChatColor.GREEN + "You have been charged " + ChatColor.AQUA + "$" + wheat_cost);
-            plugin.getLogger().log(Level.INFO, player.getDisplayName() + " has bought some feeding wheat for $" + wheat_cost);
+            econ.withdrawPlayer(player, wheat_cost * quantity);
+            player.sendMessage(ChatColor.GREEN + "You have been charged " + ChatColor.AQUA + "$" + wheat_cost * quantity);
+            plugin.getLogger().log(Level.INFO, player.getDisplayName() + " has bought some feeding wheat for $" + wheat_cost * quantity);
         } else if (args[0].equalsIgnoreCase("buy-water")) {
             if (econ.getBalance(player) < water_cost) {
                 player.sendMessage(ChatColor.RED + "You do not have enough money");
@@ -140,7 +144,7 @@ public class FoodController implements CommandExecutor, Listener {
             return;
         }
         mh.eat();
-        if (inHand.getAmount() == 0) {
+        if (inHand.getAmount() == 1) {
             player.getInventory().remove(inHand);
         } else {
             inHand.setAmount(inHand.getAmount() - 1);
@@ -171,7 +175,7 @@ public class FoodController implements CommandExecutor, Listener {
             return;
         }
         mh.eat();
-        if (inHand.getAmount() == 0) {
+        if (inHand.getAmount() == 1) {
             player.getInventory().remove(inHand);
         } else {
             inHand.setAmount(inHand.getAmount() - 1);
