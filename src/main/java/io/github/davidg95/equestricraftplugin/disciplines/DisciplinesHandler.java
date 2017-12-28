@@ -104,7 +104,7 @@ public class DisciplinesHandler implements CommandExecutor, Listener {
 
     public DisciplinesHandler(EquestriCraftPlugin plugin) {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        cont = new DisciplinesController();
+        cont = new DisciplinesController(plugin);
         economy = EquestriCraftPlugin.economy;
     }
 

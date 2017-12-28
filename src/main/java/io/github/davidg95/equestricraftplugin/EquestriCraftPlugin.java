@@ -3,6 +3,7 @@
  */
 package io.github.davidg95.equestricraftplugin;
 
+import io.github.davidg95.equestricraftplugin.HorseCheckerThread.BuckThread;
 import io.github.davidg95.equestricraftplugin.auctions.AuctionHandler;
 import io.github.davidg95.equestricraftplugin.database.Database;
 import io.github.davidg95.equestricraftplugin.database.SQLite;
@@ -36,11 +37,8 @@ import org.bukkit.scheduler.BukkitRunnable;
  */
 public class EquestriCraftPlugin extends JavaPlugin implements Listener {
 
-    public static Logger LOG;
-
-    public static Plugin plugin;
-
     private HorseCheckerThread checkerThread;
+    private BuckThread buckThread;
 
     private Properties properties;
     private static final String PROPERTIES_FILE = "equestricraftplugin.properties";
@@ -154,11 +152,9 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
 
     @Override
     public void onEnable() {
-        plugin = this;
         doctorPerm = new Permission("equestricraft.role.doctor");
         farrierPerm = new Permission("equestricraft.role.farrier");
         dentistPerm = new Permission("equestricraft.role.dentist");
-        LOG = plugin.getLogger();
         if (!this.getDataFolder().exists()) {
             this.getDataFolder().mkdir();
         }
@@ -167,22 +163,24 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             getConfig().load(getDataFolder() + File.separator + "race.yml");
         } catch (IOException | InvalidConfigurationException ex) {
             initRaceConfig();
-            LOG.log(Level.SEVERE, "Error loading race.yml", ex);
+            getLogger().log(Level.SEVERE, "Error loading race.yml", ex);
         }
         ONE_USE_COST = getConfig().getInt("tools.one_use_vaccination_price");
         GAPPLE_PRICE = getConfig().getInt("tools.gapple_price");
         properties = new Properties();
         loadProperties();
-        checkerThread = new HorseCheckerThread();
+        checkerThread = new HorseCheckerThread(this);
         checkerThread.start();
+        buckThread = checkerThread.new BuckThread();
+        buckThread.start();
         getServer().getPluginManager().registerEvents(this, this);
         if (!setupEconomy()) {
-            LOG.log(Level.SEVERE, "Vault not detected, Disciplines has been disabled");
+            getLogger().log(Level.SEVERE, "Vault not detected, Disciplines has been disabled");
         } else {
             this.getCommand("disciplines").setExecutor(new DisciplinesHandler(this));
         }
         this.getCommand("race").setExecutor(new RaceController(this));
-        this.getCommand("auction").setExecutor(new AuctionHandler());
+        this.getCommand("auction").setExecutor(new AuctionHandler(this));
         this.getCommand("food").setExecutor(new FoodController(this, economy, database));
     }
 
@@ -220,16 +218,16 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         try {
             getConfig().save(getDataFolder().getAbsolutePath() + File.separator + "race.yml");
         } catch (IOException ex) {
-            LOG.log(Level.SEVERE, "Error saving race.yml", ex);
+            getLogger().log(Level.SEVERE, "Error saving race.yml", ex);
         }
     }
 
     @Override
     public void onDisable() {
-        LOG.log(Level.INFO, "Saving horses to file");
+        getLogger().log(Level.INFO, "Saving horses to file");
         checkerThread.setRun(false);
         checkerThread = null;
-        HandlerList.unregisterAll(plugin);
+        HandlerList.unregisterAll((Plugin) this);
 
     }
 
@@ -563,7 +561,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                                         Horse h = getEntityByUniqueId(mh.getUuid());
                                         h.setAdult();
                                     }
-                                }.runTask(EquestriCraftPlugin.plugin);
+                                }.runTask(this);
                             } else {
                                 new BukkitRunnable() {
                                     @Override
@@ -571,7 +569,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                                         Horse h = getEntityByUniqueId(mh.getUuid());
                                         h.setBaby();
                                     }
-                                }.runTask(EquestriCraftPlugin.plugin);
+                                }.runTask(this);
                             }
                             database.saveHorse(mh);
                             player.sendMessage("Age set");
@@ -651,22 +649,16 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     if (sender instanceof Player) {
                         final Player player = (Player) sender;
                         if (player.isOp()) {
-                            MyHorse mh;
-                            if (player.getVehicle() != null && player.getVehicle() instanceof Horse) {
-                                final Horse horse = (Horse) player.getVehicle();
-                                mh = database.getHorse(horse.getUniqueId());
-                            } else {
-                                mh = database.getHorse(UUID.fromString(player.getMetadata("horse").get(0).asString()));
-                            }
-                            if (mh == null) {
+                            UUID uuid = UUID.fromString(player.getMetadata("horse").get(0).asString());
+                            if (uuid == null) {
                                 sender.sendMessage("No horse selected");
                                 return true;
                             }
 
-                            Horse h = getEntityByUniqueId(mh.getUuid());
+                            Horse h = getEntityByUniqueId(uuid);
                             if (h != null) {
                                 h.setHealth(0);
-                                database.removeHorse(mh.getUuid());
+                                database.removeHorse(uuid);
                             }
                             return true;
                         }
@@ -1355,7 +1347,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     }
                     if (player.hasPermission("equestricraft.tools.edithorse")) {
                         final Horse horse = (Horse) event.getRightClicked(); //Get the horse that was clicked on.
-                        player.setMetadata("horse", new FixedMetadataValue(EquestriCraftPlugin.plugin, horse.getUniqueId()));
+                        player.setMetadata("horse", new FixedMetadataValue(this, horse.getUniqueId()));
                         player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "You are now editing this horse");
                     }
                     event.setCancelled(true);
@@ -1397,13 +1389,13 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                             List<MetadataValue> md = player.getMetadata("HORSE_BREED");
                             UUID uuid = null;
                             for (MetadataValue m : md) {
-                                if (m.getOwningPlugin() == plugin) {
+                                if (m.getOwningPlugin() == this) {
                                     uuid = UUID.fromString(m.asString());
                                 }
                             }
                             if (uuid == null) {
                                 player.sendMessage(ChatColor.RED + "Breeding failed. Error code 1");
-                                player.removeMetadata("HORSE_BREED", plugin);
+                                player.removeMetadata("HORSE_BREED", this);
                                 return;
                             }
                             MyHorse mh2 = database.getHorse(uuid);
@@ -1441,11 +1433,11 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                             } else {
                                 inHand.setAmount(inHand.getAmount() - 1);
                             }
-                            player.removeMetadata("HORSE_BREED", plugin);
+                            player.removeMetadata("HORSE_BREED", this);
                             player.sendMessage(ChatColor.GREEN + "Breeding Successful");
-                            plugin.getLogger().log(Level.INFO, player.getName() + " has bred a horse");
+                            getLogger().log(Level.INFO, player.getName() + " has bred a horse");
                         } else {
-                            player.setMetadata("HORSE_BREED", new FixedMetadataValue(plugin, horse.getUniqueId().toString()));
+                            player.setMetadata("HORSE_BREED", new FixedMetadataValue(this, horse.getUniqueId().toString()));
                             player.sendMessage(ChatColor.GREEN + "First horse set");
                             if (mh1.getGender() == MyHorse.STALLION) {
                                 player.sendMessage(ChatColor.GREEN + "Select a mare");
@@ -1648,7 +1640,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         } catch (FileNotFoundException ex) {
             saveProperties();
         } catch (IOException ex) {
-            LOG.log(Level.SEVERE, null, ex);
+            getLogger().log(Level.SEVERE, null, ex);
         }
     }
 
@@ -1658,7 +1650,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             try {
                 f.createNewFile();
             } catch (IOException ex) {
-                LOG.log(Level.SEVERE, null, ex);
+                getLogger().log(Level.SEVERE, null, ex);
             }
         }
         try (OutputStream os = new FileOutputStream(PROPERTIES_FILE)) {
@@ -1675,9 +1667,9 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             properties.setProperty("BLOCK_HUNGER", Boolean.toString(BLOCK_HUNGER));
             properties.store(os, null);
         } catch (FileNotFoundException ex) {
-            LOG.log(Level.SEVERE, null, ex);
+            getLogger().log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
-            LOG.log(Level.SEVERE, null, ex);
+            getLogger().log(Level.SEVERE, null, ex);
         }
     }
 }

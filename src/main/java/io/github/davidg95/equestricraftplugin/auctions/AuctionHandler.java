@@ -3,6 +3,7 @@
  */
 package io.github.davidg95.equestricraftplugin.auctions;
 
+import io.github.davidg95.equestricraftplugin.EquestriCraftPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -17,6 +18,12 @@ import org.bukkit.entity.Player;
 public class AuctionHandler implements CommandExecutor {
 
     private Auction auction;
+    
+    private final EquestriCraftPlugin plugin;
+
+    public AuctionHandler(EquestriCraftPlugin plugin) {
+        this.plugin = plugin;
+    }
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
@@ -40,11 +47,11 @@ public class AuctionHandler implements CommandExecutor {
                     return true;
                 }
                 if (auction == null) {
-                    auction = new Auction(player, startingBid, incrementValue);
+                    auction = new Auction(plugin, player, startingBid, incrementValue);
                     return true;
                 }
                 if (auction.isComplete()) {
-                    auction = new Auction(player, startingBid, incrementValue);
+                    auction = new Auction(plugin, player, startingBid, incrementValue);
                     return true;
                 }
                 player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "There is currently an active auction");
