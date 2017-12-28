@@ -234,8 +234,9 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         if (cmd.getName().equalsIgnoreCase("equestristatus")) {   //equestristatus command
-            sender.sendMessage("Horses in database: " + database.horseCount());
-            sender.sendMessage("Checker Thread: " + checkerThread.isAlive());
+            sender.sendMessage("Horses in database: " + ChatColor.AQUA + database.horseCount());
+            sender.sendMessage("Checker Thread: " + (checkerThread.isAlive() ? ChatColor.GREEN + "Active" : ChatColor.RED + "Not Active"));
+            sender.sendMessage("Bucking thread: " + (buckThread.isActive() ? ChatColor.GREEN + "Active" : ChatColor.RED + "Not Active"));
             return true;
         } else if (cmd.getName().equalsIgnoreCase("createhorse")) {   //createhorse command
             if (!sender.hasPermission("equestricraft.spawnhorse")) {
@@ -788,6 +789,12 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                 } else if (arg.equalsIgnoreCase("cure-all")) {
                     database.cureAll();
                     sender.sendMessage("All horses have been cured");
+                } else if (arg.equalsIgnoreCase("bucking-toggle")) {
+                    String message = "Bucking thread " + (buckThread.toggle() ? ChatColor.GREEN + "Activated" : ChatColor.RED + "Deactivated");
+                    sender.sendMessage(message);
+                    if (sender instanceof Player) {
+                        getLogger().log(Level.INFO, message);
+                    }
                 }
             }
             return true;
@@ -1086,6 +1093,9 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         final Player player = (Player) event.getDamager(); //Get the player.
         final ItemStack inHand = player.getItemInHand(); //Get the item in hand.
         if (inHand == null) {
+            return;
+        }
+        if(event.getEntity() == null){
             return;
         }
         if (null != inHand.getType()) {

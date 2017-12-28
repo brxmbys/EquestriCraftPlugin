@@ -235,6 +235,8 @@ public class HorseCheckerThread extends Thread {
 
     public class BuckThread extends Thread {
 
+        private boolean active = true;
+
         public BuckThread() {
 
         }
@@ -245,37 +247,50 @@ public class HorseCheckerThread extends Thread {
             int loop = 1;
             while (run) {
                 try {
-                    Thread.sleep(180000);
-                    final int currentLoop = loop;
-                    new BukkitRunnable() {
-                        @Override
-                        public void run() {
-
-                            List<Horse> horses = new LinkedList<>();
-                            List<MyHorse> myHorses = database.getHorses();
-                            for (Entity e : Bukkit.getWorld("Equestricraft").getEntities()) {
-                                if (e.getType() == EntityType.HORSE) {
-                                    horses.add((Horse) e);
+                    if (active) {
+                        final int currentLoop = loop;
+                        new BukkitRunnable() {
+                            @Override
+                            public void run() {
+                                List<Horse> horses = new LinkedList<>();
+                                List<MyHorse> myHorses = database.getHorses();
+                                for (Entity e : Bukkit.getWorld("Equestricraft").getEntities()) {
+                                    if (e.getType() == EntityType.HORSE) {
+                                        horses.add((Horse) e);
+                                    }
                                 }
-                            }
 
-                            for (Horse h : horses) {
-                                for (MyHorse mh : myHorses) {
-                                    if (mh.getUuid() == h.getUniqueId()) {
-                                        int level = mh.getTrainingLevel();
-                                        if (level <= currentLoop) {
-                                            h.eject();
+                                int count = 0;
+                                for (Horse h : horses) {
+                                    for (MyHorse mh : myHorses) {
+                                        if (mh.getUuid() == h.getUniqueId()) {
+                                            int level = mh.getTrainingLevel();
+                                            if (level <= currentLoop) {
+                                                h.eject();
+                                                count++;
+                                            }
                                         }
                                     }
                                 }
+                                plugin.getLogger().log(Level.INFO, "Bucked " + count + " Level " + currentLoop + " horses");
                             }
-                        }
-                    }.runTask(plugin);
+                        }.runTask(plugin);
+                    }
+                    Thread.sleep(180000);
                 } catch (InterruptedException ex) {
                     Logger.getLogger(HorseCheckerThread.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 loop++;
             }
+        }
+
+        public boolean toggle() {
+            active = !active;
+            return active;
+        }
+        
+        public boolean isActive(){
+            return active;
         }
     }
 }
