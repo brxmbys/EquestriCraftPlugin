@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import net.milkbowl.vault.economy.Economy;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
@@ -144,6 +143,7 @@ public class FoodController implements CommandExecutor, Listener {
             return;
         }
         mh.eat();
+        database.saveHorse(mh);
         if (inHand.getAmount() == 1) {
             player.getInventory().remove(inHand);
         } else {
@@ -175,6 +175,7 @@ public class FoodController implements CommandExecutor, Listener {
             return;
         }
         mh.eat();
+        database.saveHorse(mh);
         if (inHand.getAmount() == 1) {
             player.getInventory().remove(inHand);
         } else {
@@ -205,7 +206,8 @@ public class FoodController implements CommandExecutor, Listener {
         if (horse == null) {
             return;
         }
-        mh.eat();
+        mh.drink();
+        database.saveHorse(mh);
         inHand.setType(Material.BUCKET);
         player.sendMessage(ChatColor.GREEN + "Your horse has had a drink");
     }
