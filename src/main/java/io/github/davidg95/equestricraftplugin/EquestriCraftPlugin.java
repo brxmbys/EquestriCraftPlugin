@@ -556,7 +556,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                                 return true;
                             }
                             mh.setAgeInMonths(months);
-                            if (mh.getAgeInMonths() >= 12) { //Check if the horse can become an adult
+                            if (months >= 12) { //Check if the horse can become an adult
                                 new BukkitRunnable() {
                                     @Override
                                     public void run() {

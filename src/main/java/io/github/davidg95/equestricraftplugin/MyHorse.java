@@ -34,7 +34,7 @@ public class MyHorse implements Serializable {
     private boolean defecateSinceEat;
     private HorseBreed breed;
     private HorseBreed[] breedArr;
-    private long birthTime;
+    private volatile long birthTime;
     private Personality[] personality;
     private int dieat;
     private Illness illness;
