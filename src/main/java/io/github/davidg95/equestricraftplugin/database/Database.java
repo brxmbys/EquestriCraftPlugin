@@ -177,7 +177,7 @@ public abstract class Database {
         }
         return 0;
     }
-    
+
     public int shoedHorses() {
         Connection conn = null;
         PreparedStatement ps = null;
@@ -297,6 +297,95 @@ public abstract class Database {
             ps.executeUpdate();
         } catch (SQLException ex) {
             plugin.getLogger().log(Level.SEVERE, "Error adding new horse", ex);
+        } finally {
+            lock.unlockWrite(stamp);
+            try {
+                if (ps != null) {
+                    ps.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+                plugin.getLogger().log(Level.SEVERE, "Error closing connection", ex);
+            }
+        }
+    }
+
+    public void changeGender(UUID uuid, int gender) {
+        Connection conn = null;
+        PreparedStatement ps = null;
+
+        conn = getSQLConnection();
+
+        final long stamp = lock.writeLock();
+        try {
+            ps = conn.prepareStatement("UPDATE " + table
+                    + " SET gender = " + gender
+                    + " WHERE uuid = '" + uuid + "'");
+            ps.executeUpdate();
+        } catch (SQLException ex) {
+            plugin.getLogger().log(Level.SEVERE, "Error saving horse", ex);
+        } finally {
+            lock.unlockWrite(stamp);
+            try {
+                if (ps != null) {
+                    ps.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+                plugin.getLogger().log(Level.SEVERE, "Error closing connection", ex);
+            }
+        }
+    }
+
+    public void changeBreed(UUID uuid, HorseBreed b1, HorseBreed b2) {
+        Connection conn = null;
+        PreparedStatement ps = null;
+
+        conn = getSQLConnection();
+
+        final long stamp = lock.writeLock();
+        try {
+            ps = conn.prepareStatement("UPDATE " + table
+                    + " SET breed1 = " + b1.name()
+                    + ", SET breed2 = " + b2.name()
+                    + " WHERE uuid = '" + uuid + "'");
+            ps.executeUpdate();
+        } catch (SQLException ex) {
+            plugin.getLogger().log(Level.SEVERE, "Error saving horse", ex);
+        } finally {
+            lock.unlockWrite(stamp);
+            try {
+                if (ps != null) {
+                    ps.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+                plugin.getLogger().log(Level.SEVERE, "Error closing connection", ex);
+            }
+        }
+    }
+
+    public void changePersonality(UUID uuid, Personality p1, Personality p2) {
+        Connection conn = null;
+        PreparedStatement ps = null;
+
+        conn = getSQLConnection();
+
+        final long stamp = lock.writeLock();
+        try {
+            ps = conn.prepareStatement("UPDATE " + table
+                    + " SET person1 = " + p1.name()
+                    + ", SET person2 = " + p2.name()
+                    + " WHERE uuid = '" + uuid + "'");
+            ps.executeUpdate();
+        } catch (SQLException ex) {
+            plugin.getLogger().log(Level.SEVERE, "Error saving horse", ex);
         } finally {
             lock.unlockWrite(stamp);
             try {

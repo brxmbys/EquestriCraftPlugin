@@ -662,7 +662,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                                 sender.sendMessage("No horse selected");
                                 return true;
                             }
-                            
+
                             Horse h = getEntityByUniqueId(mh.getUuid());
                             if (h != null) {
                                 h.setHealth(0);
