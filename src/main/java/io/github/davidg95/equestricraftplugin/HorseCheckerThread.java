@@ -5,7 +5,8 @@ package io.github.davidg95.equestricraftplugin;
 
 import io.github.davidg95.equestricraftplugin.database.Database;
 import java.util.Date;
-import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -13,6 +14,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Horse;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -62,29 +64,31 @@ public class HorseCheckerThread extends Thread {
 
     public static boolean SHOW_TIME = false;
 
-    public HorseCheckerThread() {
+    private final EquestriCraftPlugin plugin;
+
+    public HorseCheckerThread(EquestriCraftPlugin plugin) {
         super("Horse_Checker_Thread");
         database = EquestriCraftPlugin.database;
         run = true;
+        this.plugin = plugin;
     }
 
     @Override
     public void run() {
-        EquestriCraftPlugin.plugin.getLogger().log(Level.INFO, "Starting checker thread");
+        plugin.getLogger().log(Level.INFO, "Starting checker thread");
         while (run) {
             final long start = new Date().getTime();
             int horsesChecked = 0;
             int nulls = 0;
             try {
-                Iterator it = database.getHorses().iterator();
-                EquestriCraftPlugin.plugin.getLogger().log(Level.INFO, "Checking " + database.horseCount() + " horses...");
-                while (it.hasNext()) {
-                    final MyHorse horse = (MyHorse) it.next();
+                List<MyHorse> horses = database.getHorses();
+                plugin.getLogger().log(Level.INFO, "Checking " + database.horseCount() + " horses...");
+                for (MyHorse horse : horses) {
                     horsesChecked++;
                     if (horse == null) {
                         nulls++;
                         if (nulls % 50 == 0) {
-                            EquestriCraftPlugin.LOG.log(Level.WARNING, nulls + " null horses");
+                            plugin.getLogger().log(Level.WARNING, nulls + " null horses");
                         }
                         continue;
                     }
@@ -93,11 +97,11 @@ public class HorseCheckerThread extends Thread {
                         if (h != null) {
                             h.setHealth(0);
                             database.removeHorse(horse.getUuid());
-                            EquestriCraftPlugin.LOG.log(Level.INFO, "A horse died of illness");
+                            plugin.getLogger().log(Level.INFO, "A horse died of illness");
                         }
                     }
                     if (horse.isHungry() && horse.getHungerDuration() > SICK_LIMIT) { //Kill the horse if it has been hungry longer than the limit.
-                        EquestriCraftPlugin.LOG.log(Level.INFO, "A horse died of hunger");
+                        plugin.getLogger().log(Level.INFO, "A horse died of hunger");
                         Horse h = getEntityByUniqueId(horse.getUuid());
                         if (h != null) {
                             h.setHealth(0);
@@ -105,7 +109,7 @@ public class HorseCheckerThread extends Thread {
                         }
                     }
                     if (horse.isThirsty() && horse.getThristDuration() > SICK_LIMIT) { //Kill the horse if it has been thirsty longer than the limit.
-                        EquestriCraftPlugin.LOG.log(Level.INFO, "A horse died of thirst");
+                        plugin.getLogger().log(Level.INFO, "A horse died of thirst");
                         Horse h = getEntityByUniqueId(horse.getUuid());
                         if (h != null) {
                             h.setHealth(0);
@@ -138,7 +142,7 @@ public class HorseCheckerThread extends Thread {
                             Horse h = getEntityByUniqueId(horse.getUuid());
                             if (h != null) {
                                 h.setHealth(0);
-                                EquestriCraftPlugin.LOG.log(Level.INFO, "A horse died at the age of " + horse.getAgeInMonths() + " months old");
+                                plugin.getLogger().log(Level.INFO, "A horse died at the age of " + horse.getAgeInMonths() + " months old");
                             }
                         }
                     }
@@ -167,19 +171,19 @@ public class HorseCheckerThread extends Thread {
                     }
                     if (SHOW_TIME) {
                         if (horsesChecked % 500 == 0) {
-                            EquestriCraftPlugin.LOG.log(Level.INFO, "Checked " + horsesChecked + " horses");
+                            plugin.getLogger().log(Level.INFO, "Checked " + horsesChecked + " horses");
                         }
                     }
                 }
             } catch (Exception e) {
-                EquestriCraftPlugin.LOG.log(Level.WARNING, "Error", e);
+                plugin.getLogger().log(Level.WARNING, "Error", e);
             }
             final long end = new Date().getTime();
             final long time = end - start;
             double s = time / 1000D;
             if (SHOW_TIME) {
-                EquestriCraftPlugin.LOG.log(Level.INFO, "Thread run time: " + s + "s");
-                EquestriCraftPlugin.LOG.log(Level.INFO, "Horses checked: " + horsesChecked);
+                plugin.getLogger().log(Level.INFO, "Thread run time: " + s + "s");
+                plugin.getLogger().log(Level.INFO, "Horses checked: " + horsesChecked);
             }
             try {
                 Thread.sleep(MAIN_THREAD_INTERVAL); //Wait
@@ -187,7 +191,7 @@ public class HorseCheckerThread extends Thread {
                 Logger.getLogger(HorseCheckerThread.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-        EquestriCraftPlugin.plugin.getLogger().log(Level.INFO, "Stopping checker thread");
+        plugin.getLogger().log(Level.INFO, "Stopping checker thread");
     }
 
     private class HorseCont {
@@ -214,7 +218,7 @@ public class HorseCheckerThread extends Thread {
                 }
                 cont.found = true;
             }
-        }.runTask(EquestriCraftPlugin.plugin);
+        }.runTask(plugin);
         while (!cont.found) {
             try {
                 Thread.sleep(50);
@@ -227,5 +231,51 @@ public class HorseCheckerThread extends Thread {
 
     public void setRun(boolean run) {
         this.run = run;
+    }
+
+    public class BuckThread extends Thread {
+
+        public BuckThread() {
+
+        }
+
+        @Override
+        public void run() {
+            plugin.getLogger().log(Level.INFO, "Running Buck Thread every 3 minutes");
+            int loop = 1;
+            while (run) {
+                try {
+                    Thread.sleep(180000);
+                    final int currentLoop = loop;
+                    new BukkitRunnable() {
+                        @Override
+                        public void run() {
+
+                            List<Horse> horses = new LinkedList<>();
+                            List<MyHorse> myHorses = database.getHorses();
+                            for (Entity e : Bukkit.getWorld("Equestricraft").getEntities()) {
+                                if (e.getType() == EntityType.HORSE) {
+                                    horses.add((Horse) e);
+                                }
+                            }
+
+                            for (Horse h : horses) {
+                                for (MyHorse mh : myHorses) {
+                                    if (mh.getUuid() == h.getUniqueId()) {
+                                        int level = mh.getTrainingLevel();
+                                        if (level <= currentLoop) {
+                                            h.eject();
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }.runTask(plugin);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(HorseCheckerThread.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                loop++;
+            }
+        }
     }
 }
