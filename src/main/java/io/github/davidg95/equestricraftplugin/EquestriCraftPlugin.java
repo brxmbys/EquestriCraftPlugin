@@ -1095,7 +1095,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         if (inHand == null) {
             return;
         }
-        if(event.getEntity() == null){
+        if (event.getEntity() == null) {
             return;
         }
         if (null != inHand.getType()) {
@@ -1531,6 +1531,9 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             return;
         }
         UUID uuid = e.getUniqueId();
+        if (uuid == null) {
+            return;
+        }
         database.removeHorse(uuid);
     }
 
