@@ -1059,6 +1059,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     + ChatColor.RESET + "&o - " + ChatColor.ITALIC + "Italic\n"
                     + ChatColor.RESET + "&r - Reset"
             );
+            return true;
         }
         return false;
     }
