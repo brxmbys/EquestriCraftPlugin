@@ -141,13 +141,14 @@ public class HorseCheckerThread extends Thread {
                         if (horse.isVaccinated()) {
                             if (r <= VACCINATED_PROBABILITY) {
                                 horse.setSick(true);
+                                database.saveHorse(horse);
                             }
                         } else {
                             if (r <= SICK_PROBABILITY) {
                                 horse.setSick(true);
+                                database.saveHorse(horse);
                             }
                         }
-                        database.saveHorse(horse);
                     }
 
                     if (horse.getAgeInMonths() > horse.getDieAt() && horse.getDieAt() > 300) { //Check if the horse is too old.
