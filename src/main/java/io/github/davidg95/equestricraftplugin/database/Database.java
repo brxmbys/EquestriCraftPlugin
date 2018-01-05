@@ -876,6 +876,46 @@ public abstract class Database {
             }
         }
     }
+    
+    public int getHorseLevel(UUID uuid) {
+        Connection conn = null;
+        Statement ps = null;
+        ResultSet rs = null;
+
+        MyHorse horse;
+
+        final long stamp = lock.writeLock();
+
+        try {
+            conn = getSQLConnection();
+            ps = conn.createStatement();
+
+            rs = ps.executeQuery("SELECT training_level FROM " + table + " WHERE UUID = '" + uuid.toString() + "'");
+            while (rs.next()) {
+                return rs.getInt("training_level");
+            }
+            plugin.getLogger().log(Level.WARNING, "Horse not found");
+        } catch (SQLException ex) {
+            plugin.getLogger().log(Level.SEVERE, "Error getting horse", ex);
+        } finally {
+            try {
+                if (ps != null) {
+                    ps.close();
+                } else {
+                    plugin.getLogger().log(Level.SEVERE, "Error closing statement");
+                }
+                if (conn != null) {
+                    conn.close();
+                } else {
+                    plugin.getLogger().log(Level.SEVERE, "Error closing connection");
+                }
+            } catch (SQLException ex) {
+                plugin.getLogger().log(Level.SEVERE, "Error closing connection", ex);
+            }
+            lock.unlockWrite(stamp);
+        }
+        return -1;
+    }
 
     public void close(PreparedStatement ps, ResultSet rs) {
         try {

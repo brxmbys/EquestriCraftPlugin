@@ -269,28 +269,21 @@ public class HorseCheckerThread extends Thread {
                         new BukkitRunnable() {
                             @Override
                             public void run() {
-                                List<Horse> horses = new LinkedList<>();
-                                List<MyHorse> myHorses = database.getHorses(-1);
-                                for (Entity e : Bukkit.getWorld("Equestricraft").getEntities()) {
-                                    if (e.getType() == EntityType.HORSE) {
-                                        horses.add((Horse) e);
-                                    }
-                                }
-
                                 int count = 0;
-                                for (Horse h : horses) {
-                                    for (MyHorse mh : myHorses) {
-                                        if (mh.getUuid() == h.getUniqueId()) {
-                                            int level = mh.getTrainingLevel();
-                                            if (level <= currentLoop) {
-                                                if (h.getPassenger() != null) {
-                                                    Player p = (Player) h.getPassenger();
-                                                    if (!plugin.raceController.race.isPlayerInRace(p)) {
-                                                        h.eject();
-                                                    }
+                                for (World world : Bukkit.getWorlds()) {
+                                    for (Horse h : world.getEntitiesByClass(Horse.class)) {
+                                        int level = database.getHorseLevel(h.getUniqueId());
+                                        if(level == -1){
+                                            continue;
+                                        }
+                                        if (level <= currentLoop) {
+                                            if (h.getPassenger() != null) {
+                                                Player p = (Player) h.getPassenger();
+                                                if (!plugin.raceController.race.isPlayerInRace(p)) {
+                                                    h.eject();
                                                 }
-                                                count++;
                                             }
+                                            count++;
                                         }
                                     }
                                 }
