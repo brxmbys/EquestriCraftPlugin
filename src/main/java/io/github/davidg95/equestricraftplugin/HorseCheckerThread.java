@@ -273,13 +273,13 @@ public class HorseCheckerThread extends Thread {
                                 for (World world : Bukkit.getWorlds()) {
                                     for (Horse h : world.getEntitiesByClass(Horse.class)) {
                                         int level = database.getHorseLevel(h.getUniqueId());
-                                        if(level == -1){
+                                        if (level == -1) {
                                             continue;
                                         }
                                         if (level <= currentLoop) {
                                             if (h.getPassenger() != null) {
                                                 Player p = (Player) h.getPassenger();
-                                                if (!plugin.raceController.race.isPlayerInRace(p)) {
+                                                if (plugin.raceController.race != null && !plugin.raceController.race.isPlayerInRace(p)) {
                                                     h.eject();
                                                 }
                                             }
