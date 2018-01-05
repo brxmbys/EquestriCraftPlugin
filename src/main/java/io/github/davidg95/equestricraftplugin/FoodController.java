@@ -50,9 +50,10 @@ public class FoodController implements CommandExecutor, Listener {
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         if (args.length == 0) {
-            sender.sendMessage(ChatColor.GREEN + "Usage-\n"
-                    + "/food buy-wheat - " + ChatColor.AQUA + "$" + wheat_cost + "\n"
-                    + ChatColor.GREEN + "/food buy-water - " + ChatColor.AQUA + "$" + water_cost + "\n");
+            sender.sendMessage(ChatColor.GREEN + "Options-\n"
+                    + ChatColor.RESET + "/food buy-wheat - " + ChatColor.AQUA + "$" + wheat_cost + "\n"
+                    + ChatColor.RESET + "/food buy-seeds - " + ChatColor.AQUA + "$" + seeds_cost + "\n"
+                    + ChatColor.RESET + "/food buy-water - " + ChatColor.AQUA + "$" + water_cost + "\n");
             return true;
         }
         Player player = null;
@@ -110,6 +111,11 @@ public class FoodController implements CommandExecutor, Listener {
             econ.withdrawPlayer(player, water_cost);
             player.sendMessage(ChatColor.GREEN + "You have been charged " + ChatColor.AQUA + "$" + water_cost);
             plugin.getLogger().log(Level.INFO, player.getDisplayName() + " has bought some drinking water for $" + water_cost);
+        } else {
+            sender.sendMessage("Incorrect command\n"
+                    + ChatColor.RESET + "/food buy-wheat - " + ChatColor.AQUA + "$" + wheat_cost + "\n"
+                    + ChatColor.RESET + "/food buy-seeds - " + ChatColor.AQUA + "$" + seeds_cost + "\n"
+                    + ChatColor.RESET + "/food buy-water - " + ChatColor.AQUA + "$" + water_cost + "\n");
         }
         return true;
     }
