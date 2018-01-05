@@ -254,14 +254,10 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                 case 0:
                     if (sender instanceof Player) {
                         final Player player = (Player) sender;
-                        if (player.isOp()) {
-                            final Horse h = player.getWorld().spawn(player.getLocation(), Horse.class);
-                            final MyHorse mh = new MyHorse(h);
-                            h.setBaby();
-                            database.addHorse(mh);
-                        } else {
-                            player.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "You must be an op to use this command!");
-                        }
+                        final Horse h = player.getWorld().spawn(player.getLocation(), Horse.class);
+                        final MyHorse mh = new MyHorse(h);
+                        h.setBaby();
+                        database.addHorse(mh);
                     } else {
                         sender.sendMessage("This command can only be run by a player");
                     }
@@ -1062,8 +1058,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     + ChatColor.RESET + "&n - " + ChatColor.UNDERLINE + "Underline\n"
                     + ChatColor.RESET + "&o - " + ChatColor.ITALIC + "Italic\n"
                     + ChatColor.RESET + "&r - Reset"
-        
-        );
+            );
         }
         return false;
     }
