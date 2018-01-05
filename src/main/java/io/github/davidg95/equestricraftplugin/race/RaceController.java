@@ -20,7 +20,7 @@ public class RaceController implements CommandExecutor {
 
     private final EquestriCraftPlugin plugin;
 
-    private Race race;
+    public Race race;
 
     public RaceController(EquestriCraftPlugin plugin) {
         this.plugin = plugin;

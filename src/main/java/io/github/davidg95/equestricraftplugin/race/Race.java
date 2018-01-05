@@ -438,4 +438,24 @@ public class Race implements Listener {
             }
         }
     }
+
+    /**
+     * Check if a player is in the race.
+     *
+     * @param player the player to check.
+     * @return true if they are in the race, false if they are not.
+     */
+    public boolean isPlayerInRace(Player player) {
+        for (RacePlayer p : complete) {
+            if (p.getPlayer().equals(player)) {
+                return false;
+            }
+        }
+        for (RacePlayer p : players) {
+            if (p.getPlayer().equals(player)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

@@ -12,6 +12,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.UUID;
@@ -185,7 +186,128 @@ public abstract class Database {
         final long stamp = lock.writeLock();
         try {
             conn = getSQLConnection();
-            ps = conn.prepareStatement("SELECT COUNT(*) FROM " + table + " WHERE shoed = true");
+            ps = conn.prepareStatement("SELECT COUNT(*) FROM " + table + " WHERE shoed = TRUE");
+
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException ex) {
+            plugin.getLogger().log(Level.SEVERE, "Error getting horse count", ex);
+        } finally {
+            lock.unlockWrite(stamp);
+            try {
+                if (ps != null) {
+                    ps.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+                plugin.getLogger().log(Level.SEVERE, "Error closing connection", ex);
+            }
+        }
+        return 0;
+    }
+
+    public int oldHorses(int months) {
+        Connection conn = null;
+        PreparedStatement ps = null;
+
+        final long stamp = lock.writeLock();
+        try {
+            conn = getSQLConnection();
+            ps = conn.prepareStatement("SELECT COUNT(*) FROM " + table + " WHERE " + new Date().getTime() + " - birth > " + months + " * 2.5 * 24 * 60 * 60 * 1000");
+
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException ex) {
+            plugin.getLogger().log(Level.SEVERE, "Error getting horse count", ex);
+        } finally {
+            lock.unlockWrite(stamp);
+            try {
+                if (ps != null) {
+                    ps.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+                plugin.getLogger().log(Level.SEVERE, "Error closing connection", ex);
+            }
+        }
+        return 0;
+    }
+
+    public int deadHorses() {
+        Connection conn = null;
+        PreparedStatement ps = null;
+
+        final long stamp = lock.writeLock();
+        try {
+            conn = getSQLConnection();
+            ps = conn.prepareStatement("SELECT COUNT(*) FROM " + table + " WHERE ill_since > well_since AND " + new Date().getTime() + " - ill_since > 7 * 24 * 60 * 60 * 1000");
+
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException ex) {
+            plugin.getLogger().log(Level.SEVERE, "Error getting horse count", ex);
+        } finally {
+            lock.unlockWrite(stamp);
+            try {
+                if (ps != null) {
+                    ps.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+                plugin.getLogger().log(Level.SEVERE, "Error closing connection", ex);
+            }
+        }
+        return 0;
+    }
+
+    public int killDead() {
+        Connection conn = null;
+        PreparedStatement ps = null;
+
+        final long stamp = lock.writeLock();
+        try {
+            conn = getSQLConnection();
+            ps = conn.prepareStatement("DELETE FROM " + table + " WHERE ill_since > well_since AND " + new Date().getTime() + " - ill_since > 7 * 24 * 60 * 60 * 1000");
+
+            return ps.executeUpdate();
+        } catch (SQLException ex) {
+            plugin.getLogger().log(Level.SEVERE, "Error getting horse count", ex);
+        } finally {
+            lock.unlockWrite(stamp);
+            try {
+                if (ps != null) {
+                    ps.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+                plugin.getLogger().log(Level.SEVERE, "Error closing connection", ex);
+            }
+        }
+        return 0;
+    }
+
+    public int uuidCheck(UUID uuid) {
+        Connection conn = null;
+        PreparedStatement ps = null;
+
+        final long stamp = lock.writeLock();
+        try {
+            conn = getSQLConnection();
+            ps = conn.prepareStatement("SELECT COUNT(*) FROM " + table + " WHERE '" + uuid.toString() + "' = uuid");
 
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
@@ -236,14 +358,18 @@ public abstract class Database {
         }
     }
 
-    public int horseCount() {
+    public int horseCount(int gender) {
         Connection conn = null;
         PreparedStatement ps = null;
 
         final long stamp = lock.writeLock();
         try {
             conn = getSQLConnection();
-            ps = conn.prepareStatement("SELECT COUNT(*) FROM " + table);
+            if (gender == -1) {
+                ps = conn.prepareStatement("SELECT COUNT(*) FROM " + table);
+            } else {
+                ps = conn.prepareStatement("SELECT COUNT(*) FROM " + table + " WHERE gender = " + gender);
+            }
 
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
@@ -446,9 +572,9 @@ public abstract class Database {
         }
     }
 
-    public LinkedList<MyHorse> getHorses() {
+    public LinkedList<MyHorse> getHorses(int g) {
         Connection conn = null;
-        PreparedStatement ps = null;
+        Statement ps = null;
         ResultSet rs = null;
 
         LinkedList<MyHorse> horses = new LinkedList<>();
@@ -456,9 +582,12 @@ public abstract class Database {
         final long stamp = lock.writeLock();
         try {
             conn = getSQLConnection();
-            ps = conn.prepareStatement("SELECT * FROM " + table);
-
-            rs = ps.executeQuery();
+            ps = conn.createStatement();
+            if (g == -1) {
+                rs = ps.executeQuery("SELECT * FROM " + table);
+            } else {
+                rs = ps.executeQuery("SELECT * FROM " + table + " WHERE gender = " + g);
+            }
             while (rs.next()) {
                 UUID uuid = UUID.fromString(rs.getString("uuid"));
                 int gender = rs.getInt("gender");
@@ -493,7 +622,6 @@ public abstract class Database {
         } catch (SQLException ex) {
             plugin.getLogger().log(Level.SEVERE, "Error getting horses", ex);
         } finally {
-            lock.unlockWrite(stamp);
             try {
                 if (ps != null) {
                     ps.close();
@@ -504,13 +632,14 @@ public abstract class Database {
             } catch (SQLException ex) {
                 plugin.getLogger().log(Level.SEVERE, "Error closing connection", ex);
             }
+            lock.unlockWrite(stamp);
         }
         return new LinkedList<>();
     }
 
     public MyHorse getHorse(UUID uuid) {
         Connection conn = null;
-        PreparedStatement ps = null;
+        Statement ps = null;
         ResultSet rs = null;
 
         MyHorse horse;
@@ -519,9 +648,9 @@ public abstract class Database {
 
         try {
             conn = getSQLConnection();
-            ps = conn.prepareStatement("SELECT * FROM " + table + " WHERE UUID = '" + uuid.toString() + "'");
+            ps = conn.createStatement();
 
-            rs = ps.executeQuery();
+            rs = ps.executeQuery("SELECT * FROM " + table + " WHERE UUID = '" + uuid.toString() + "'");
             while (rs.next()) {
                 int gender = rs.getInt("gender");
                 long vacc_time = rs.getLong("vaccinationTime");
@@ -555,17 +684,21 @@ public abstract class Database {
         } catch (SQLException ex) {
             plugin.getLogger().log(Level.SEVERE, "Error getting horse", ex);
         } finally {
-            lock.unlockWrite(stamp);
             try {
                 if (ps != null) {
                     ps.close();
+                } else {
+                    plugin.getLogger().log(Level.SEVERE, "Error closing statement");
                 }
                 if (conn != null) {
                     conn.close();
+                } else {
+                    plugin.getLogger().log(Level.SEVERE, "Error closing connection");
                 }
             } catch (SQLException ex) {
                 plugin.getLogger().log(Level.SEVERE, "Error closing connection", ex);
             }
+            lock.unlockWrite(stamp);
         }
         return null;
     }

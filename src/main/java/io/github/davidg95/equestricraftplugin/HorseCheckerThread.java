@@ -16,6 +16,7 @@ import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Horse;
+import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
 /**
@@ -76,13 +77,19 @@ public class HorseCheckerThread extends Thread {
     @Override
     public void run() {
         plugin.getLogger().log(Level.INFO, "Starting checker thread");
+        int iter = 1;
         while (run) {
             final long start = new Date().getTime();
             int horsesChecked = 0;
             int nulls = 0;
             try {
-                List<MyHorse> horses = database.getHorses();
-                plugin.getLogger().log(Level.INFO, "Checking " + database.horseCount() + " horses...");
+                List<MyHorse> horses = database.getHorses(iter);
+                if (iter == 3) {
+                    iter = 1;
+                } else {
+                    iter++;
+                }
+                plugin.getLogger().log(Level.INFO, "Checking " + horses.size() + " horses...");
                 for (MyHorse horse : horses) {
                     horsesChecked++;
                     if (horse == null) {
@@ -101,19 +108,19 @@ public class HorseCheckerThread extends Thread {
                         }
                     }
                     if (horse.isHungry() && horse.getHungerDuration() > SICK_LIMIT) { //Kill the horse if it has been hungry longer than the limit.
-                        plugin.getLogger().log(Level.INFO, "A horse died of hunger");
                         Horse h = getEntityByUniqueId(horse.getUuid());
                         if (h != null) {
                             h.setHealth(0);
                             database.removeHorse(horse.getUuid());
+                            plugin.getLogger().log(Level.INFO, "A horse died of hunger");
                         }
                     }
                     if (horse.isThirsty() && horse.getThristDuration() > SICK_LIMIT) { //Kill the horse if it has been thirsty longer than the limit.
-                        plugin.getLogger().log(Level.INFO, "A horse died of thirst");
                         Horse h = getEntityByUniqueId(horse.getUuid());
                         if (h != null) {
                             h.setHealth(0);
                             database.removeHorse(horse.getUuid());
+                            plugin.getLogger().log(Level.INFO, "A horse died of thirst");
                         }
                     }
                     if (horse.getDurationSinceLastEat() > DEFECATE_INTERVAL) { //Check if the horse needs to defecate.
@@ -141,6 +148,7 @@ public class HorseCheckerThread extends Thread {
                         if (horse.getAgeInMonths() > 300) {
                             Horse h = getEntityByUniqueId(horse.getUuid());
                             if (h != null) {
+                                database.removeHorse(h.getUniqueId());
                                 h.setHealth(0);
                                 plugin.getLogger().log(Level.INFO, "A horse died at the age of " + horse.getAgeInMonths() + " months old");
                             }
@@ -238,7 +246,7 @@ public class HorseCheckerThread extends Thread {
         private boolean active = true;
 
         public BuckThread() {
-
+            super("BUCK_THREAD");
         }
 
         @Override
@@ -253,7 +261,7 @@ public class HorseCheckerThread extends Thread {
                             @Override
                             public void run() {
                                 List<Horse> horses = new LinkedList<>();
-                                List<MyHorse> myHorses = database.getHorses();
+                                List<MyHorse> myHorses = database.getHorses(-1);
                                 for (Entity e : Bukkit.getWorld("Equestricraft").getEntities()) {
                                     if (e.getType() == EntityType.HORSE) {
                                         horses.add((Horse) e);
@@ -266,7 +274,12 @@ public class HorseCheckerThread extends Thread {
                                         if (mh.getUuid() == h.getUniqueId()) {
                                             int level = mh.getTrainingLevel();
                                             if (level <= currentLoop) {
-                                                h.eject();
+                                                if (h.getPassenger() != null) {
+                                                    Player p = (Player) h.getPassenger();
+                                                    if (!plugin.raceController.race.isPlayerInRace(p)) {
+                                                        h.eject();
+                                                    }
+                                                }
                                                 count++;
                                             }
                                         }
@@ -288,8 +301,8 @@ public class HorseCheckerThread extends Thread {
             active = !active;
             return active;
         }
-        
-        public boolean isActive(){
+
+        public boolean isActive() {
             return active;
         }
     }

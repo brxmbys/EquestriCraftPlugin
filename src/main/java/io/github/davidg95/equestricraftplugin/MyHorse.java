@@ -182,22 +182,7 @@ public class MyHorse implements Serializable {
             personality = new Personality[]{Personality.randomType(), Personality.randomType()};
         }
     }
-
-//    private void setSideEffects(boolean set) {
-//        new BukkitRunnable() {
-//            @Override
-//            public void run() {
-//                if (set) {
-////                    horse.setJumpStrength(0.2);
-////                    horse.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, (int) (HorseCheckerThread.SICK_LIMIT * 20), 1));
-//                } else {
-////                    horse.setJumpStrength(0.7);
-////                    horse.removePotionEffect(PotionEffectType.SLOW);
-//                }
-//            }
-//        }.runTask(EquestriCraftPlugin.plugin);
-//    }
-
+    
     /**
      * Generate a random month between the age of 25 and 35.
      *
@@ -207,21 +192,7 @@ public class MyHorse implements Serializable {
         double r = Math.random();
         return (int) (r * 120) + 300;
     }
-
-//    /**
-//     * Kill the horse.
-//     */
-//    public void kill() {
-//        new BukkitRunnable() {
-//            @Override
-//            public void run() {
-//                if (horse != null) {
-//                    horse.setHealth(0);
-//                }
-//            }
-//        }.runTask(EquestriCraftPlugin.plugin);
-//    }
-
+    
     /**
      * Get the UUID of the horse.
      *
@@ -230,67 +201,7 @@ public class MyHorse implements Serializable {
     public UUID getUuid() {
         return uuid;
     }
-
-//    /**
-//     * Checks if the horse is next to a cauldron or not.
-//     *
-//     * @param horse the horse to apply to.
-//     * @return the block the cauldron is in, null if there is not one nearby.
-//     */
-//    public static Block getNearCauldron(MyHorse horse) {
-//        if (horse == null || horse.getHorse() == null) {
-//            return null;
-//        }
-//        final Horse h = horse.getHorse();
-//        for (Block b : getNearbyBlocks(h)) {
-//            if (b.getType() == Material.CAULDRON) {
-//                return b;
-//            }
-//        }
-//        return null;
-//    }
-
-//    /**
-//     * Checks if the horse is next to a hay bale.
-//     *
-//     * @param horse the horse to apply to.
-//     * @return the block the hay bale is in, null if there is not one nearby.
-//     */
-//    public static Block getNearHayBale(MyHorse horse) {
-//        if (horse == null || horse.getHorse() == null) {
-//            return null;
-//        }
-//        final Horse h = horse.getHorse();
-//        for (Block b : getNearbyBlocks(h)) {
-//            if (b.getType() == Material.HAY_BLOCK) {
-//                return b;
-//            }
-//        }
-//        return null;
-//    }
-
-//    /**
-//     * Get a List of all the block next to the horse.
-//     *
-//     * @param horse the horse object.
-//     * @return the blocks as a list.
-//     */
-//    private static List<Block> getNearbyBlocks(Horse horse) {
-//        final Location location = horse.getLocation();
-//
-//        final List<Block> nearby = new ArrayList<>();
-//        nearby.add(location.getWorld().getBlockAt(location.getBlockX(), location.getBlockY(), location.getBlockZ() - 1));
-//        nearby.add(location.getWorld().getBlockAt(location.getBlockX(), location.getBlockY(), location.getBlockZ() + 1));
-//        nearby.add(location.getWorld().getBlockAt(location.getBlockX() - 1, location.getBlockY(), location.getBlockZ()));
-//        nearby.add(location.getWorld().getBlockAt(location.getBlockX() + 1, location.getBlockY(), location.getBlockZ()));
-//        nearby.add(location.getWorld().getBlockAt(location.getBlockX() - 1, location.getBlockY(), location.getBlockZ() - 1));
-//        nearby.add(location.getWorld().getBlockAt(location.getBlockX() + 1, location.getBlockY(), location.getBlockZ() - 1));
-//        nearby.add(location.getWorld().getBlockAt(location.getBlockX() - 1, location.getBlockY(), location.getBlockZ() + 1));
-//        nearby.add(location.getWorld().getBlockAt(location.getBlockX() + 1, location.getBlockY(), location.getBlockZ() + 1));
-//
-//        return nearby;
-//    }
-
+    
 //    /**
 //     * Check if a horse is near a mate.
 //     *

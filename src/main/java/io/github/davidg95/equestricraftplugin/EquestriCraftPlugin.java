@@ -78,6 +78,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
 
     public static Database database;
 
+    public RaceController raceController;
+
     static {
         ItemStack spawn = new ItemStack(Material.MONSTER_EGG, 1);
         ItemMeta m1 = spawn.getItemMeta();
@@ -179,7 +181,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         } else {
             this.getCommand("disciplines").setExecutor(new DisciplinesHandler(this));
         }
-        this.getCommand("race").setExecutor(new RaceController(this));
+        this.raceController = new RaceController(this);
+        this.getCommand("race").setExecutor(raceController);
         this.getCommand("auction").setExecutor(new AuctionHandler(this));
         this.getCommand("food").setExecutor(new FoodController(this, economy, database));
     }
@@ -234,9 +237,14 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         if (cmd.getName().equalsIgnoreCase("equestristatus")) {   //equestristatus command
-            sender.sendMessage("Horses in database: " + ChatColor.AQUA + database.horseCount());
+            sender.sendMessage("Horses in database: " + ChatColor.AQUA + database.horseCount(-1));
             sender.sendMessage("Checker Thread: " + (checkerThread.isAlive() ? ChatColor.GREEN + "Active" : ChatColor.RED + "Not Active"));
             sender.sendMessage("Bucking thread: " + (buckThread.isActive() ? ChatColor.GREEN + "Active" : ChatColor.RED + "Not Active"));
+            int count = 0;
+            for (World world : Bukkit.getWorlds()) {
+                count += world.getEntitiesByClass(Horse.class).size();
+            }
+            sender.sendMessage("Horses currently in world: " + ChatColor.AQUA + count);
             return true;
         } else if (cmd.getName().equalsIgnoreCase("createhorse")) {   //createhorse command
             if (!sender.hasPermission("equestricraft.spawnhorse")) {
@@ -668,23 +676,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                 } else if (arg.equalsIgnoreCase("times")) {
                     HorseCheckerThread.SHOW_TIME = !HorseCheckerThread.SHOW_TIME;
                     sender.sendMessage("Horse checker times " + (HorseCheckerThread.SHOW_TIME ? "activated" : "deactivated"));
-                } else if (arg.equalsIgnoreCase("motd")) {
-                    motd = ChatColor.RESET + "";
-                    for (int i = 1; i < args.length; i++) {
-                        motd += args[i] + " ";
-                    }
-                    for (int i = 0; i < motd.length(); i++) {
-                        char c = motd.charAt(i);
-                        if (c == '&') {
-                            char code = motd.charAt(i + 1);
-                            ChatColor color = ChatColor.getByChar(code);
-                            String s = new String(new char[]{c, code});
-                            motd = motd.replaceAll(s, color.toString());
-                        }
-                    }
-                    sender.sendMessage("MOTD set to-\n" + motd);
                 } else if (arg.equalsIgnoreCase("db")) {
-                    if (args.length == 2) {
+                    if (args.length >= 2) {
                         if (args[1].equalsIgnoreCase("show-hungry")) {
                             int hungry = database.hungryHorses();
                             sender.sendMessage("There are " + hungry + " hungry horses");
@@ -700,31 +693,35 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         } else if (args[1].equalsIgnoreCase("show-shoed")) {
                             int shoed = database.shoedHorses();
                             sender.sendMessage("There are " + shoed + " shoed horses");
+                        } else if (args[1].equalsIgnoreCase("show-old")) {
+                            int old = database.oldHorses(Integer.parseInt(args[2]));
+                            sender.sendMessage("There are " + old + " old horses");
+                        } else if (args[1].equalsIgnoreCase("show-dead")) {
+                            int dead = database.deadHorses();
+                            sender.sendMessage("There are " + dead + " dead horses");
+                        } else if (args[1].equalsIgnoreCase("kill-dead")) {
+                            database.killDead();
+                            sender.sendMessage("Dead horses removed from database");
                         }
                     }
                     return true;
                 } else if (arg.equalsIgnoreCase("integrity")) {
-                    int breed = 0;
-                    int uuid = 0;
-                    int other = 0;
-                    for (MyHorse mh : database.getHorses()) {
-                        try {
-                            if (mh.getBreed() == null || mh.getBreed().length == 0) {
-                                breed++;
+                    sender.sendMessage("Searching...");
+                    int count = 0;
+                    for (World world : Bukkit.getWorlds()) {
+                        for (Horse h : world.getEntitiesByClass(Horse.class)) {
+                            MyHorse mh = database.getHorse(h.getUniqueId());
+                            int amount = database.uuidCheck(h.getUniqueId());
+                            sender.sendMessage("Database occurances: " + amount);
+                            if (mh == null) {
+                                count++;
                             }
-                            if (mh.getUuid() == null) {
-                                uuid++;
-                            }
-                        } catch (Exception e) {
-                            other++;
                         }
                     }
-                    sender.sendMessage("Horses without breed: " + breed);
-                    sender.sendMessage("Horses without uuid: " + uuid);
-                    sender.sendMessage("Horses without anything: " + other);
+                    sender.sendMessage("Horses not in database: " + count);
                     return true;
                 } else if (arg.equalsIgnoreCase("fix")) {
-                    for (MyHorse mh : database.getHorses()) {
+                    for (MyHorse mh : database.getHorses(-1)) {
                         try {
                             if (mh.getBreed() == null || mh.getBreed().length == 0) {
                                 mh.setBreed(new HorseBreed[]{HorseBreed.randomType()});
@@ -741,7 +738,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                             }
                         }
                     }
-                    Iterator<MyHorse> it = database.getHorses().iterator();
+                    Iterator<MyHorse> it = database.getHorses(-1).iterator();
                     while (it.hasNext()) {
                         MyHorse mh = it.next();
                         if (mh == null) {
@@ -1535,6 +1532,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             return;
         }
         database.removeHorse(uuid);
+        getLogger().log(Level.INFO, "A horse was killed, so it has been removed from the database");
     }
 
     public void onCreatureSpawn(CreatureSpawnEvent evt) {
