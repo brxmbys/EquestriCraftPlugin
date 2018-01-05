@@ -4,21 +4,10 @@
 package io.github.davidg95.equestricraftplugin;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.UUID;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.block.Block;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Horse;
 import org.bukkit.entity.Horse.Variant;
-import org.bukkit.entity.Player;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scheduler.BukkitRunnable;
 
 /**
  *
@@ -30,7 +19,7 @@ public class MyHorse implements Serializable {
 
     private long vaccinationTime;
     private boolean vaccination;
-    private int gender; //The horses gender.
+    private int gender;
     private UUID uuid;
     private long lastEat;
     private boolean hunger;
@@ -45,14 +34,27 @@ public class MyHorse implements Serializable {
     private boolean defecateSinceEat;
     private HorseBreed breed;
     private HorseBreed[] breedArr;
-    private long birthTime;
-    private final Personality[] personality;
+    private volatile long birthTime;
+    private Personality[] personality;
     private int dieat;
     private Illness illness;
     private boolean shod;
     private int trainingLevel;
 
-    private transient Horse horse;
+//    private transient Horse horse;
+
+    /**
+     * The length of time a vaccination will last.
+     */
+    public static long VACCINATION_DURATION = 2419200000L; //Four weeks.
+    /**
+     * The length of time a horse can go without drinking before getting sick.
+     */
+    public static long DRINK_LIMIT = 604800000L; //One week.
+    /**
+     * The length of time a horse can go without eating before getting sick.
+     */
+    public static long EAT_LIMIT = 604800000; //One week.
 
     /**
      * Indicates the horses gender is a stallion. Value = 1.
@@ -100,7 +102,7 @@ public class MyHorse implements Serializable {
             }
         }
         this.personality = new Personality[]{p1, p2};
-        this.horse = h;
+//        this.horse = h;
         this.dieat = randomDieAt();
         this.illness = null;
         h.setBaby();
@@ -109,25 +111,78 @@ public class MyHorse implements Serializable {
         trainingLevel = 1;
     }
 
+    public MyHorse(long vaccinationTime, boolean vaccination, int gender, UUID uuid, long lastEat, boolean hunger, long hungerSince, long lastDrink, boolean thirst, long thirstSince, long illSince, boolean ill, long wellSince, long lastBreed, boolean defecateSinceEat, HorseBreed[] breedArr, long birthTime, Personality[] personality, int dieat, Illness illness, boolean shod, int trainingLevel) {
+        this.vaccinationTime = vaccinationTime;
+        this.vaccination = vaccination;
+        this.gender = gender;
+        this.uuid = uuid;
+        this.lastEat = lastEat;
+        this.hunger = hunger;
+        this.hungerSince = hungerSince;
+        this.lastDrink = lastDrink;
+        this.thirst = thirst;
+        this.thirstSince = thirstSince;
+        this.illSince = illSince;
+        this.ill = ill;
+        this.wellSince = wellSince;
+        this.lastBreed = lastBreed;
+        this.defecateSinceEat = defecateSinceEat;
+        this.breedArr = breedArr;
+        this.birthTime = birthTime;
+        this.personality = personality;
+        this.dieat = dieat;
+        this.illness = illness;
+        this.shod = shod;
+        this.trainingLevel = trainingLevel;
+    }
+
+    public MyHorse(long vaccinationTime, int gender, UUID uuid, long lastEat, long lastDrink, long illSince, long wellSince, long lastBreed, boolean defecate, HorseBreed breed[], long birth, Personality person[], long dieat, Illness illness, boolean shoed, int trainingLevel) {
+        this.vaccinationTime = vaccinationTime;
+        this.gender = gender;
+        this.uuid = uuid;
+        this.lastEat = lastEat;
+        this.lastDrink = lastDrink;
+        this.illSince = illSince;
+        this.wellSince = wellSince;
+        this.lastBreed = lastBreed;
+        this.defecateSinceEat = defecate;
+        this.breedArr = breed;
+        this.birthTime = birth;
+        this.personality = person;
+        this.dieat = (int) dieat;
+        this.illness = illness;
+        this.shod = shoed;
+        this.trainingLevel = trainingLevel;
+    }
+
     public static long getCurrentTime() {
         return new Date().getTime();
     }
 
-    private void setSideEffects(boolean set) {
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (set) {
-//                    horse.setJumpStrength(0.2);
-                    horse.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, (int) (HorseCheckerThread.SICK_LIMIT * 20), 1));
-                } else {
-//                    horse.setJumpStrength(0.7);
-                    horse.removePotionEffect(PotionEffectType.SLOW);
-                }
+    public void checkData() {
+        if (breedArr == null) {
+            HorseBreed br = HorseBreed.randomType();
+            breedArr = new HorseBreed[]{br, br};
+        }
+        if (breedArr.length == 0) {
+            HorseBreed br = HorseBreed.randomType();
+            breedArr = new HorseBreed[]{br, br};
+        }
+        if (breedArr.length == 1) {
+            HorseBreed br = breedArr[0];
+            breedArr = new HorseBreed[]{br, br};
+        }
+        if (breedArr.length == 2) {
+            if (breedArr[1] == null) {
+                breedArr[1] = breedArr[0];
             }
-        }.runTask(EquestriCraftPlugin.plugin);
-    }
+        }
 
+        if (personality == null) {
+            personality = new Personality[]{Personality.randomType(), Personality.randomType()};
+        }
+    }
+    
     /**
      * Generate a random month between the age of 25 and 35.
      *
@@ -137,21 +192,7 @@ public class MyHorse implements Serializable {
         double r = Math.random();
         return (int) (r * 120) + 300;
     }
-
-    /**
-     * Kill the horse.
-     */
-    public void kill() {
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (horse != null) {
-                    horse.setHealth(0);
-                }
-            }
-        }.runTask(EquestriCraftPlugin.plugin);
-    }
-
+    
     /**
      * Get the UUID of the horse.
      *
@@ -160,92 +201,32 @@ public class MyHorse implements Serializable {
     public UUID getUuid() {
         return uuid;
     }
-
-    /**
-     * Checks if the horse is next to a cauldron or not.
-     *
-     * @param horse the horse to apply to.
-     * @return the block the cauldron is in, null if there is not one nearby.
-     */
-    public static Block getNearCauldron(MyHorse horse) {
-        if (horse == null || horse.getHorse() == null) {
-            return null;
-        }
-        final Horse h = horse.getHorse();
-        for (Block b : getNearbyBlocks(h)) {
-            if (b.getType() == Material.CAULDRON) {
-                return b;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Checks if the horse is next to a hay bale.
-     *
-     * @param horse the horse to apply to.
-     * @return the block the hay bale is in, null if there is not one nearby.
-     */
-    public static Block getNearHayBale(MyHorse horse) {
-        if (horse == null || horse.getHorse() == null) {
-            return null;
-        }
-        final Horse h = horse.getHorse();
-        for (Block b : getNearbyBlocks(h)) {
-            if (b.getType() == Material.HAY_BLOCK) {
-                return b;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Get a List of all the block next to the horse.
-     *
-     * @param horse the horse object.
-     * @return the blocks as a list.
-     */
-    private static List<Block> getNearbyBlocks(Horse horse) {
-        final Location location = horse.getLocation();
-
-        final List<Block> nearby = new ArrayList<>();
-        nearby.add(location.getWorld().getBlockAt(location.getBlockX(), location.getBlockY(), location.getBlockZ() - 1));
-        nearby.add(location.getWorld().getBlockAt(location.getBlockX(), location.getBlockY(), location.getBlockZ() + 1));
-        nearby.add(location.getWorld().getBlockAt(location.getBlockX() - 1, location.getBlockY(), location.getBlockZ()));
-        nearby.add(location.getWorld().getBlockAt(location.getBlockX() + 1, location.getBlockY(), location.getBlockZ()));
-        nearby.add(location.getWorld().getBlockAt(location.getBlockX() - 1, location.getBlockY(), location.getBlockZ() - 1));
-        nearby.add(location.getWorld().getBlockAt(location.getBlockX() + 1, location.getBlockY(), location.getBlockZ() - 1));
-        nearby.add(location.getWorld().getBlockAt(location.getBlockX() - 1, location.getBlockY(), location.getBlockZ() + 1));
-        nearby.add(location.getWorld().getBlockAt(location.getBlockX() + 1, location.getBlockY(), location.getBlockZ() + 1));
-
-        return nearby;
-    }
-
-    /**
-     * Check if a horse is near a mate.
-     *
-     * @param horse the horse.
-     * @return true if they are near a mate, false if they are not.
-     */
-    public static HorseBreed nearMate(MyHorse horse) {
-        if (horse.getGender() != MARE) { //If it is not a mare, return false.
-            return null;
-        }
-        final List<Entity> nearby = horse.getHorse().getNearbyEntities(1.5, 1.5, 1.5); //Get entites withing a 1.5 block radius.
-        for (Entity e : nearby) {
-            if (e.getType() == EntityType.HORSE) { //Check if the entity is a horse.
-                final Horse h = (Horse) e;
-                final MyHorse mh = DataContainer.getInstance().getHorse(h.getUniqueId());
-                if (horse.getGender() != STALLION) { //If it is a gelding, return false.
-                    return null;
-                }
-                if (horse.getGender() != mh.getGender()) { //If it is the opposite gender, return true.
-                    return mh.getBreed()[0];
-                }
-            }
-        }
-        return null;
-    }
+    
+//    /**
+//     * Check if a horse is near a mate.
+//     *
+//     * @param horse the horse.
+//     * @return true if they are near a mate, false if they are not.
+//     */
+//    public static HorseBreed nearMate(MyHorse horse) {
+//        if (horse.getGender() != MARE) { //If it is not a mare, return false.
+//            return null;
+//        }
+//        final List<Entity> nearby = horse.getHorse().getNearbyEntities(1.5, 1.5, 1.5); //Get entites withing a 1.5 block radius.
+//        for (Entity e : nearby) {
+//            if (e.getType() == EntityType.HORSE) { //Check if the entity is a horse.
+//                final Horse h = (Horse) e;
+//                final MyHorse mh = EquestriCraftPlugin.database.getHorse(h.getUniqueId());
+//                if (horse.getGender() != STALLION) { //If it is a gelding, return false.
+//                    return null;
+//                }
+//                if (horse.getGender() != mh.getGender()) { //If it is the opposite gender, return true.
+//                    return mh.getBreed()[0];
+//                }
+//            }
+//        }
+//        return null;
+//    }
 
     /**
      * Method to generate a random gender. Either MyHorse.STALLION or
@@ -271,6 +252,7 @@ public class MyHorse implements Serializable {
     }
 
     public boolean isVaccinated() {
+        vaccination = this.getDurationSinceLastVaccinated() < VACCINATION_DURATION;
         return vaccination;
     }
 
@@ -310,13 +292,20 @@ public class MyHorse implements Serializable {
         return lastBreed;
     }
 
+    /**
+     * Sets the current time to the horses last breed time.
+     */
     public void setLastBreed() {
         this.lastBreed = getCurrentTime();
     }
-
-    public Horse getHorse() {
-        return horse;
+    
+    public void allowBreed(){
+        this.lastBreed = 0;
     }
+
+//    public Horse getHorse() {
+//        return horse;
+//    }
 
     /**
      * Returns the duration in ms since that last vaccination.
@@ -330,28 +319,17 @@ public class MyHorse implements Serializable {
     /**
      * Sets the vaccination state of the horse, if they are being vaccinated,
      * the time will be set.
-     *
-     * @param vaccination the vaccination state as a boolean.
      */
-    public void setVaccinated(boolean vaccination) {
-        if (vaccination) {
-            this.vaccinationTime = getCurrentTime();
-        }
-        this.vaccination = vaccination;
+    public void vaccinate() {
+        this.vaccinationTime = getCurrentTime();
     }
 
     /**
      * Sets the last drink time to the current time.
-     *
-     * @param thirst the thirst state of the horse.
      */
-    public void setThirst(boolean thirst) {
-        if (!thirst) {
-            this.lastDrink = getCurrentTime();
-        } else {
-            this.thirstSince = getCurrentTime();
-        }
-        this.thirst = thirst;
+    public void drink() {
+        this.lastDrink = getCurrentTime();
+        this.thirst = false;
     }
 
     /**
@@ -360,7 +338,8 @@ public class MyHorse implements Serializable {
      * @return the thirst state as a boolean.
      */
     public boolean isThirsty() {
-        return this.thirst;
+        this.thirst = this.getDurationSinceLastDrink() > DRINK_LIMIT; //Check if the horse is thirsty.
+        return thirst;
     }
 
     /**
@@ -369,22 +348,16 @@ public class MyHorse implements Serializable {
      * @return the duration a long.
      */
     public long getThristDuration() {
-        return getCurrentTime() - this.thirstSince;
+        return getCurrentTime() - this.lastDrink - DRINK_LIMIT;
     }
 
     /**
      * Sets the hunger state of the horse.
-     *
-     * @param hunger the hunger as a boolean.
      */
-    public void setHunger(boolean hunger) {
-        if (!hunger) {
-            this.lastEat = getCurrentTime();
-            this.defecateSinceEat = false;
-        } else {
-            this.hungerSince = getCurrentTime();
-        }
-        this.hunger = hunger;
+    public void eat() {
+        this.lastEat = getCurrentTime();
+        this.defecateSinceEat = false;
+        this.hunger = true;
     }
 
     /**
@@ -400,19 +373,19 @@ public class MyHorse implements Serializable {
      * Make the horse defecate.
      */
     public void defecate() {
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (horse != null) {
-                    final Block block = horse.getLocation().getBlock();
-                    if (block.getType() == Material.AIR) {
-                        block.setType(Material.CARPET);
-                        byte b = 12;
-                        block.setData(b);
-                    }
-                }
-            }
-        }.runTask(EquestriCraftPlugin.plugin);
+//        new BukkitRunnable() {
+//            @Override
+//            public void run() {
+//                if (horse != null) {
+//                    final Block block = horse.getLocation().getBlock();
+//                    if (block.getType() == Material.AIR) {
+//                        block.setType(Material.CARPET);
+//                        byte b = 12;
+//                        block.setData(b);
+//                    }
+//                }
+//            }
+//        }.runTask(EquestriCraftPlugin.plugin);
         this.defecateSinceEat = true;
     }
 
@@ -422,7 +395,8 @@ public class MyHorse implements Serializable {
      * @return the state as a boolean.
      */
     public boolean isHungry() {
-        return this.hunger;
+        this.hunger = this.getDurationSinceLastEat() > EAT_LIMIT; //Check if the horse is thirsty.
+        return hunger;
     }
 
     /**
@@ -431,7 +405,7 @@ public class MyHorse implements Serializable {
      * @return the time as a long.
      */
     public long getHungerDuration() {
-        return getCurrentTime() - this.hungerSince;
+        return getCurrentTime() - this.lastEat - EAT_LIMIT;
     }
 
     /**
@@ -458,7 +432,7 @@ public class MyHorse implements Serializable {
      * @return ill state as a boolean.
      */
     public boolean isSick() {
-        return this.ill;
+        return this.illSince > this.wellSince;
     }
 
     /**
@@ -468,8 +442,7 @@ public class MyHorse implements Serializable {
      */
     public void setSick(boolean sick) {
         if (sick) {
-            this.illSince = getCurrentTime();
-            setSideEffects(true);
+//            setSideEffects(true);
             while (true) {
                 this.illness = Illness.randomIllness();
                 if (gender == MyHorse.MARE) {
@@ -480,9 +453,10 @@ public class MyHorse implements Serializable {
                     break;
                 }
             }
+            this.illSince = getCurrentTime();
         } else {
             this.wellSince = getCurrentTime();
-            setSideEffects(false);
+//            setSideEffects(false);
         }
         this.ill = sick;
     }
@@ -505,20 +479,20 @@ public class MyHorse implements Serializable {
         return getCurrentTime() - this.wellSince;
     }
 
-    /**
-     * If there is a player on the horse, they will be removed and lose a
-     * fraction of their health.
-     */
-    public void buck() {
-        if (horse == null) {
-            return;
-        }
-        final Player player = (Player) horse.getPassenger();
-        if (player != null) {
-            horse.eject();
-            player.setHealth(player.getHealth() - (player.getHealthScale() / 10));
-        }
-    }
+//    /**
+//     * If there is a player on the horse, they will be removed and lose a
+//     * fraction of their health.
+//     */
+//    public void buck() {
+//        if (horse == null) {
+//            return;
+//        }
+//        final Player player = (Player) horse.getPassenger();
+//        if (player != null) {
+//            horse.eject();
+//            player.setHealth(player.getHealth() - (player.getHealthScale() / 10));
+//        }
+//    }
 
     /**
      * Get the time since the horse last bred in ms.
@@ -538,15 +512,15 @@ public class MyHorse implements Serializable {
         this.gender = gender;
     }
 
-    /**
-     * Set the horse object.
-     *
-     * @param h the horse object.
-     */
-    public void setHorse(Horse h) {
-        this.horse = h;
-        this.uuid = h.getUniqueId();
-    }
+//    /**
+//     * Set the horse object.
+//     *
+//     * @param h the horse object.
+//     */
+//    public void setHorse(Horse h) {
+//        this.horse = h;
+//        this.uuid = h.getUniqueId();
+//    }
 
     /**
      * Get the HorseBreed.
@@ -554,6 +528,21 @@ public class MyHorse implements Serializable {
      * @return the HorseBreed.
      */
     public HorseBreed[] getBreed() {
+        if (breedArr == null || breedArr.length == 0) {
+            if (breed == null) {
+                throw new NullPointerException("This horse has not breed");
+            }
+            return new HorseBreed[]{breed, breed};
+        }
+        if (breedArr[0] == null) {
+            breedArr[0] = HorseBreed.randomType();
+        }
+        if (breedArr.length == 1) {
+            breedArr = new HorseBreed[]{breedArr[0], breedArr[0]};
+        }
+        if (breedArr[1] == null) {
+            breedArr[1] = breedArr[0];
+        }
         return breedArr;
     }
 
@@ -568,20 +557,27 @@ public class MyHorse implements Serializable {
      */
     public void setBreed(HorseBreed[] br) {
         this.breedArr = br;
-        if (br[0] == HorseBreed.Donkey) {
-            this.horse.setVariant(Variant.DONKEY);
-        } else if (br[0] == HorseBreed.Mule) {
-            this.horse.setVariant(Variant.MULE);
-        } else if (br[0] == HorseBreed.FjordHorse) {
-            double d = Math.random();
-            if (d > 0.5) {
-                this.horse.setVariant(Variant.SKELETON_HORSE);
-            } else {
-                this.horse.setVariant(Variant.UNDEAD_HORSE);
-            }
-        } else {
-            this.horse.setVariant(Variant.HORSE);
-        }
+//        try {
+//            if (this.horse == null) {
+//                return;
+//            }
+//        } catch (Exception e) {
+//            return;
+//        }
+//        if (br[0] == HorseBreed.Donkey) {
+//            this.horse.setVariant(Variant.DONKEY);
+//        } else if (br[0] == HorseBreed.Mule) {
+//            this.horse.setVariant(Variant.MULE);
+//        } else if (br[0] == HorseBreed.FjordHorse) {
+//            double d = Math.random();
+//            if (d > 0.5) {
+//                this.horse.setVariant(Variant.SKELETON_HORSE);
+//            } else {
+//                this.horse.setVariant(Variant.UNDEAD_HORSE);
+//            }
+//        } else {
+//            this.horse.setVariant(Variant.HORSE);
+//        }
     }
 
     /**
@@ -681,6 +677,14 @@ public class MyHorse implements Serializable {
         return illness;
     }
 
+    public String getIllnessString() {
+        if (illness != null) {
+            return illness.name();
+        } else {
+            return null;
+        }
+    }
+
     /**
      * Set the horses illness.
      *
@@ -704,6 +708,28 @@ public class MyHorse implements Serializable {
 
     public void setTrainingLevel(int trainingLevel) {
         this.trainingLevel = trainingLevel;
+    }
+
+    public String getInsertValues() {
+        return "('"
+                + getUuid() + "',"
+                + getGender() + ","
+                + getVaccinationTime() + ","
+                + getLastEat() + ","
+                + getLastDrink() + ","
+                + getIllSince() + ","
+                + getWellSince() + ","
+                + getLastBreed() + ","
+                + (hasDefecate() ? "1" : "0") + ",'"
+                + getBreed()[0].toString() + "','"
+                + getBreed()[1].toString() + "',"
+                + getBirthTime() + ",'"
+                + getPersonalities()[0].toString() + "','"
+                + getPersonalities()[1].toString() + "',"
+                + getDieAt() + ",'"
+                + getIllnessString() + "',"
+                + (isShod() ? "1" : "0") + ","
+                + getTrainingLevel() + ")";
     }
 
     @Override

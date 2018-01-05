@@ -104,7 +104,7 @@ public class DisciplinesHandler implements CommandExecutor, Listener {
 
     public DisciplinesHandler(EquestriCraftPlugin plugin) {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        cont = new DisciplinesController();
+        cont = new DisciplinesController(plugin);
         economy = EquestriCraftPlugin.economy;
     }
 
@@ -149,7 +149,7 @@ public class DisciplinesHandler implements CommandExecutor, Listener {
                 }
                 return true;
             } else if (args[0].equalsIgnoreCase("view")) {
-                if (serverOrOp(sender)) {
+                if (sender.hasPermission("equestricraft.disciplines.view")) {
                     List<Membership> memberships = cont.getAll();
                     String output = ChatColor.BOLD + "Discipline memberships-" + ChatColor.RESET;
                     for (Discipline d : Discipline.values()) {
@@ -168,6 +168,8 @@ public class DisciplinesHandler implements CommandExecutor, Listener {
                         }
                     }
                     sender.sendMessage(output);
+                } else {
+                    sender.sendMessage(ChatColor.RED + "You do not have permission to view the disciplines memberships");
                 }
                 return true;
             } else if (args[0].equalsIgnoreCase("refund-all")) {
@@ -175,7 +177,8 @@ public class DisciplinesHandler implements CommandExecutor, Listener {
             }
         } else {
             if (args[0].equalsIgnoreCase("view")) {
-                if (!serverOrOp(sender)) {
+                if (!sender.hasPermission("equestricraft.disciplines.view")) {
+                    sender.sendMessage(ChatColor.RED + "You do not have permission to view the disciplines memberships");
                     return true;
                 }
                 String dStr = "";
@@ -216,7 +219,8 @@ public class DisciplinesHandler implements CommandExecutor, Listener {
                 }
                 return true;
             } else if (args[0].equalsIgnoreCase("reset")) {
-                if (!serverOrOp(sender)) {
+                if (sender.hasPermission("equestricraft.disciplines.reset")) {
+                    sender.sendMessage(ChatColor.RED + "You do not have permission to reset the disciplines memberships");
                     return true;
                 }
                 String dStr = "";

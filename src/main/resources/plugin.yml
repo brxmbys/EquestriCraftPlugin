@@ -20,9 +20,6 @@ commands:
     vaccination:
         description: Spawns the vaccination tool.
         usage: /vaccination
-    doctor:
-        description: doctor commands.
-        usage: /doctor <add|remove|reset|list> [playername]
     doctortool:
         description: Spawn the tool to check a horses health.
         usage: /doctortool
@@ -50,9 +47,6 @@ commands:
     setage:
         description: Set the age of the horse.
         usage: /setage <age> (must be on a horse
-    cleanup:
-        description: Clean up the horses list of duplicates.
-        usage: /cleanup
     race:
         description: Race commands.
         usage: /race <options>
@@ -61,7 +55,7 @@ commands:
         usage: /eqh
     farrier:
         description: farrier commands.
-        usage: /farrier <add|remove|list|reset|tool> [playername].
+        usage: /farrier <tool|show-online|broadcast [message]>.
     disciplines:
         description: disciplines commands.
         usage: /disciplines
@@ -74,6 +68,18 @@ commands:
     auction:
         description: Auction commands.
         usage: /auction [open|bid|sell]
-    #build:
-    #    description: Pay for a build.
-    #    udage: /build <pay|enq> <width> <height>
+    breeding:
+        description: breeding commands.
+        usage: /breeding [gapple|check]
+    food:
+        description: food commands.
+        usage: /food [buy-seeds|buy-wheat|buy-water]
+    dentist:
+        description: dentist commands.
+        usage: /dentist <tool|show-online|broadcast [message]>
+    vet:
+        description: show online vets.
+        usage: /vet <show-online|broadcast [message]>
+    color:
+        description: Show color codes.
+        usage: /color

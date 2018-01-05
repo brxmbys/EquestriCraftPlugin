@@ -90,9 +90,12 @@ public enum HorseBreed {
      * @return a HorseBreed.
      */
     public static HorseBreed randomType() {
-        final int index = (int) (Math.random() * HorseBreed.values().length);
-
-        return HorseBreed.values()[index];
+        HorseBreed br = null;
+        while (br == null) {
+            final int index = (int) (Math.random() * HorseBreed.values().length);
+            br = HorseBreed.values()[index];
+        }
+        return br;
     }
 
     /**

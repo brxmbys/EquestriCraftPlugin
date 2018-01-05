@@ -63,6 +63,8 @@ public class Race implements Listener {
     private static final Sign podiumSign;
     private int lap;
 
+    private final EquestriCraftPlugin plugin;
+
     static {
         Block b = Bukkit.getWorld("EquestriCraft").getBlockAt(-2033, 7, 11125);
         raceMonitor = (Sign) b.getState();
@@ -73,14 +75,15 @@ public class Race implements Listener {
         podiumSign = (Sign) Bukkit.getWorld("EquestriCraft").getBlockAt(-2034, 7, 11125).getState();
     }
 
-    public Race(int laps, double prize1, double prize2, double prize3) {
+    public Race(EquestriCraftPlugin plugin, int laps, double prize1, double prize2, double prize3) {
         this.laps = laps;
+        this.plugin = plugin;
         players = new LinkedList<>();
         complete = new LinkedList<>();
         spectators = new LinkedList<>();
         started = false;
         finnished = false;
-        Bukkit.getServer().getPluginManager().registerEvents(this, EquestriCraftPlugin.plugin);
+        Bukkit.getServer().getPluginManager().registerEvents(this, plugin);
         economy = EquestriCraftPlugin.economy;
         this.prize1 = prize1;
         this.prize2 = prize2;
@@ -112,7 +115,7 @@ public class Race implements Listener {
     public void start() {
         started = true;
         startTime = new Date().getTime();
-        thread = new CheckThread(this, players);
+        thread = new CheckThread(plugin, this, players);
         setGatesOpen(true);
         thread.start();
         raceMonitor.setLine(1, "Laps: 1/" + laps);
@@ -133,7 +136,7 @@ public class Race implements Listener {
                     }
                 }
             }
-        }.runTask(EquestriCraftPlugin.plugin);
+        }.runTask(plugin);
     }
 
     protected void setLap(int lap) {
@@ -351,7 +354,7 @@ public class Race implements Listener {
         complete.add(p);
         p.getPlayer().sendMessage("Position: " + position);
         p.getPlayer().sendMessage("Your time: " + seconds + "s");
-        p.getPlayer().setMetadata("time", new FixedMetadataValue(EquestriCraftPlugin.plugin, time));
+        p.getPlayer().setMetadata("time", new FixedMetadataValue(plugin, time));
     }
 
     /**
@@ -434,5 +437,25 @@ public class Race implements Listener {
                 return;
             }
         }
+    }
+
+    /**
+     * Check if a player is in the race.
+     *
+     * @param player the player to check.
+     * @return true if they are in the race, false if they are not.
+     */
+    public boolean isPlayerInRace(Player player) {
+        for (RacePlayer p : complete) {
+            if (p.getPlayer().equals(player)) {
+                return false;
+            }
+        }
+        for (RacePlayer p : players) {
+            if (p.getPlayer().equals(player)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

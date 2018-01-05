@@ -24,16 +24,19 @@ public class CheckThread extends Thread {
 
     private boolean run;
 
-    public CheckThread(Race r, List<RacePlayer> players) {
+    private final EquestriCraftPlugin plugin;
+
+    public CheckThread(EquestriCraftPlugin plugin, Race r, List<RacePlayer> players) {
         super("RACE_THREAD");
         this.players = players;
         this.race = r;
         run = true;
+        this.plugin = plugin;
     }
 
     @Override
     public void run() {
-        FileConfiguration fc = EquestriCraftPlugin.plugin.getConfig();
+        FileConfiguration fc = plugin.getConfig();
         //Get the finishing line coords
         int fz1 = fc.getInt("finish.z1");
         int fz2 = fc.getInt("finish.z2");

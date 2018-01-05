@@ -34,8 +34,11 @@ public class DisciplinesController {
     private static final double SECOND_DISCIPLINE = 5000;
     private static final double REFUND_PERCENT = 50;
 
-    public DisciplinesController() {
+    private final EquestriCraftPlugin plugin;
+
+    public DisciplinesController(EquestriCraftPlugin plugin) {
         this.memberships = new LinkedList<>();
+        this.plugin = plugin;
         load();
     }
 
@@ -175,15 +178,15 @@ public class DisciplinesController {
         try {
             file.createNewFile();
         } catch (IOException ex) {
-            EquestriCraftPlugin.plugin.getLogger().log(Level.SEVERE, null, ex);
+            plugin.getLogger().log(Level.SEVERE, null, ex);
         }
         try (OutputStream os = new FileOutputStream(DISCIPLINES_FILE)) {
             final ObjectOutputStream oo = new ObjectOutputStream(os);
             oo.writeObject(memberships);
         } catch (FileNotFoundException ex) {
-            EquestriCraftPlugin.plugin.getLogger().log(Level.SEVERE, null, ex);
+            plugin.getLogger().log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
-            EquestriCraftPlugin.plugin.getLogger().log(Level.SEVERE, null, ex);
+            plugin.getLogger().log(Level.SEVERE, null, ex);
         }
     }
 
@@ -195,7 +198,7 @@ public class DisciplinesController {
             final ObjectInputStream oi = new ObjectInputStream(is);
             memberships = (List<Membership>) oi.readObject();
         } catch (IOException | ClassNotFoundException ex) {
-            EquestriCraftPlugin.plugin.getLogger().log(Level.SEVERE, null, ex);
+            plugin.getLogger().log(Level.SEVERE, null, ex);
         }
     }
 }

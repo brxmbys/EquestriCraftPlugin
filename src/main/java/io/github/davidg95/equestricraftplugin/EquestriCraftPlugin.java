@@ -3,11 +3,13 @@
  */
 package io.github.davidg95.equestricraftplugin;
 
+import io.github.davidg95.equestricraftplugin.HorseCheckerThread.BuckThread;
 import io.github.davidg95.equestricraftplugin.auctions.AuctionHandler;
+import io.github.davidg95.equestricraftplugin.database.Database;
+import io.github.davidg95.equestricraftplugin.database.SQLite;
 import io.github.davidg95.equestricraftplugin.disciplines.DisciplinesHandler;
 import io.github.davidg95.equestricraftplugin.race.*;
 import java.io.*;
-import java.text.DecimalFormat;
 import java.util.*;
 import java.util.logging.*;
 import net.milkbowl.vault.economy.Economy;
@@ -19,14 +21,15 @@ import org.bukkit.event.*;
 import org.bukkit.event.entity.*;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.*;
-import org.bukkit.event.server.ServerListPingEvent;
-import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.metadata.MetadataValue;
+import org.bukkit.permissions.Permission;
 import org.bukkit.plugin.*;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 /**
  *
@@ -34,34 +37,48 @@ import org.bukkit.plugin.java.JavaPlugin;
  */
 public class EquestriCraftPlugin extends JavaPlugin implements Listener {
 
-    public static Logger LOG;
-
-    public static Plugin plugin;
-
-    private DataContainer container;
     private HorseCheckerThread checkerThread;
+    private BuckThread buckThread;
 
     private Properties properties;
     private static final String PROPERTIES_FILE = "equestricraftplugin.properties";
 
-    public static final String POTION_NAME = "Healer";
-    public static final String SHEARS_NAME = "Gelding Shears";
-    public static final String STICK_NAME = "Horse checking wand";
-    public static final String VACCINE_NAME = "Vaccination";
+    public static final String MEDICINE = "Healer";
+    public static final String GELDING_TOOL = "Gelding Shears";
+    public static final String HORSE_WAND = "Horse checking wand";
+    public static final String VACCINATION_TOOL = "Vaccination";
     public static final String ONE_USE_VACCINATION = "One use vaccination";
     public static int ONE_USE_COST = 150;
     public static final String DOCTOR_TOOL = "Doctor's Tool";
     public static final String FARRIER_TOOL = "Farrier's Tool";
+    public static final String DENTIST_TOOL = "Dentist's Tool";
+    public static final String DENTIST_HEALING_TOOL = "Dentist's Healing Tool";
     public static final String NAVIGATOR_TOOL = "Navigator";
+
+    private Permission doctorPerm;
+    private Permission farrierPerm;
+    private Permission dentistPerm;
+
+    public static final String BREEDING_APPLE = "Breeding Apple";
+    public static int GAPPLE_PRICE = 0;
 
     public static boolean OP_REQ = true;
     public static boolean BLOCK_HUNGER = true;
+
+    /**
+     * The amount of time a horse must wait to breed again.
+     */
+    public static final long BREED_INTERVAL = 86400000L; //One week.
 
     public static Economy economy;
 
     private static final Inventory navigator = Bukkit.createInventory(null, 45, "Navigator");
 
     public static String motd = "";
+
+    public static Database database;
+
+    public RaceController raceController;
 
     static {
         ItemStack spawn = new ItemStack(Material.MONSTER_EGG, 1);
@@ -137,31 +154,42 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
 
     @Override
     public void onEnable() {
-        plugin = this;
-        LOG = plugin.getLogger();
+        doctorPerm = new Permission("equestricraft.role.doctor");
+        farrierPerm = new Permission("equestricraft.role.farrier");
+        dentistPerm = new Permission("equestricraft.role.dentist");
         if (!this.getDataFolder().exists()) {
             this.getDataFolder().mkdir();
         }
+        setupDatabase();
         try {
             getConfig().load(getDataFolder() + File.separator + "race.yml");
         } catch (IOException | InvalidConfigurationException ex) {
             initRaceConfig();
-            LOG.log(Level.SEVERE, "Error loading race.yml", ex);
+            getLogger().log(Level.SEVERE, "Error loading race.yml", ex);
         }
         ONE_USE_COST = getConfig().getInt("tools.one_use_vaccination_price");
+        GAPPLE_PRICE = getConfig().getInt("tools.gapple_price");
         properties = new Properties();
         loadProperties();
-        container = DataContainer.getInstance();
-        checkerThread = new HorseCheckerThread();
+        checkerThread = new HorseCheckerThread(this);
         checkerThread.start();
+        buckThread = checkerThread.new BuckThread();
+        buckThread.start();
         getServer().getPluginManager().registerEvents(this, this);
         if (!setupEconomy()) {
-            LOG.log(Level.SEVERE, "Vault not detected, Disciplines has been disabled");
+            getLogger().log(Level.SEVERE, "Vault not detected, Disciplines has been disabled");
         } else {
             this.getCommand("disciplines").setExecutor(new DisciplinesHandler(this));
         }
-        this.getCommand("race").setExecutor(new RaceController(this));
-        this.getCommand("auction").setExecutor(new AuctionHandler());
+        this.raceController = new RaceController(this);
+        this.getCommand("race").setExecutor(raceController);
+        this.getCommand("auction").setExecutor(new AuctionHandler(this));
+        this.getCommand("food").setExecutor(new FoodController(this, economy, database));
+    }
+
+    private void setupDatabase() {
+        database = new SQLite(this);
+        database.load();
     }
 
     private boolean setupEconomy() {
@@ -193,38 +221,43 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         try {
             getConfig().save(getDataFolder().getAbsolutePath() + File.separator + "race.yml");
         } catch (IOException ex) {
-            LOG.log(Level.SEVERE, "Error saving race.yml", ex);
+            getLogger().log(Level.SEVERE, "Error saving race.yml", ex);
         }
     }
 
     @Override
     public void onDisable() {
-        LOG.log(Level.INFO, "Saving horses to file");
-        container.saveHorses();
+        getLogger().log(Level.INFO, "Saving horses to file");
         checkerThread.setRun(false);
         checkerThread = null;
-        HandlerList.unregisterAll(plugin);
-        DataContainer.destroyInstance();
-        container = null;
+        HandlerList.unregisterAll((Plugin) this);
 
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         if (cmd.getName().equalsIgnoreCase("equestristatus")) {   //equestristatus command
-            sender.sendMessage("Horses in list: " + container.getAllHorses().size());
-            sender.sendMessage("Checker Thread: " + checkerThread.isAlive());
+            sender.sendMessage("Horses in database: " + ChatColor.AQUA + database.horseCount(-1));
+            sender.sendMessage("Checker Thread: " + (checkerThread.isAlive() ? ChatColor.GREEN + "Active" : ChatColor.RED + "Not Active"));
+            sender.sendMessage("Bucking thread: " + (buckThread.isActive() ? ChatColor.GREEN + "Active" : ChatColor.RED + "Not Active"));
+            int count = 0;
+            for (World world : Bukkit.getWorlds()) {
+                count += world.getEntitiesByClass(Horse.class).size();
+            }
+            sender.sendMessage("Horses currently in world: " + ChatColor.AQUA + count);
             return true;
         } else if (cmd.getName().equalsIgnoreCase("createhorse")) {   //createhorse command
+            if (!sender.hasPermission("equestricraft.spawnhorse")) {
+                return true;
+            }
             switch (args.length) {
                 case 0:
                     if (sender instanceof Player) {
                         final Player player = (Player) sender;
-                        if (player.isOp()) {
-                            final Horse h = player.getWorld().spawn(player.getLocation(), Horse.class);
-                        } else {
-                            player.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "You must be an op to use this command!");
-                        }
+                        final Horse h = player.getWorld().spawn(player.getLocation(), Horse.class);
+                        final MyHorse mh = new MyHorse(h);
+                        h.setBaby();
+                        database.addHorse(mh);
                     } else {
                         sender.sendMessage("This command can only be run by a player");
                     }
@@ -237,6 +270,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         return true;
                     }
                     final Horse h = pl.getWorld().spawn(pl.getLocation(), Horse.class);
+                    final MyHorse mh = new MyHorse(h);
+                    database.saveHorse(mh);
                     sender.sendMessage(ChatColor.BOLD + "Created horse for " + pl.getName());
                     break;
                 default:
@@ -246,10 +281,14 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         } else if (cmd.getName().equalsIgnoreCase("geldingtool")) {   //geldingtool command
             if (sender instanceof Player) {
                 final Player player = (Player) sender;
+                if (!player.hasPermission("equestricraft.role.doctor")) {
+                    player.sendMessage(ChatColor.RED + "You do not have permission to use this");
+                    return true;
+                }
                 final PlayerInventory inventory = player.getInventory();
                 final ItemStack shears = new ItemStack(Material.SHEARS, 1);
                 final ItemMeta im = shears.getItemMeta();
-                im.setDisplayName(SHEARS_NAME);
+                im.setDisplayName(GELDING_TOOL);
                 final List<String> comments = new ArrayList<>();
                 comments.add("Used for gelding a Stallion");
                 im.setLore(comments);
@@ -262,11 +301,11 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         } else if (cmd.getName().equalsIgnoreCase("horsemedicine")) {   //horsemedicine command
             if (sender instanceof Player) {
                 final Player player = (Player) sender;
-                if (container.isDoctor(player)) {
+                if (player.hasPermission(doctorPerm)) {
                     final PlayerInventory inventory = player.getInventory();
                     final ItemStack medicine = new ItemStack(Material.REDSTONE_TORCH_ON, 1);
                     final ItemMeta im = medicine.getItemMeta();
-                    im.setDisplayName(POTION_NAME);
+                    im.setDisplayName(MEDICINE);
                     final List<String> comments = new ArrayList<>();
                     comments.add("Used to heal an ill horse");
                     im.setLore(comments);
@@ -283,7 +322,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                 final PlayerInventory inventory = player.getInventory();
                 final ItemStack stick = new ItemStack(Material.STICK, 1);
                 final ItemMeta im = stick.getItemMeta();
-                im.setDisplayName(STICK_NAME);
+                im.setDisplayName(HORSE_WAND);
                 final List<String> comments = new ArrayList<>();
                 comments.add("Used to check a horses gender and health");
                 im.setLore(comments);
@@ -318,11 +357,11 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     }
                     return false;
                 }
-                if (container.isDoctor(player)) {
+                if (player.hasPermission(doctorPerm)) {
                     final PlayerInventory inventory = player.getInventory();
                     final ItemStack vaccine = new ItemStack(Material.BLAZE_ROD, 1);
                     final ItemMeta im = vaccine.getItemMeta();
-                    im.setDisplayName(VACCINE_NAME);
+                    im.setDisplayName(VACCINATION_TOOL);
                     final List<String> comments = new ArrayList<>();
                     comments.add("Used to vaccinate horses.");
                     comments.add("Vaccinations last for 4 weeks");
@@ -336,69 +375,6 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                 sender.sendMessage("Only a player can use this command");
             }
             return true;
-        } else if (cmd.getName().equalsIgnoreCase("doctor")) {   //adddoctor command
-            if (args.length == 2) {
-                if ((sender instanceof Player && ((Player) sender).isOp()) || !(sender instanceof Player)) {
-                    final OfflinePlayer player = Bukkit.getOfflinePlayer(args[1]);
-                    if (player == null) {
-                        sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "Player not found");
-                        return true;
-                    }
-                    if (args[0].equalsIgnoreCase("add")) {
-                        container.addDoctor(player);
-                        sender.sendMessage(ChatColor.BOLD + "" + ChatColor.GREEN + args[1] + " is now a doctor");
-                        if (player.isOnline()) {
-                            Player pl = (Player) player;
-                            pl.sendMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "You are now a doctor!");
-                        }
-                        return true;
-                    } else if (args[0].equalsIgnoreCase("remove")) {
-                        if (container.removeDoctor(player)) {
-                            sender.sendMessage(ChatColor.BOLD + "" + ChatColor.GREEN + args[1] + " is no longer a doctor");
-                            if (player.isOnline()) {
-                                Player pl = (Player) player;
-                                pl.sendMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "You are no longer a doctor!");
-                            }
-                        } else {
-                            sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "Player not found");
-                        }
-                        return true;
-                    }
-                } else {
-                    sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "Only ops can use this command");
-                }
-            } else if (args.length == 1) {
-                if (args[0].equalsIgnoreCase("reset")) {
-                    if (sender.isOp() || !(sender instanceof Player)) {
-                        container.resetDoctors();
-                        sender.sendMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "Doctors have been reset");
-                    } else {
-                        sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "You cannot use this command");
-                    }
-                    return true;
-                } else if (args[0].equalsIgnoreCase("list")) {
-                    List<UUID> d = container.getAllDoctors();
-                    if (!d.isEmpty()) {
-                        List<OfflinePlayer> doctors = new LinkedList<>();
-                        for (UUID uuid : d) {
-                            for (OfflinePlayer pl : Bukkit.getOfflinePlayers()) {
-                                if (pl.getUniqueId().equals(uuid)) {
-                                    doctors.add(pl);
-                                }
-                            }
-                        }
-                        String message = ChatColor.BOLD + "Doctors-\n";
-                        for (OfflinePlayer player : doctors) {
-                            message += player.getName();
-                        }
-                        sender.sendMessage(message);
-                    } else {
-                        sender.sendMessage(ChatColor.BOLD + "No doctors");
-                    }
-                    return true;
-                }
-            }
-            return false;
         } else if (cmd.getName().equalsIgnoreCase("changegender")) {   //changegender command
             if (args.length == 1) {
                 if (sender instanceof Player) {
@@ -406,12 +382,12 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     if (!OP_REQ || player.isOp()) {
                         MyHorse horse;
                         if (player.getVehicle() != null || player.getVehicle() instanceof Horse) {
-                            horse = container.getHorse(player.getVehicle().getUniqueId());
+                            horse = database.getHorse(player.getVehicle().getUniqueId());
                         } else {
-                            horse = container.getHorse(UUID.fromString(player.getMetadata("horse").get(0).asString()));
+                            horse = database.getHorse(UUID.fromString(player.getMetadata("horse").get(0).asString()));
                         }
                         if (horse == null) {
-                            player.sendMessage("No horse selected");
+                            player.sendMessage(ChatColor.RED + "No horse selected");
                             return true;
                         }
                         String genderStr;
@@ -427,6 +403,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         } else {
                             return false;
                         }
+                        database.saveHorse(horse);
                         sender.sendMessage(ChatColor.BOLD + "Gender set to " + genderStr);
                     }
                 } else {
@@ -436,15 +413,6 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                 return false;
             }
             return true;
-        } else if (cmd.getName().equalsIgnoreCase("savehorses")) {   //savehorses command
-            if ((sender instanceof Player && ((Player) sender).isOp()) || !(sender instanceof Player)) {
-                sender.sendMessage("Saving horses...");
-                container.saveHorses();
-                sender.sendMessage("Save complete...");
-            } else {
-                sender.sendMessage("Only ops can use this command");
-            }
-            return true;
         } else if (cmd.getName().equalsIgnoreCase("setbreed")) {   //setbreed command
             if (args.length >= 1) {
                 if (sender instanceof Player) {
@@ -452,14 +420,15 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     if (!OP_REQ || player.isOp()) {
                         MyHorse horse;
                         if (player.getVehicle() != null || player.getVehicle() instanceof Horse) {
-                            horse = container.getHorse(player.getVehicle().getUniqueId());
+                            horse = database.getHorse(player.getVehicle().getUniqueId());
                         } else {
-                            horse = container.getHorse(UUID.fromString(player.getMetadata("horse").get(0).asString()));
+                            horse = database.getHorse(UUID.fromString(player.getMetadata("horse").get(0).asString()));
                         }
                         if (horse == null) {
                             player.sendMessage("No horse selected");
                             return true;
                         }
+                        Horse h = this.getEntityByUniqueId(horse.getUuid());
                         HorseBreed br1 = null;
                         HorseBreed br2 = null;
                         switch (args.length) {
@@ -487,6 +456,21 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                             horse.setBreed(new HorseBreed[]{br1, br2});
                             sender.sendMessage(ChatColor.BOLD + "Breed set to " + horse.getBreed()[0].toString() + " x " + horse.getBreed()[1].toString());
                         }
+                        if (br1 == HorseBreed.Donkey) {
+                            h.setVariant(Horse.Variant.DONKEY);
+                        } else if (br1 == HorseBreed.Mule) {
+                            h.setVariant(Horse.Variant.MULE);
+                        } else if (br1 == HorseBreed.FjordHorse) {
+                            double d = Math.random();
+                            if (d > 0.5) {
+                                h.setVariant(Horse.Variant.SKELETON_HORSE);
+                            } else {
+                                h.setVariant(Horse.Variant.UNDEAD_HORSE);
+                            }
+                        } else {
+                            h.setVariant(Horse.Variant.HORSE);
+                        }
+                        database.saveHorse(horse);
                     }
                 } else {
                     sender.sendMessage("Only ops can use this command");
@@ -502,9 +486,9 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     if (!OP_REQ || player.isOp()) {
                         MyHorse horse;
                         if (player.getVehicle() != null || player.getVehicle() instanceof Horse) {
-                            horse = container.getHorse(player.getVehicle().getUniqueId());
+                            horse = database.getHorse(player.getVehicle().getUniqueId());
                         } else {
-                            horse = container.getHorse(UUID.fromString(player.getMetadata("horse").get(0).asString()));
+                            horse = database.getHorse(UUID.fromString(player.getMetadata("horse").get(0).asString()));
                         }
                         if (args[0].equalsIgnoreCase(args[1])) {
                             player.sendMessage("You must select two different personalities");
@@ -528,6 +512,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                             return true;
                         }
                         horse.setPersonalities(p1, p2);
+                        database.saveHorse(horse);
                         sender.sendMessage(ChatColor.BOLD + "Personality set to " + p1.toString() + " and " + p2.toString());
                     }
                 } else {
@@ -544,8 +529,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             }
             sender.sendMessage(breeds);
             return true;
-        } else if (cmd.getName()
-                .equalsIgnoreCase("showtraits")) {   //showtraits command
+        } else if (cmd.getName().equalsIgnoreCase("showtraits")) {   //showtraits command
             String traits = "";
             for (Personality per : Personality.values()) {
                 traits += per.toString() + ", ";
@@ -560,9 +544,9 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         MyHorse mh;
                         if (player.getVehicle() != null && player.getVehicle() instanceof Horse) {
                             final Horse horse = (Horse) player.getVehicle();
-                            mh = container.getHorse(horse.getUniqueId());
+                            mh = database.getHorse(horse.getUniqueId());
                         } else {
-                            mh = container.getHorse(UUID.fromString(player.getMetadata("horse").get(0).asString()));
+                            mh = database.getHorse(UUID.fromString(player.getMetadata("horse").get(0).asString()));
                         }
                         if (mh == null) {
                             sender.sendMessage("No horse selected");
@@ -575,6 +559,24 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                                 return true;
                             }
                             mh.setAgeInMonths(months);
+                            if (months >= 12) { //Check if the horse can become an adult
+                                new BukkitRunnable() {
+                                    @Override
+                                    public void run() {
+                                        Horse h = getEntityByUniqueId(mh.getUuid());
+                                        h.setAdult();
+                                    }
+                                }.runTask(this);
+                            } else {
+                                new BukkitRunnable() {
+                                    @Override
+                                    public void run() {
+                                        Horse h = getEntityByUniqueId(mh.getUuid());
+                                        h.setBaby();
+                                    }
+                                }.runTask(this);
+                            }
+                            database.saveHorse(mh);
                             player.sendMessage("Age set");
                         } catch (NumberFormatException ex) {
                             player.sendMessage("Must enter a number for months");
@@ -590,7 +592,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         } else if (cmd.getName().equalsIgnoreCase("doctortool")) {   //doctortool command
             if (sender instanceof Player) {
                 final Player player = (Player) sender;
-                if (container.isDoctor(player)) {
+                if (player.hasPermission(doctorPerm)) {
                     final PlayerInventory inventory = player.getInventory();
                     final ItemStack doctorTool = new ItemStack(Material.STICK, 1);
                     final ItemMeta im = doctorTool.getItemMeta();
@@ -609,47 +611,33 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             }
             return true;
         } else if (cmd.getName().equalsIgnoreCase("eqhelp")) {   //eqhelp command
-            boolean op = false;
-            boolean console = false;
-            boolean doctor = false;
-            if (sender instanceof Player) {
-                op = ((Player) sender).isOp();
-                doctor = container.isDoctor((Player) sender);
-            } else {
-                console = true;
-            }
-
-            if (op || console) {
+            if (sender.isOp()) {
                 sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/equestristatus - " + ChatColor.RESET + "shows horse numbers");
-            }
-            if (op) {
                 sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/createhorse - " + ChatColor.RESET + "create a horse");
             }
-            if (!console) {
-                sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/geldingtool - " + ChatColor.RESET + "spawn the gelding tool");
-            }
-            if (!console) {
-                sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/horsewand - " + ChatColor.RESET + "spawn the horse wand tool");
-            }
-            if (doctor) {
+            sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/horsewand - " + ChatColor.RESET + "spawn the horse wand tool");
+            if (sender.hasPermission(doctorPerm)) {
                 sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "/horsemedicine - " + ChatColor.RESET + "spawn the horse healing tool");
                 sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "/vaccination - " + ChatColor.RESET + "spawn the vaccination tool");
                 sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "/doctortool - " + ChatColor.RESET + "spawn the doctor tool for checking a horses health");
+                sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "/geldingtool - " + ChatColor.RESET + "spawn the gelding tool");
             }
-            if (op || console) {
-                sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/doctor add <player> - " + ChatColor.RESET + "make a player a doctor");
-                sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/doctor remove <player> - " + ChatColor.RESET + "remove a doctor");
-                sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/doctor reset - " + ChatColor.RESET + "reset the doctors");
+            sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/vet show-online - " + ChatColor.RESET + "shows online vets");
+            sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/vet broadcast <message> - " + ChatColor.RESET + "broadcast a message to online vets");
+            if (sender.hasPermission(farrierPerm)) {
+                sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/farrier tool - " + ChatColor.RESET + "spawns the farrier tool");
             }
-            sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/doctor list - " + ChatColor.RESET + "list all doctors");
-            if (op || console) {
-                sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/farrier add <player> - " + ChatColor.RESET + "make a player a farrier");
-                sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/farrier remove <player> - " + ChatColor.RESET + "remove a farrier");
-                sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/farrier reset - " + ChatColor.RESET + "reset the farriers");
+            sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/farrier show-online - " + ChatColor.RESET + "shows online farriers");
+            sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/farrier broadcast <message> - " + ChatColor.RESET + "broadcast a message to online farriers");
+
+            sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/dentist show-online - " + ChatColor.RESET + "shows online dentists");
+            sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/dentist broadcast <message> - " + ChatColor.RESET + "broadcast a message to online dentists");
+
+            if (sender.hasPermission(dentistPerm)) {
+                sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "/dentist tool - " + ChatColor.RESET + "spawns the dentist tool");
+                sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "/dentist healing-tool - " + ChatColor.RESET + "spawns the dentist healing tool");
             }
-            sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/farrier list - " + ChatColor.RESET + "list all farriers");
-            sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/farrier tool - " + ChatColor.RESET + "equip the farriers tool (farriers only)");
-            if (op) {
+            if (sender.isOp()) {
                 sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/changegender <stallion|gelding|mare> - " + ChatColor.RESET + "set the gender of a horse. Must be on the horse");
                 sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/setbreed <breed> - " + ChatColor.RESET + "set the breed of the horse");
                 sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/setpersonality <personality> - " + ChatColor.RESET + "set the personality of the horse");
@@ -657,24 +645,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             }
             sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/showbreeds - " + ChatColor.RESET + "show the list of breeds");
             sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/showtraits - " + ChatColor.RESET + "show the list of personalities");
-            if (op || console) {
-                sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/savehorses - " + ChatColor.RESET + "save the horses to file");
-            }
             sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/eqhelp - " + ChatColor.RESET + "shows this message");
             return true;
-        } else if (cmd.getName().equalsIgnoreCase("cleanup")) {
-            if (sender instanceof Player) {
-                sender.sendMessage("This command can only be run from the console");
-                return true;
-            }
-            final Runnable run = new Runnable() {
-                @Override
-                public void run() {
-                    container.cleanHorses();
-                }
-            };
-            final Thread thread = new Thread(run, "Cleanup_Thread");
-            thread.start();
         } else if (cmd.getName().equalsIgnoreCase("eqh")) {
             if (args.length >= 1) {
                 String arg = args[0];
@@ -682,85 +654,158 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     if (sender instanceof Player) {
                         final Player player = (Player) sender;
                         if (player.isOp()) {
-                            MyHorse mh;
-                            if (player.getVehicle() != null && player.getVehicle() instanceof Horse) {
-                                final Horse horse = (Horse) player.getVehicle();
-                                mh = container.getHorse(horse.getUniqueId());
-                            } else {
-                                mh = container.getHorse(UUID.fromString(player.getMetadata("horse").get(0).asString()));
-                            }
-                            if (mh == null) {
+                            UUID uuid = UUID.fromString(player.getMetadata("horse").get(0).asString());
+                            if (uuid == null) {
                                 sender.sendMessage("No horse selected");
                                 return true;
                             }
-                            mh.kill();
+
+                            Horse h = getEntityByUniqueId(uuid);
+                            if (h != null) {
+                                h.setHealth(0);
+                                database.removeHorse(uuid);
+                            }
                             return true;
                         }
                         return true;
                     }
-                } else if (args[0].equalsIgnoreCase("times")) {
+                } else if (arg.equalsIgnoreCase("times")) {
                     HorseCheckerThread.SHOW_TIME = !HorseCheckerThread.SHOW_TIME;
-                } else if (args[0].equalsIgnoreCase("motd")) {
-                    motd = ChatColor.RESET + "";
-                    for (int i = 1; i < args.length; i++) {
-                        motd += args[i] + " ";
-                    }
-                    for (int i = 0; i < motd.length(); i++) {
-                        char c = motd.charAt(i);
-                        if (c == '&') {
-                            char code = motd.charAt(i + 1);
-                            ChatColor color = ChatColor.getByChar(code);
-                            String s = new String(new char[]{c, code});
-                            motd = motd.replaceAll(s, color.toString());
+                    sender.sendMessage("Horse checker times " + (HorseCheckerThread.SHOW_TIME ? "activated" : "deactivated"));
+                } else if (arg.equalsIgnoreCase("db")) {
+                    if (args.length >= 2) {
+                        if (args[1].equalsIgnoreCase("show-hungry")) {
+                            int hungry = database.hungryHorses();
+                            sender.sendMessage("There are " + hungry + " hungry horses");
+                        } else if (args[1].equalsIgnoreCase("show-thirsty")) {
+                            int thirsty = database.thirstyHorses();
+                            sender.sendMessage("There are " + thirsty + " thirsty horses");
+                        } else if (args[1].equalsIgnoreCase("show-ill")) {
+                            int ill = database.illHorses();
+                            sender.sendMessage("There are " + ill + " ill horses");
+                        } else if (args[1].equalsIgnoreCase("show-vaccs")) {
+                            int vaccs = database.vaccedHorses();
+                            sender.sendMessage("There are " + vaccs + " vacced horses");
+                        } else if (args[1].equalsIgnoreCase("show-shoed")) {
+                            int shoed = database.shoedHorses();
+                            sender.sendMessage("There are " + shoed + " shoed horses");
+                        } else if (args[1].equalsIgnoreCase("show-old")) {
+                            int old = database.oldHorses(Integer.parseInt(args[2]));
+                            sender.sendMessage("There are " + old + " old horses");
+                        } else if (args[1].equalsIgnoreCase("show-dead")) {
+                            int dead = database.deadHorses();
+                            sender.sendMessage("There are " + dead + " dead horses");
+                        } else if (args[1].equalsIgnoreCase("kill-dead")) {
+                            database.killDead();
+                            sender.sendMessage("Dead horses removed from database");
                         }
                     }
-                    sender.sendMessage("MOTD set to-\n" + motd);
+                    return true;
+                } else if (arg.equalsIgnoreCase("integrity")) {
+                    sender.sendMessage("Searching...");
+                    int count = 0;
+                    for (World world : Bukkit.getWorlds()) {
+                        for (Horse h : world.getEntitiesByClass(Horse.class)) {
+                            MyHorse mh = database.getHorse(h.getUniqueId());
+                            int amount = database.uuidCheck(h.getUniqueId());
+                            sender.sendMessage("Database occurances: " + amount);
+                            if (mh == null) {
+                                count++;
+                            }
+                        }
+                    }
+                    sender.sendMessage("Horses not in database: " + count);
+                    return true;
+                } else if (arg.equalsIgnoreCase("fix")) {
+                    for (MyHorse mh : database.getHorses(-1)) {
+                        try {
+                            if (mh.getBreed() == null || mh.getBreed().length == 0) {
+                                mh.setBreed(new HorseBreed[]{HorseBreed.randomType()});
+                            }
+                        } catch (Exception e) {
+                            if (mh == null) {
+                                sender.sendMessage("mh is null");
+                                continue;
+                            }
+                            try {
+                                mh.setBreed(new HorseBreed[]{HorseBreed.randomType(), HorseBreed.randomType()});
+                            } catch (Exception ex) {
+                                sender.sendMessage("Error");
+                            }
+                        }
+                    }
+                    Iterator<MyHorse> it = database.getHorses(-1).iterator();
+                    while (it.hasNext()) {
+                        MyHorse mh = it.next();
+                        if (mh == null) {
+                            it.remove();
+                            sender.sendMessage("One null horse has been removed");
+                        }
+                    }
+                    sender.sendMessage("Assigned breeds to horses");
+                    return true;
+                } else if (arg.equalsIgnoreCase("velo")) {
+                    if (args.length > 1) {
+                        Player p = Bukkit.getPlayer(args[1]);
+                        if (p == null) {
+                            sender.sendMessage("Player not found");
+                            return true;
+                        }
+                    }
+                } else if (arg.equalsIgnoreCase("allowbreed")) {
+                    Player player = (Player) sender;
+                    MyHorse horse;
+                    if (player.getVehicle() != null || player.getVehicle() instanceof Horse) {
+                        horse = database.getHorse(player.getVehicle().getUniqueId());
+                    } else {
+                        horse = database.getHorse(UUID.fromString(player.getMetadata("horse").get(0).asString()));
+                    }
+                    if (horse == null) {
+                        player.sendMessage("No horse selected");
+                        return true;
+                    }
+                    Horse h = this.getEntityByUniqueId(horse.getUuid());
+                    horse.allowBreed();
+                    database.saveHorse(horse);
+                    player.sendMessage("This horse can now breed");
+                    return true;
+                } else if (arg.equalsIgnoreCase("handt")) {
+                    database.removeHungerAndThrist();
+                    sender.sendMessage("Hunger and thirst reset on ALL horses");
+                } else if (arg.equalsIgnoreCase("set")) {
+                    Player player = (Player) sender;
+                    UUID uuid = UUID.fromString(player.getMetadata("horse").get(0).asString());
+                    Horse h = this.getEntityByUniqueId(uuid);
+                    MyHorse horse = new MyHorse(h);
+                    database.addHorse(horse);
+                    sender.sendMessage("Horse set");
+                } else if (arg.equalsIgnoreCase("cure-all")) {
+                    database.cureAll();
+                    sender.sendMessage("All horses have been cured");
+                } else if (arg.equalsIgnoreCase("bucking-toggle")) {
+                    String message = "Bucking thread " + (buckThread.toggle() ? ChatColor.GREEN + "Activated" : ChatColor.RED + "Deactivated");
+                    sender.sendMessage(message);
+                    if (sender instanceof Player) {
+                        getLogger().log(Level.INFO, message);
+                    }
                 }
             }
             return true;
         } else if (cmd.getName().equalsIgnoreCase("farrier")) {
-            if (args.length == 1) {
-                if (args[0].equalsIgnoreCase("list")) {
-                    List<UUID> f = container.getAllFarriers();
-                    if (!f.isEmpty()) {
-                        List<OfflinePlayer> farriers = new LinkedList<>();
-                        for (UUID uuid : f) {
-                            for (OfflinePlayer pl : Bukkit.getOfflinePlayers()) {
-                                if (pl.getUniqueId().equals(uuid)) {
-                                    farriers.add(pl);
-                                }
-                            }
-                        }
-                        String message = ChatColor.BOLD + "Farriers-\n";
-                        for (OfflinePlayer player : farriers) {
-                            message += player.getName();
-                        }
-                        sender.sendMessage(message);
-                    } else {
-                        sender.sendMessage(ChatColor.BOLD + "No farriers");
-                    }
-                    return true;
-                } else if (args[0].equalsIgnoreCase("reset")) {
-                    if (sender.isOp() || !(sender instanceof Player)) {
-                        container.resetFarriers();
-                        sender.sendMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "Farriers reset");
-                    } else {
-                        sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "You cannot use this command");
-                    }
-                    return true;
-                } else if (args[0].equalsIgnoreCase("tool")) {
+            if (args.length > 0) {
+                if (args[0].equalsIgnoreCase("tool")) {
                     if (sender instanceof Player) {
                         final Player player = (Player) sender;
-                        if (container.isFarrier(player)) {
+                        if (player.hasPermission(farrierPerm)) {
                             final PlayerInventory inventory = player.getInventory();
-                            final ItemStack doctorTool = new ItemStack(Material.TRIPWIRE_HOOK, 1);
-                            final ItemMeta im = doctorTool.getItemMeta();
+                            final ItemStack farrierTool = new ItemStack(Material.TRIPWIRE_HOOK, 1);
+                            final ItemMeta im = farrierTool.getItemMeta();
                             im.setDisplayName(FARRIER_TOOL);
                             final List<String> comments = new ArrayList<>();
-                            comments.add("Used to shod a horse");
+                            comments.add("Used to shoe a horse");
                             im.setLore(comments);
-                            doctorTool.setItemMeta(im);
-                            inventory.addItem(doctorTool);
+                            farrierTool.setItemMeta(im);
+                            inventory.addItem(farrierTool);
                         } else {
                             sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "Only a farrier can use this command");
                         }
@@ -768,49 +813,30 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         sender.sendMessage("Only a player can use this command");
                     }
                     return true;
-                }
-            } else if (args.length == 2) {
-                if (args[0].equalsIgnoreCase("add")) {
-                    if (sender.isOp() || !(sender instanceof Player)) {
-                        OfflinePlayer player = Bukkit.getOfflinePlayer(args[1]);
-                        if (player == null) {
-                            sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "Player not found");
-                            return true;
+                } else if (args[0].equalsIgnoreCase("show-online")) {
+                    String list = ChatColor.GREEN + "Online Farriers-";
+                    int count = 0;
+                    for (Player p : Bukkit.getOnlinePlayers()) {
+                        if (p.hasPermission(farrierPerm)) {
+                            list += "\n - " + p.getDisplayName() + (p.isOp() ? "*" : "");
+                            count++;
                         }
-                        if (container.isFarrier(player)) {
-                            sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "Already a farrier");
-                            return true;
-                        }
-                        container.addFarrier(player);
-                        sender.sendMessage(ChatColor.BOLD + "" + ChatColor.GREEN + args[1] + " is now a farrier");
-                        if (player.isOnline()) {
-                            Player p = (Player) player;
-                            p.sendMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "You are now a farrier!");
-                        }
+                    }
+                    if (count == 0) {
+                        sender.sendMessage(ChatColor.RED + "There are no Farriers online");
                     } else {
-                        sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "You cannot use this command");
+                        sender.sendMessage(list);
                     }
                     return true;
-                } else if (args[0].equalsIgnoreCase("remove")) {
-                    if (sender.isOp() || !(sender instanceof Player)) {
-                        OfflinePlayer player = Bukkit.getOfflinePlayer(args[1]);
-                        if (player == null) {
-                            sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "Player not found");
-                            return true;
+                } else if (args[0].equalsIgnoreCase("broadcast")) {
+                    if (args.length > 1) {
+                        String message = ChatColor.GREEN + "Message from " + sender.getName() + " to all farriers - \n";
+                        for (int i = 1; i < args.length; i++) {
+                            message += args[i] + " ";
                         }
-                        if (container.removeFarrier(player)) {
-                            sender.sendMessage(ChatColor.BOLD + "" + ChatColor.GREEN + args[1] + " is no longer a farrier");
-                            if (player.isOnline()) {
-                                Player p = (Player) player;
-                                p.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "You are now longer a farrier");
-                            }
-                        } else {
-                            sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + args[1] + " is not a farrier");
-                        }
-                    } else {
-                        sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "You cannot use this command");
+                        Bukkit.broadcast(message, farrierPerm.getName());
+                        return true;
                     }
-                    return true;
                 }
             }
         } else if (cmd.getName().equalsIgnoreCase("setlevel")) {
@@ -821,9 +847,9 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         MyHorse mh;
                         if (player.getVehicle() != null && player.getVehicle() instanceof Horse) {
                             final Horse horse = (Horse) player.getVehicle();
-                            mh = container.getHorse(horse.getUniqueId());
+                            mh = database.getHorse(horse.getUniqueId());
                         } else {
-                            mh = container.getHorse(UUID.fromString(player.getMetadata("horse").get(0).asString()));
+                            mh = database.getHorse(UUID.fromString(player.getMetadata("horse").get(0).asString()));
                         }
                         if (mh == null) {
                             sender.sendMessage("No horse selected");
@@ -836,9 +862,10 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                                 return true;
                             }
                             mh.setTrainingLevel(level);
+                            database.saveHorse(mh);
                             player.sendMessage("Level set");
                         } catch (NumberFormatException ex) {
-                            player.sendMessage("Must enter a number for months");
+                            player.sendMessage("Must enter a number for level between 1 and 10");
                         }
                         return true;
                     }
@@ -851,6 +878,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         } else if (cmd.getName().equalsIgnoreCase("navigator")) {
             if (!(sender instanceof Player)) {
                 sender.sendMessage("Only players can use this command");
+                return true;
             }
             Player player = (Player) sender;
             final PlayerInventory inventory = player.getInventory();
@@ -862,42 +890,190 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             im.setLore(comments);
             navTool.setItemMeta(im);
             inventory.addItem(navTool);
+            sender.sendMessage("Use to navigate Equestricraft");
             return true;
-        } else if (cmd.getName().equalsIgnoreCase("build")) {
-            if (!(sender instanceof Player)) {
-                sender.sendMessage("Only players can use this command");
-                return true;
-            }
-            final Player player = (Player) sender;
-            if (args.length < 3) {
-                return false;
-            }
-            try {
-                String op = args[0];
-                int width = Integer.parseInt(args[1]);
-                int height = Integer.parseInt(args[2]);
-                if (width <= 0 || height <= 0) {
-                    player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Must be a value greater than 0");
-                    return true;
-                }
-                double value = width * height;
-                if (op.equalsIgnoreCase("pay")) {
-                    if (!economy.has(player, value)) {
-                        player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "You do not have enough money");
+        } else if (cmd.getName().equalsIgnoreCase("breeding")) {
+            if (args.length > 0) {
+                if (args[0].equalsIgnoreCase("gapple")) {
+                    if (!getConfig().getBoolean("tools.enable_breeding")) {
+                        sender.sendMessage(ChatColor.RED + "This command has been disabled for now");
                         return true;
                     }
-                    economy.withdrawPlayer(player, value);
-                    player.sendMessage(ChatColor.AQUA + "$" + new DecimalFormat("0").format(value) + ChatColor.GREEN + " has been withdrawn for a build");
-                    Bukkit.getLogger().log(Level.INFO, player.getName() + " has paid $" + new DecimalFormat("0").format(value) + " for a build");
-                } else if (op.equalsIgnoreCase("enq")) {
-                    player.sendMessage(ChatColor.GREEN + "This build will cost " + ChatColor.AQUA + "$" + new DecimalFormat("0").format(value) + ChatColor.GREEN + ". /build pay " + width + " " + height + " to pay");
+                    if (!(sender instanceof Player)) {
+                        sender.sendMessage("Only players can use this command");
+                        return true;
+                    }
+                    Player player = (Player) sender;
+                    if (economy.getBalance(player) >= GAPPLE_PRICE) {
+                        economy.withdrawPlayer(player, GAPPLE_PRICE);
+                    } else {
+                        sender.sendMessage(ChatColor.RED + "You do not have enough money for a Breeding Apple");
+                        return true;
+                    }
+                    final PlayerInventory inventory = player.getInventory();
+                    final ItemStack gapple = new ItemStack(Material.GOLDEN_APPLE, 1);
+                    final ItemMeta im = gapple.getItemMeta();
+                    im.setDisplayName(BREEDING_APPLE);
+                    final List<String> comments = new ArrayList<>();
+                    comments.add("Breed a horse");
+                    im.setLore(comments);
+                    gapple.setItemMeta(im);
+                    inventory.addItem(gapple);
+                    sender.sendMessage(ChatColor.GREEN + "You have purchased a Golden Apple for " + ChatColor.AQUA + "$" + GAPPLE_PRICE);
+                    return true;
+                } else if (args[0].equalsIgnoreCase("check")) {
+                    OfflinePlayer player;
+                    if (args.length > 1) {
+                        if (sender.hasPermission("equestricraft.breeding.check")) {
+                            player = Bukkit.getOfflinePlayer(args[1]);
+                        } else {
+                            sender.sendMessage(ChatColor.RED + "You do not have permission to check other peoples breeding");
+                            return true;
+                        }
+                    } else if (!(sender instanceof Player)) {
+                        sender.sendMessage("Only players can use this command");
+                        return true;
+                    } else {
+                        player = (OfflinePlayer) sender;
+                    }
+                    if (player == null) {
+                        sender.sendMessage(ChatColor.RED + "Player not found");
+                        return true;
+                    }
+                    int breeds = database.getTotalBreeds(player);
+                    long lastBreed = database.getLastBreed(player);
+                    sender.sendMessage(ChatColor.GREEN + "Total breeds: " + ChatColor.AQUA + breeds);
+                    if (lastBreed != -1) {
+                        sender.sendMessage(ChatColor.GREEN + "Last breed: " + ChatColor.AQUA + new Date(lastBreed));
+                    }
+                    return true;
                 }
-            } catch (NumberFormatException e) {
-                player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Must enter a numerical value");
             }
-            return true;
+        } else if (cmd.getName().equalsIgnoreCase("dentist")) {
+            if (args.length > 0) {
+                if (sender instanceof Player) {
+                    Player player = (Player) sender;
+                    if (player.hasPermission(dentistPerm)) {
+                        if (args[0].equalsIgnoreCase("tool")) {
+                            final PlayerInventory inventory = player.getInventory();
+                            final ItemStack dentistTool = new ItemStack(Material.FLINT_AND_STEEL, 1);
+                            final ItemMeta im = dentistTool.getItemMeta();
+                            im.setDisplayName(DENTIST_TOOL);
+                            final List<String> comments = new ArrayList<>();
+                            comments.add("For checking a horses teeth");
+                            im.setLore(comments);
+                            dentistTool.setItemMeta(im);
+                            inventory.addItem(dentistTool);
+                        } else if (args[0].equalsIgnoreCase("healing-tool")) {
+                            final PlayerInventory inventory = player.getInventory();
+                            final ItemStack dentistHealingTool = new ItemStack(Material.STRING, 1);
+                            final ItemMeta im = dentistHealingTool.getItemMeta();
+                            im.setDisplayName(DENTIST_HEALING_TOOL);
+                            final List<String> comments = new ArrayList<>();
+                            comments.add("Floss for healing teeth");
+                            im.setLore(comments);
+                            dentistHealingTool.setItemMeta(im);
+                            inventory.addItem(dentistHealingTool);
+                        }
+                    } else {
+                        player.sendMessage(ChatColor.RED + "Only dentists can use this tool");
+                    }
+                }
+                if (args[0].equalsIgnoreCase("show-online")) {
+                    String list = ChatColor.GREEN + "Online Dentists-";
+                    int count = 0;
+                    for (Player p : Bukkit.getOnlinePlayers()) {
+                        if (p.hasPermission(dentistPerm)) {
+                            list += "\n - " + p.getDisplayName() + (p.isOp() ? "*" : "");
+                            count++;
+                        }
+                    }
+                    if (count == 0) {
+                        sender.sendMessage(ChatColor.RED + "There are no Dentists online");
+                    } else {
+                        sender.sendMessage(list);
+                    }
+                } else if (args[0].equalsIgnoreCase("broadcast")) {
+                    if (args.length > 1) {
+                        String message = ChatColor.GREEN + "Message from " + sender.getName() + " to all dentists - \n";
+                        for (int i = 1; i < args.length; i++) {
+                            message += args[i] + " ";
+                        }
+                        Bukkit.broadcast(message, dentistPerm.getName());
+                        return true;
+                    }
+                    return false;
+                }
+                return true;
+            }
+        } else if (cmd.getName().equalsIgnoreCase("vet")) {
+            if (args.length > 0) {
+                if (args[0].equalsIgnoreCase("show-online")) {
+                    String list = ChatColor.GREEN + "Online Vets-";
+                    int count = 0;
+                    for (Player p : Bukkit.getOnlinePlayers()) {
+                        list += "\n - " + p.getDisplayName() + (p.isOp() ? "*" : "");
+                        count++;
+                    }
+                    if (count == 0) {
+                        sender.sendMessage(ChatColor.RED + "There are no online Vets");
+                    } else {
+                        sender.sendMessage(list);
+                    }
+                    return true;
+                } else if (args[0].equalsIgnoreCase("broadcast")) {
+                    if (args.length > 1) {
+                        String message = ChatColor.GREEN + "Message from " + sender.getName() + " to all vets - \n";
+                        for (int i = 1; i < args.length; i++) {
+                            message += args[i] + " ";
+                        }
+                        Bukkit.broadcast(message, doctorPerm.getName());
+                        return true;
+                    }
+                    return false;
+                }
+            }
+        } else if (cmd.getName().equalsIgnoreCase("color")) {
+            sender.sendMessage("Color Codes\n"
+                    + "&0 - " + ChatColor.BLACK + "Black\n"
+                    + ChatColor.RESET + "&1 - " + ChatColor.DARK_BLUE + "Dark Blue\n"
+                    + ChatColor.RESET + "&2 - " + ChatColor.DARK_GREEN + "Dark Green\n"
+                    + ChatColor.RESET + "&3 - " + ChatColor.DARK_AQUA + "Dark Aqua\n"
+                    + ChatColor.RESET + "&4 - " + ChatColor.DARK_RED + "Dark Red\n"
+                    + ChatColor.RESET + "&5 - " + ChatColor.DARK_PURPLE + "Dark Purple\n"
+                    + ChatColor.RESET + "&6 - " + ChatColor.GOLD + "Gold\n"
+                    + ChatColor.RESET + "&7 - " + ChatColor.GRAY + "Gray\n"
+                    + ChatColor.RESET + "&8 - " + ChatColor.DARK_GRAY + "Dark Gray\n"
+                    + ChatColor.RESET + "&9 - " + ChatColor.BLUE + "Blue\n"
+                    + ChatColor.RESET + "&a - " + ChatColor.GREEN + "Green\n"
+                    + ChatColor.RESET + "&b - " + ChatColor.AQUA + "Aqua\n"
+                    + ChatColor.RESET + "&c - " + ChatColor.RED + "Red\n"
+                    + ChatColor.RESET + "&d - " + ChatColor.LIGHT_PURPLE + "Light Purple\n"
+                    + ChatColor.RESET + "&e - " + ChatColor.YELLOW + "Yellow\n"
+                    + ChatColor.RESET + "&f - " + ChatColor.WHITE + "White\n"
+                    + ChatColor.RESET + "Formatting Codes\n"
+                    + ChatColor.RESET + "&k - " + ChatColor.MAGIC + "Obfuscated\n"
+                    + ChatColor.RESET + "&l - " + ChatColor.BOLD + "Bold\n"
+                    + ChatColor.RESET + "&m - " + ChatColor.STRIKETHROUGH + "Strikethrough\n"
+                    + ChatColor.RESET + "&n - " + ChatColor.UNDERLINE + "Underline\n"
+                    + ChatColor.RESET + "&o - " + ChatColor.ITALIC + "Italic\n"
+                    + ChatColor.RESET + "&r - Reset"
+            );
         }
         return false;
+    }
+
+    public Horse getEntityByUniqueId(UUID uniqueId) {
+        for (World world : Bukkit.getWorlds()) {
+            for (Chunk chunk : world.getLoadedChunks()) {
+                for (Entity entity : chunk.getEntities()) {
+                    if (entity.getUniqueId().equals(uniqueId)) {
+                        return (Horse) entity;
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     /**
@@ -906,7 +1082,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
      * @param evt the PlayerQuitEvent.
      */
     @EventHandler
-    public void onLeave(PlayerQuitEvent evt) {
+    public void ejectHorseOnLeave(PlayerQuitEvent evt) {
         Player player = evt.getPlayer();
         Entity e = player.getVehicle();
         if (e == null || !(e instanceof Horse)) {
@@ -914,30 +1090,6 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         }
         Horse h = (Horse) e;
         h.eject();
-    }
-
-    /**
-     * This method will get the horses from a chunk load event and ensure pair
-     * them with horses from the file.
-     *
-     * @param event
-     */
-    @EventHandler
-    public void onChunkLoad(ChunkLoadEvent event) {
-        try {
-            for (final Entity e : event.getChunk().getEntities()) {
-                if (e.getType() == EntityType.HORSE) {
-                    final MyHorse mh = container.getHorse(e.getUniqueId());
-                    if (mh == null) {
-                        container.addHorse(mh);
-                    } else {
-                        container.getHorse(e.getUniqueId()).setHorse((Horse) e);
-                    }
-                }
-            }
-        } catch (Throwable e) {
-            LOG.log(Level.SEVERE, "Error on chunk load", e);
-        }
     }
 
     @EventHandler
@@ -962,6 +1114,9 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         if (inHand == null) {
             return;
         }
+        if (event.getEntity() == null) {
+            return;
+        }
         if (null != inHand.getType()) {
             switch (inHand.getType()) {
                 case SHEARS: //Gelding Tool
@@ -969,17 +1124,18 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     if (!inHand.getItemMeta().hasDisplayName()) { //Check the shears have a display name.
                         return;
                     }
-                    if (!inHand.getItemMeta().getDisplayName().equals(SHEARS_NAME)) { //Check the shears are the Gelding Shears.
+                    if (!inHand.getItemMeta().getDisplayName().equals(GELDING_TOOL)) { //Check the shears are the Gelding Shears.
                         return;
                     }
                     event.setCancelled(true);
                     if (event.getEntity() instanceof Horse) { //Check it was a horse they are hitting.
-                        final MyHorse horse = container.getHorse(event.getEntity().getUniqueId()); //Get the Horse instance.
+                        final MyHorse horse = database.getHorse(event.getEntity().getUniqueId()); //Get the Horse instance.
                         if (horse.getGender() != MyHorse.STALLION) { //Check it was a stallion.
                             player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "This horse is not a stallion");
                             return;
                         }
                         horse.setGender(MyHorse.GELDING); //Turn the horse into a gelding.
+                        database.saveHorse(horse);
                         player.sendMessage(ChatColor.BOLD + "This horse has been gelded");
                     }
                     break;
@@ -988,12 +1144,12 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     if (!inHand.getItemMeta().hasDisplayName()) { //Check the stick has a display name.
                         return;
                     }
-                    if (inHand.getItemMeta().getDisplayName().equals(STICK_NAME)) { //Check the stick is the horse wand.
+                    if (inHand.getItemMeta().getDisplayName().equals(HORSE_WAND)) { //Check the stick is the horse wand.
                         event.setCancelled(true);
                         if (event.getEntity() instanceof Horse) {
-                            MyHorse horse = container.getHorse(event.getEntity().getUniqueId()); //Get the horse that was clicked on.
+                            MyHorse horse = database.getHorse(event.getEntity().getUniqueId()); //Get the horse that was clicked on.
                             if (horse == null) {
-                                player.sendMessage("This horse has no details assigned");
+                                player.sendMessage(ChatColor.RED + "Error retrieving horse details. Error code 2");
                                 return;
                             }
                             boolean sickness = horse.isSick();
@@ -1017,7 +1173,6 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                                     genderStr = genderStr + "None";
                                     break;
                             }
-                            final String name = ChatColor.BOLD + "Name: " + ChatColor.RESET + (horse.getHorse().getCustomName() == null ? "No name" : horse.getHorse().getCustomName());
                             String brStr;
                             if (horse.getBreed().length == 1) {
                                 brStr = horse.getBreed()[0].toString();
@@ -1037,9 +1192,13 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                             final String hungerStr = ChatColor.BOLD + "Hunger: " + ChatColor.RESET + "" + (hunger ? ChatColor.RED + "Hungry" + ChatColor.RESET + " for " + hungerSince : ChatColor.GREEN + "Not Hungry");
                             String thirstSince = durToString(horse.getThristDuration());
                             final String thirstStr = ChatColor.BOLD + "Thirst: " + ChatColor.RESET + "" + (thirst ? ChatColor.RED + "Thirsty" + ChatColor.RESET + " for " + thirstSince : ChatColor.GREEN + "Not Thirsty");
-                            final String vaccinationStr = ChatColor.BOLD + "Vaccinated: " + ChatColor.RESET + "" + (vaccination ? ChatColor.GREEN + "Yes" : ChatColor.RED + "No");
+                            final String vaccinationStr = ChatColor.BOLD + "Vaccinated: " + ChatColor.RESET + "" + (vaccination ? ChatColor.GREEN + "Yes" : ChatColor.RED + "No") + "\nVaccinated on " + new Date(horse.getVaccinationTime());
                             final String shodStr = ChatColor.BOLD + "Shoed: " + ChatColor.RESET + "" + (shod ? ChatColor.GREEN + "Yes" : ChatColor.RED + "No");
                             final String levelStr = ChatColor.BOLD + "Training Level: " + ChatColor.RESET + horse.getTrainingLevel();
+
+                            Horse h = this.getEntityByUniqueId(horse.getUuid());
+                            final double jump = h.getJumpStrength();
+                            final String jumpStr = ChatColor.BOLD + "Jump Strength: " + ChatColor.RESET + jump;
                             player.sendMessage(">------------------------------<");
                             player.sendMessage(genderStr);
                             player.sendMessage(breedStr);
@@ -1051,6 +1210,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                             player.sendMessage(vaccinationStr);
                             player.sendMessage(shodStr);
                             player.sendMessage(levelStr);
+//                            player.sendMessage(jumpStr);
                             player.sendMessage(">------------------------------<");
                         } else {
                             player.sendMessage("You must click on a horse");
@@ -1058,7 +1218,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     } else if (inHand.getItemMeta().getDisplayName().equals(DOCTOR_TOOL)) {
                         if (event.getEntity() instanceof Horse) {
                             event.setCancelled(true);
-                            MyHorse horse = container.getHorse(event.getEntity().getUniqueId()); //Get the horse that was clicked on.
+                            MyHorse horse = database.getHorse(event.getEntity().getUniqueId()); //Get the horse that was clicked on.
                             if (horse == null) {
                                 player.sendMessage(ChatColor.RED + "Error checking horse");
                                 return;
@@ -1095,18 +1255,36 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     if (!inHand.getItemMeta().hasDisplayName()) {
                         return;
                     }
-                    if (inHand.getItemMeta().getDisplayName().equals(VACCINE_NAME)) {
+                    if (inHand.getItemMeta().getDisplayName().equals(VACCINATION_TOOL)) {
                         event.setCancelled(true);
                         if (event.getEntity() instanceof Horse) {
-                            final MyHorse horse = container.getHorse(event.getEntity().getUniqueId());
-                            horse.setVaccinated(true);
+                            final MyHorse horse = database.getHorse(event.getEntity().getUniqueId());
+                            if (horse == null) {
+                                player.sendMessage(ChatColor.RED + "Error retrieving horse details. Error code 4");
+                                return;
+                            }
+                            if (horse.isVaccinated()) {
+                                player.sendMessage(ChatColor.BOLD + "Horse already vaccinated");
+                                return;
+                            }
+                            horse.vaccinate();
+                            database.saveHorse(horse);
                             player.sendMessage(ChatColor.BOLD + "Horse has been vaccinated");
                         }
                     } else if (inHand.getItemMeta().getDisplayName().equals(ONE_USE_VACCINATION)) {
                         event.setCancelled(true);
                         if (event.getEntity() instanceof Horse) {
-                            final MyHorse horse = container.getHorse(event.getEntity().getUniqueId());
-                            horse.setVaccinated(true);
+                            final MyHorse horse = database.getHorse(event.getEntity().getUniqueId());
+                            if (horse == null) {
+                                player.sendMessage(ChatColor.RED + "Error retrieving horse details. Error code 3");
+                                return;
+                            }
+                            if (horse.isVaccinated()) {
+                                player.sendMessage(ChatColor.BOLD + "Horse already vaccinated");
+                                return;
+                            }
+                            horse.vaccinate();
+                            database.saveHorse(horse);
                             player.sendMessage(ChatColor.BOLD + "Horse has been vaccinated");
                             if (inHand.getAmount() > 1) {
                                 inHand.setAmount(inHand.getAmount() - 1);
@@ -1120,13 +1298,14 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     if (!inHand.getItemMeta().hasDisplayName()) {
                         return;
                     }
-                    if (!inHand.getItemMeta().getDisplayName().equals(POTION_NAME)) {
+                    if (!inHand.getItemMeta().getDisplayName().equals(MEDICINE)) {
                         return;
                     }
                     event.setCancelled(true);
                     if (event.getEntity() instanceof Horse) {
-                        final MyHorse horse = container.getHorse(event.getEntity().getUniqueId());
+                        final MyHorse horse = database.getHorse(event.getEntity().getUniqueId());
                         horse.setSick(false);
+                        database.saveHorse(horse);
                         player.sendMessage(ChatColor.BOLD + "Horse has been cured");
                     }
                     break;
@@ -1139,8 +1318,9 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     }
                     event.setCancelled(true);
                     if (event.getEntity() instanceof Horse) {
-                        final MyHorse horse = container.getHorse(event.getEntity().getUniqueId());
+                        final MyHorse horse = database.getHorse(event.getEntity().getUniqueId());
                         horse.setShod(true);
+                        database.saveHorse(horse);
                         player.sendMessage(ChatColor.BOLD + "Horse has been shod");
                     }
                     break;
@@ -1150,6 +1330,29 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         }
     }
 
+    /**
+     * Opens the navigator menu when the player clicks with the compass.
+     *
+     * @param evt the event.
+     */
+    @EventHandler
+    public void onCompassUse(PlayerInteractEvent evt) {
+        if (evt.getItem() == null) {
+            return;
+        }
+        if (evt.getItem().getType() != Material.COMPASS) {
+            return;
+        }
+        if (evt.getItem().getItemMeta().getDisplayName() == null) {
+            return;
+        }
+        if (!evt.getItem().getItemMeta().getDisplayName().equals(NAVIGATOR_TOOL)) {
+            return;
+        }
+        evt.setCancelled(true);
+        evt.getPlayer().openInventory(navigator);
+    }
+
     @EventHandler
     public void playerUse(PlayerInteractEntityEvent event) {
         final Player player = event.getPlayer();
@@ -1157,37 +1360,136 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         if (inHand == null) {
             return;
         }
+        final Entity rightClicked = event.getRightClicked();
         if (null != inHand.getType()) {
             switch (inHand.getType()) {
                 case STICK: //Horse wand
-                    if (!(event.getRightClicked() instanceof Horse)) {
+                    if (!(rightClicked instanceof Horse)) {
                         return;
                     }
                     //Horse checking stick
                     if (!inHand.getItemMeta().hasDisplayName()) { //Check the shears have a display name.
                         return;
                     }
-                    if (!inHand.getItemMeta().getDisplayName().equals(STICK_NAME)) { //Check it is the horse wand.
+                    if (!inHand.getItemMeta().getDisplayName().equals(HORSE_WAND)) { //Check it is the horse wand.
                         return;
                     }
-                    if (!OP_REQ || player.isOp()) {
+                    if (player.hasPermission("equestricraft.tools.edithorse")) {
                         final Horse horse = (Horse) event.getRightClicked(); //Get the horse that was clicked on.
-                        MyHorse mh = container.getHorse(horse.getUniqueId());
-                        if (mh == null) {
-                            mh = new MyHorse(horse);
-                            container.addHorse(mh);
+                        player.setMetadata("horse", new FixedMetadataValue(this, horse.getUniqueId()));
+                        player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "You are now editing this horse");
+                    }
+                    event.setCancelled(true);
+                    break;
+                case GOLDEN_APPLE:
+                    try {
+                        event.setCancelled(true);
+                        if (!inHand.getItemMeta().hasDisplayName()) {
+                            player.sendMessage(ChatColor.RED + "You must purchase a breeding apple using " + ChatColor.AQUA + "/breeding gapple");
+                            return;
                         }
-                        player.setMetadata("horse", new FixedMetadataValue(EquestriCraftPlugin.plugin, horse.getUniqueId()));
-                        player.sendMessage("You are now editing this horse");
-//                    if (horse.getTarget() == null) {
-//                        horse.setTarget(player);
-//                        player.sendMessage("Horse will follow you");
-//                    } else {
-//                        horse.setTarget(null);
-//                        player.sendMessage("Horse will not follow you");
-//                    }
+                        if (!inHand.getItemMeta().getDisplayName().equals(BREEDING_APPLE)) {
+                            return;
+                        }
+                        if (!(rightClicked instanceof Horse)) {
+                            player.sendMessage(ChatColor.RED + "You must click on a horse");
+                            return;
+                        }
+                        if (!getConfig().getBoolean("tools.enable_breeding")) {
+                            player.sendMessage(ChatColor.RED + "Breeding disabled");
+                            return;
+                        }
+                        final Horse horse = (Horse) rightClicked;
+                        MyHorse mh1 = database.getHorse(horse.getUniqueId());
+                        if (database.hadBredRecently(player)) {
+                            player.sendMessage(ChatColor.RED + "You have already bred a horse recently");
+                            return;
+                        }
+                        if (mh1.getGender() == MyHorse.GELDING) {
+                            player.sendMessage(ChatColor.RED + "Cannot breed a gelding");
+                            return;
+                        }
+                        if (mh1.getDurationSinceLastBreed() < BREED_INTERVAL) {
+                            player.sendMessage(ChatColor.RED + "This horse breed " + mh1.getDurationSinceLastBreed() / 1000 / 60 + "m ago, you must wait before it can breed again");
+                            return;
+                        }
+                        if (player.hasMetadata("HORSE_BREED")) {
+                            player.sendMessage(ChatColor.GREEN + "Second horse set");
+                            List<MetadataValue> md = player.getMetadata("HORSE_BREED");
+                            UUID uuid = null;
+                            for (MetadataValue m : md) {
+                                if (m.getOwningPlugin() == this) {
+                                    uuid = UUID.fromString(m.asString());
+                                }
+                            }
+                            if (uuid == null) {
+                                player.sendMessage(ChatColor.RED + "Breeding failed. Error code 1");
+                                player.removeMetadata("HORSE_BREED", this);
+                                return;
+                            }
+                            MyHorse mh2 = database.getHorse(uuid);
+                            if (mh1.getBreed() == mh2.getBreed()) {
+                                player.sendMessage(ChatColor.RED + "Horses must be a different gender");
+                                return;
+                            }
+                            mh2.setLastBreed();
+                            mh1.setLastBreed();
+                            Horse foal = (Horse) horse.getWorld().spawnEntity(horse.getLocation(), EntityType.HORSE);
+                            MyHorse mhFoal = new MyHorse(foal);
+                            HorseBreed br1 = mh1.getBreed()[0];
+                            HorseBreed br2 = mh2.getBreed()[1];
+                            mhFoal.setBreed(new HorseBreed[]{br1, br2});
+                            if (br1 == HorseBreed.Donkey) {
+                                horse.setVariant(Horse.Variant.DONKEY);
+                            } else if (br1 == HorseBreed.Mule) {
+                                horse.setVariant(Horse.Variant.MULE);
+                            } else if (br1 == HorseBreed.FjordHorse) {
+                                double d = Math.random();
+                                if (d > 0.5) {
+                                    horse.setVariant(Horse.Variant.SKELETON_HORSE);
+                                } else {
+                                    horse.setVariant(Horse.Variant.UNDEAD_HORSE);
+                                }
+                            } else {
+                                horse.setVariant(Horse.Variant.HORSE);
+                            }
+                            foal.setBaby();
+                            database.addHorse(mhFoal);
+                            database.saveHorse(mh1);
+                            database.saveHorse(mh2);
+                            if (inHand.getAmount() == 1) {
+                                player.getInventory().removeItem(inHand);
+                            } else {
+                                inHand.setAmount(inHand.getAmount() - 1);
+                            }
+                            player.removeMetadata("HORSE_BREED", this);
+                            player.sendMessage(ChatColor.GREEN + "Breeding Successful");
+                            getLogger().log(Level.INFO, player.getName() + " has bred a horse");
+                        } else {
+                            player.setMetadata("HORSE_BREED", new FixedMetadataValue(this, horse.getUniqueId().toString()));
+                            player.sendMessage(ChatColor.GREEN + "First horse set");
+                            if (mh1.getGender() == MyHorse.STALLION) {
+                                player.sendMessage(ChatColor.GREEN + "Select a mare");
+                            } else {
+                                player.sendMessage(ChatColor.GREEN + "Select a stallion");
+                            }
+                            if (inHand.getAmount() == 0) {
+                                final PlayerInventory inventory = player.getInventory();
+                                final ItemStack gapple = new ItemStack(Material.GOLDEN_APPLE, 1);
+                                final ItemMeta im = gapple.getItemMeta();
+                                im.setDisplayName(BREEDING_APPLE);
+                                final List<String> comments = new ArrayList<>();
+                                comments.add("Breed a horse");
+                                im.setLore(comments);
+                                gapple.setItemMeta(im);
+                                inventory.addItem(gapple);
+                            } else {
+//                                inHand.setAmount(inHand.getAmount() + 1);
+                            }
+                        }
+                    } catch (Exception e) {
+                        player.sendMessage(ChatColor.RED + "Error breeding. Error code 2");
                     }
-                    event.setCancelled(true);
                     break;
                 default:
                     break;
@@ -1196,32 +1498,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     }
 
     @EventHandler
-    public void onPlayerClick(PlayerInteractEvent event) {
-        final Player player = event.getPlayer();
-        final ItemStack inHand = player.getItemInHand(); //Get the item in hand.
-        if (inHand == null) {
-            return;
-        }
-        if (null != inHand.getType()) {
-            switch (inHand.getType()) {
-                case COMPASS:
-                    if (!inHand.getItemMeta().hasDisplayName()) {
-                        return;
-                    }
-                    if (!inHand.getItemMeta().getDisplayName().equals(NAVIGATOR_TOOL)) {
-                        return;
-                    }
-                    event.setCancelled(true);
-                    player.openInventory(navigator);
-                    break;
-                default:
-                    break;
-            }
-        }
-    }
-
-    @EventHandler
-    public void onPlayerJoin(PlayerJoinEvent event) {
+    public void giveNavigatorNewPlayer(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         if (player.getLastPlayed() == 0) {
             final PlayerInventory inventory = player.getInventory();
@@ -1234,11 +1511,6 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             navTool.setItemMeta(im);
             inventory.addItem(navTool);
         }
-    }
-
-    @EventHandler
-    public void onPing(ServerListPingEvent event) {
-        event.setMotd(event.getMotd() + motd);
     }
 
     /**
@@ -1272,6 +1544,19 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     }
 
     @EventHandler
+    public void onCreatureDeath(EntityDeathEvent evt) {
+        Entity e = evt.getEntity();
+        if (!(e instanceof Horse)) {
+            return;
+        }
+        UUID uuid = e.getUniqueId();
+        if (uuid == null) {
+            return;
+        }
+        database.removeHorse(uuid);
+        getLogger().log(Level.INFO, "A horse was killed, so it has been removed from the database");
+    }
+
     public void onCreatureSpawn(CreatureSpawnEvent evt) {
         if (evt.getEntityType() == EntityType.HORSE) {
             final Horse horse = (Horse) evt.getEntity();
@@ -1294,7 +1579,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     }
                 }
             }
-            container.addHorse(mh);
+            getLogger().log(Level.INFO, "Saving new horse");
+            database.saveHorse(mh);
         }
     }
 
@@ -1312,7 +1598,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         Location l;
         if (clicked.getType() == Material.MONSTER_EGG) {
             //Spawn
-            l = new Location(w, 4111, 5, -2264, 180, 0);
+            l = new Location(w, 3442, 7, 215, 90, 0);
             player.sendMessage("Teleporting to Spawn...");
         } else if (clicked.getType() == Material.NAME_TAG) {
             //Lease Barn
@@ -1366,13 +1652,14 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         }
 
         player.teleport(l);
+        player.closeInventory();
     }
 
     private void loadProperties() {
         try (InputStream is = new FileInputStream(PROPERTIES_FILE)) {
             properties.load(is);
-            HorseCheckerThread.EAT_LIMIT = Long.parseLong(properties.getProperty("EAT_LIMIT")) * 60000;
-            HorseCheckerThread.DRINK_LIMIT = Long.parseLong(properties.getProperty("DRINK_LIMIT")) * 60000;
+            MyHorse.EAT_LIMIT = Long.parseLong(properties.getProperty("EAT_LIMIT")) * 60000;
+            MyHorse.DRINK_LIMIT = Long.parseLong(properties.getProperty("DRINK_LIMIT")) * 60000;
             HorseCheckerThread.SICK_LIMIT = Long.parseLong(properties.getProperty("SICK_LIMIT")) * 60000;
             HorseCheckerThread.DEFECATE_INTERVAL = Long.parseLong(properties.getProperty("DEFECATE_INTERVAL")) * 60000;
             HorseCheckerThread.ILL_WAIT = Long.parseLong(properties.getProperty("ILL_WAIT"));
@@ -1386,7 +1673,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         } catch (FileNotFoundException ex) {
             saveProperties();
         } catch (IOException ex) {
-            LOG.log(Level.SEVERE, null, ex);
+            getLogger().log(Level.SEVERE, null, ex);
         }
     }
 
@@ -1396,12 +1683,12 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             try {
                 f.createNewFile();
             } catch (IOException ex) {
-                LOG.log(Level.SEVERE, null, ex);
+                getLogger().log(Level.SEVERE, null, ex);
             }
         }
         try (OutputStream os = new FileOutputStream(PROPERTIES_FILE)) {
-            properties.setProperty("EAT_LIMIT", Long.toString(HorseCheckerThread.EAT_LIMIT / 60000));
-            properties.setProperty("DRINK_LIMIT", Long.toString(HorseCheckerThread.DRINK_LIMIT / 60000));
+            properties.setProperty("EAT_LIMIT", Long.toString(MyHorse.EAT_LIMIT / 60000));
+            properties.setProperty("DRINK_LIMIT", Long.toString(MyHorse.DRINK_LIMIT / 60000));
             properties.setProperty("SICK_LIMIT", Long.toString(HorseCheckerThread.SICK_LIMIT / 60000));
             properties.setProperty("DEFECATE_INTERVAL", Long.toString(HorseCheckerThread.DEFECATE_INTERVAL / 60000));
             properties.setProperty("ILL_WAIT", Long.toString(HorseCheckerThread.ILL_WAIT / 60000));
@@ -1413,9 +1700,9 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             properties.setProperty("BLOCK_HUNGER", Boolean.toString(BLOCK_HUNGER));
             properties.store(os, null);
         } catch (FileNotFoundException ex) {
-            LOG.log(Level.SEVERE, null, ex);
+            getLogger().log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
-            LOG.log(Level.SEVERE, null, ex);
+            getLogger().log(Level.SEVERE, null, ex);
         }
     }
 }
