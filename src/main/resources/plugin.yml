@@ -80,3 +80,6 @@ commands:
     vet:
         description: show online vets.
         usage: /vet <show-online|broadcast [message]>
+    color:
+        description: Show color codes.
+        usage: /color

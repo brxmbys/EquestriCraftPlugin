@@ -1037,6 +1037,33 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     return false;
                 }
             }
+        } else if (cmd.getName().equalsIgnoreCase("color")) {
+            sender.sendMessage("Color Codes\n"
+                    + "&0 - " + ChatColor.BLACK + "Black\n"
+                    + ChatColor.RESET + "&1 - " + ChatColor.DARK_BLUE + "Dark Blue\n"
+                    + ChatColor.RESET + "&2 - " + ChatColor.DARK_GREEN + "Dark Green\n"
+                    + ChatColor.RESET + "&3 - " + ChatColor.DARK_AQUA + "Dark Aqua\n"
+                    + ChatColor.RESET + "&4 - " + ChatColor.DARK_RED + "Dark Red\n"
+                    + ChatColor.RESET + "&5 - " + ChatColor.DARK_PURPLE + "Dark Purple\n"
+                    + ChatColor.RESET + "&6 - " + ChatColor.GOLD + "Gold\n"
+                    + ChatColor.RESET + "&7 - " + ChatColor.GRAY + "Gray\n"
+                    + ChatColor.RESET + "&8 - " + ChatColor.DARK_GRAY + "Dark Gray\n"
+                    + ChatColor.RESET + "&9 - " + ChatColor.BLUE + "Blue\n"
+                    + ChatColor.RESET + "&a - " + ChatColor.GREEN + "Green\n"
+                    + ChatColor.RESET + "&b - " + ChatColor.AQUA + "Aqua\n"
+                    + ChatColor.RESET + "&c - " + ChatColor.RED + "Red\n"
+                    + ChatColor.RESET + "&d - " + ChatColor.LIGHT_PURPLE + "Light Purple\n"
+                    + ChatColor.RESET + "&e - " + ChatColor.YELLOW + "Yellow\n"
+                    + ChatColor.RESET + "&f - " + ChatColor.WHITE + "White\n"
+                    + ChatColor.RESET + "Formatting Codes\n"
+                    + ChatColor.RESET + "&k - " + ChatColor.MAGIC + "Obfuscated\n"
+                    + ChatColor.RESET + "&l - " + ChatColor.BOLD + "Bold\n"
+                    + ChatColor.RESET + "&m - " + ChatColor.STRIKETHROUGH + "Strikethrough\n"
+                    + ChatColor.RESET + "&n - " + ChatColor.UNDERLINE + "Underline\n"
+                    + ChatColor.RESET + "&o - " + ChatColor.ITALIC + "Italic\n"
+                    + ChatColor.RESET + "&r - Reset"
+        
+        );
         }
         return false;
     }
