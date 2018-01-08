@@ -31,7 +31,7 @@ public class RaceController implements CommandExecutor {
         if (args.length == 0) {
             return false;
         }
-        if (args[0].equalsIgnoreCase("open")) { //Opens a enw race, with the lap count and prize money.
+        if (args[0].equalsIgnoreCase("open")) { //Opens a new race, with the lap count and prize money.
             if (args.length >= 5) {
                 try {
                     int laps = Integer.parseInt(args[1]);
