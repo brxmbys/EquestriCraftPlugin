@@ -5,7 +5,6 @@ package io.github.davidg95.equestricraftplugin;
 
 import io.github.davidg95.equestricraftplugin.database.Database;
 import java.util.Date;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -14,7 +13,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Horse;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -105,8 +103,6 @@ public class HorseCheckerThread extends Thread {
                             h.setHealth(0);
                             database.removeHorse(horse.getUuid());
                             plugin.getLogger().log(Level.INFO, "A horse died of illness");
-                        } else {
-                            plugin.getLogger().log(Level.WARNING, "There is a horse that is too ill, however it is not currently spawned in");
                         }
                     }
                     if (horse.isHungry() && horse.getHungerDuration() > SICK_LIMIT) { //Kill the horse if it has been hungry longer than the limit.
@@ -115,8 +111,6 @@ public class HorseCheckerThread extends Thread {
                             h.setHealth(0);
                             database.removeHorse(horse.getUuid());
                             plugin.getLogger().log(Level.INFO, "A horse died of hunger");
-                        } else {
-                            plugin.getLogger().log(Level.WARNING, "There is a horse that is too hungry, however it is not currently spawned in");
                         }
                     }
                     if (horse.isThirsty() && horse.getThristDuration() > SICK_LIMIT) { //Kill the horse if it has been thirsty longer than the limit.
@@ -125,8 +119,6 @@ public class HorseCheckerThread extends Thread {
                             h.setHealth(0);
                             database.removeHorse(horse.getUuid());
                             plugin.getLogger().log(Level.INFO, "A horse died of thirst");
-                        } else {
-                            plugin.getLogger().log(Level.WARNING, "There is a horse that is too thirsty, however it is not currently spawned in");
                         }
                     }
                     if (horse.getDurationSinceLastEat() > DEFECATE_INTERVAL) { //Check if the horse needs to defecate.
@@ -296,6 +288,9 @@ public class HorseCheckerThread extends Thread {
                     Logger.getLogger(HorseCheckerThread.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 loop++;
+                if(loop == 11){
+                    loop = 1;
+                }
             }
         }
 
