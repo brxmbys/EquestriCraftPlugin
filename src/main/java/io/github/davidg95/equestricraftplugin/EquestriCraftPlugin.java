@@ -4,10 +4,9 @@
 package io.github.davidg95.equestricraftplugin;
 
 import io.github.davidg95.equestricraftplugin.HorseCheckerThread.BuckThread;
-import io.github.davidg95.equestricraftplugin.auctions.AuctionHandler;
-import io.github.davidg95.equestricraftplugin.database.Database;
-import io.github.davidg95.equestricraftplugin.database.SQLite;
-import io.github.davidg95.equestricraftplugin.disciplines.DisciplinesHandler;
+import io.github.davidg95.equestricraftplugin.auctions.*;
+import io.github.davidg95.equestricraftplugin.database.*;
+import io.github.davidg95.equestricraftplugin.disciplines.*;
 import io.github.davidg95.equestricraftplugin.race.*;
 import java.io.*;
 import java.util.*;
@@ -71,11 +70,12 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
 
     private static final Inventory navigator = Bukkit.createInventory(null, 45, "Navigator");
 
-    public static String motd = "";
-
     public static Database database;
 
     public RaceController raceController;
+    public AuctionHandler auctionHandler;
+    public FoodController foodController;
+    public DisciplinesHandler discipinesHander;
 
     static {
         ItemStack spawn = new ItemStack(Material.MONSTER_EGG, 1);
@@ -173,14 +173,17 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         buckThread.start();
         getServer().getPluginManager().registerEvents(this, this);
         if (!setupEconomy()) {
-            getLogger().log(Level.SEVERE, "Vault not detected, Disciplines has been disabled");
+            getLogger().log(Level.SEVERE, "Vault not detected, Disciplines, Auctions, Races and Food have been disabled");
         } else {
-            this.getCommand("disciplines").setExecutor(new DisciplinesHandler(this));
+            this.raceController = new RaceController(this);
+            this.auctionHandler = new AuctionHandler(this);
+            this.foodController = new FoodController(this, economy, database);
+            this.discipinesHander = new DisciplinesHandler(this);
+            this.getCommand("disciplines").setExecutor(discipinesHander);
+            this.getCommand("food").setExecutor(foodController);
+            this.getCommand("auction").setExecutor(auctionHandler);
+            this.getCommand("race").setExecutor(raceController);
         }
-        this.raceController = new RaceController(this);
-        this.getCommand("race").setExecutor(raceController);
-        this.getCommand("auction").setExecutor(new AuctionHandler(this));
-        this.getCommand("food").setExecutor(new FoodController(this, economy, database));
     }
 
     private void setupDatabase() {
@@ -215,19 +218,20 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
 
         getConfig().set("tools.one_use_vaccination_price", 100);
         try {
-            getConfig().save(getDataFolder().getAbsolutePath() + File.separator + "race.yml");
+            getConfig().save(getDataFolder().getAbsolutePath() + File.separator + "config.yml");
         } catch (IOException ex) {
-            getLogger().log(Level.SEVERE, "Error saving race.yml", ex);
+            getLogger().log(Level.SEVERE, "Error saving config.yml", ex);
         }
     }
 
     @Override
     public void onDisable() {
-        getLogger().log(Level.INFO, "Saving horses to file");
         checkerThread.setRun(false);
         checkerThread = null;
         HandlerList.unregisterAll((Plugin) this);
-
+        raceController.cancelActiveRace();
+        auctionHandler.endActiveAuction();
+        getLogger().log(Level.INFO, "All threads stopped");
     }
 
     @Override
@@ -1585,7 +1589,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     }
 
     @EventHandler
-    public void onCreatureDeath(EntityDeathEvent evt) {
+    public void removeHorseOnDeath(EntityDeathEvent evt) {
         Entity e = evt.getEntity();
         if (!(e instanceof Horse)) {
             return;
@@ -1598,35 +1602,13 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         getLogger().log(Level.INFO, "A horse was killed, so it has been removed from the database");
     }
 
-    public void onCreatureSpawn(CreatureSpawnEvent evt) {
-        if (evt.getEntityType() == EntityType.HORSE) {
-            final Horse horse = (Horse) evt.getEntity();
-            MyHorse mh = new MyHorse(horse);
-            horse.setBaby();
-            if (evt.getEntity().getMetadata("breed").size() > 1) {
-                String breed = evt.getEntity().getMetadata("breed").get(0).asString();
-                HorseBreed br = HorseBreed.valueOf(breed);
-                mh.setBreed(new HorseBreed[]{br});
-                if (br == HorseBreed.Donkey) {
-                    horse.setVariant(Horse.Variant.DONKEY);
-                } else if (br == HorseBreed.Mule) {
-                    horse.setVariant(Horse.Variant.MULE);
-                } else if (br == HorseBreed.FjordHorse) {
-                    double d = Math.random();
-                    if (d > 0.5) {
-                        horse.setVariant(Horse.Variant.SKELETON_HORSE);
-                    } else {
-                        horse.setVariant(Horse.Variant.UNDEAD_HORSE);
-                    }
-                }
-            }
-            getLogger().log(Level.INFO, "Saving new horse");
-            database.saveHorse(mh);
-        }
-    }
-
+    /**
+     * Handles players clicking with the navigator
+     *
+     * @param event the event.
+     */
     @EventHandler
-    public void onInventoryClick(InventoryClickEvent event) {
+    public void onNavigatorClick(InventoryClickEvent event) {
         Player player = (Player) event.getWhoClicked();
         ItemStack clicked = event.getCurrentItem();
         Inventory inventory = event.getInventory();

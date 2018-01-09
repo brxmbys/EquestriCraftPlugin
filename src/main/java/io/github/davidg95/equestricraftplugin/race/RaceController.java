@@ -180,17 +180,13 @@ public class RaceController implements CommandExecutor {
     }
 
     /**
-     * Checks if the sender is the console or an op.
-     *
-     * @param sender the sender.
-     * @return true if they are console or op, false otherwise.
+     * Ends any active race.
      */
-    private boolean serverOrOp(CommandSender sender) {
-        if (sender instanceof Player) {
-            return ((Player) sender).isOp();
-        } else {
-            return true;
+    public void cancelActiveRace() {
+        if (race == null) {
+            return;
         }
+        race.terminate();
     }
 
 }

@@ -105,4 +105,14 @@ public class AuctionHandler implements CommandExecutor {
         return false;
     }
 
+    /**
+     * End an active auction.
+     */
+    public void endActiveAuction() {
+        if (auction == null) {
+            return;
+        }
+        auction.end();
+    }
+
 }
