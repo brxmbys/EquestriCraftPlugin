@@ -50,7 +50,7 @@ public class Auction implements Listener {
     private Team team;
     private Objective objective;
     private Score score;
-    
+
     public Auction(EquestriCraftPlugin plugin, Player seller, int startingBid, int incrementValue) {
         this.seller = seller;
         this.currentBid = startingBid;

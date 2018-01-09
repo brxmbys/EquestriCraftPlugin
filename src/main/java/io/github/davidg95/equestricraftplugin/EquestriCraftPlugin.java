@@ -40,9 +40,6 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     private HorseCheckerThread checkerThread;
     private BuckThread buckThread;
 
-    private Properties properties;
-    private static final String PROPERTIES_FILE = "equestricraftplugin.properties";
-
     public static final String MEDICINE = "Healer";
     public static final String GELDING_TOOL = "Gelding Shears";
     public static final String HORSE_WAND = "Horse checking wand";
@@ -162,14 +159,13 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         }
         setupDatabase();
         try {
-            getConfig().load(getDataFolder() + File.separator + "race.yml");
+            getConfig().load(getDataFolder() + File.separator + "config.yml");
         } catch (IOException | InvalidConfigurationException ex) {
             initRaceConfig();
-            getLogger().log(Level.SEVERE, "Error loading race.yml", ex);
+            getLogger().log(Level.SEVERE, "Error loading config.yml", ex);
         }
         ONE_USE_COST = getConfig().getInt("tools.one_use_vaccination_price");
         GAPPLE_PRICE = getConfig().getInt("tools.gapple_price");
-        properties = new Properties();
         loadProperties();
         checkerThread = new HorseCheckerThread(this);
         checkerThread.start();
@@ -255,6 +251,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     if (sender instanceof Player) {
                         final Player player = (Player) sender;
                         final Horse h = player.getWorld().spawn(player.getLocation(), Horse.class);
+                        HorseNMS.setSpeed(h, 0.4);
+                        h.setJumpStrength(0.68);
                         final MyHorse mh = new MyHorse(h);
                         h.setBaby();
                         database.addHorse(mh);
@@ -1198,8 +1196,38 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                             final String levelStr = ChatColor.BOLD + "Training Level: " + ChatColor.RESET + horse.getTrainingLevel();
 
                             Horse h = this.getEntityByUniqueId(horse.getUuid());
-                            final double jump = h.getJumpStrength();
-                            final String jumpStr = ChatColor.BOLD + "Jump Strength: " + ChatColor.RESET + jump;
+
+                            String rank = ChatColor.BOLD + "Rank: " + ChatColor.RESET;
+                            int r = MyHorse.getRank(h);
+                            switch (r) {
+                                case 8:
+                                    rank += ChatColor.AQUA + "Olympian";
+                                    break;
+                                case 7:
+                                    rank += ChatColor.GOLD + "Elite";
+                                    break;
+                                case 6:
+                                    rank += ChatColor.DARK_AQUA + "Champion";
+                                    break;
+                                case 5:
+                                    rank += ChatColor.GRAY + "Instructor";
+                                    break;
+                                case 4:
+                                    rank += ChatColor.DARK_PURPLE + "Master";
+                                    break;
+                                case 3:
+                                    rank += ChatColor.BLUE + "Advanced";
+                                    break;
+                                case 2:
+                                    rank += ChatColor.GREEN + "Intermediate";
+                                    break;
+                                case 1:
+                                    rank += ChatColor.YELLOW + "Novice";
+                                    break;
+                                default:
+                                    rank += ChatColor.RED + "No Rank";
+                            }
+
                             player.sendMessage(">------------------------------<");
                             player.sendMessage(genderStr);
                             player.sendMessage(breedStr);
@@ -1211,7 +1239,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                             player.sendMessage(vaccinationStr);
                             player.sendMessage(shodStr);
                             player.sendMessage(levelStr);
-//                            player.sendMessage(jumpStr);
+                            player.sendMessage(rank);
                             player.sendMessage(">------------------------------<");
                         } else {
                             player.sendMessage("You must click on a horse");
@@ -1377,6 +1405,11 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     }
                     if (player.hasPermission("equestricraft.tools.edithorse")) {
                         final Horse horse = (Horse) event.getRightClicked(); //Get the horse that was clicked on.
+                        if (database.getHorse(horse.getUniqueId()) == null) {
+                            getLogger().log(Level.INFO, "Creating horse in database");
+                            MyHorse mh = new MyHorse(horse);
+                            database.addHorse(mh);
+                        };
                         player.setMetadata("horse", new FixedMetadataValue(this, horse.getUniqueId()));
                         player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "You are now editing this horse");
                     }
@@ -1455,6 +1488,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                                 horse.setVariant(Horse.Variant.HORSE);
                             }
                             foal.setBaby();
+                            HorseNMS.setSpeed(horse, 0.4);
+                            foal.setJumpStrength(0.68);
                             database.addHorse(mhFoal);
                             database.saveHorse(mh1);
                             database.saveHorse(mh2);
@@ -1657,53 +1692,26 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     }
 
     private void loadProperties() {
-        try (InputStream is = new FileInputStream(PROPERTIES_FILE)) {
-            properties.load(is);
-            MyHorse.EAT_LIMIT = Long.parseLong(properties.getProperty("EAT_LIMIT")) * 60000;
-            MyHorse.DRINK_LIMIT = Long.parseLong(properties.getProperty("DRINK_LIMIT")) * 60000;
-            HorseCheckerThread.SICK_LIMIT = Long.parseLong(properties.getProperty("SICK_LIMIT")) * 60000;
-            HorseCheckerThread.DEFECATE_INTERVAL = Long.parseLong(properties.getProperty("DEFECATE_INTERVAL")) * 60000;
-            HorseCheckerThread.ILL_WAIT = Long.parseLong(properties.getProperty("ILL_WAIT"));
-            HorseCheckerThread.BUCK_PROBABILITY = Double.parseDouble(properties.getProperty("BUCK_PROBABILITY"));
-            HorseCheckerThread.BREED_PROBABILITY = Double.parseDouble(properties.getProperty("BREED_PROBABILITY"));
-            HorseCheckerThread.SICK_PROBABILITY = Double.parseDouble(properties.getProperty("SICK_PROBABILITY"));
-            HorseCheckerThread.VACCINATED_PROBABILITY = Double.parseDouble(properties.getProperty("VACCINATED_SICK_PROBABILITY"));
-            OP_REQ = properties.getProperty("OP_REQ", "TRUE").equals("TRUE");
-            BLOCK_HUNGER = Boolean.parseBoolean(properties.getProperty("BLOCK_HUNGER", Boolean.toString(BLOCK_HUNGER)));
-            saveProperties();
-        } catch (FileNotFoundException ex) {
-            saveProperties();
-        } catch (IOException ex) {
-            getLogger().log(Level.SEVERE, null, ex);
-        }
+        MyHorse.EAT_LIMIT = getConfig().getInt("misc.eat_limit") * 60000;
+        MyHorse.DRINK_LIMIT = getConfig().getInt("misc.drink_limit") * 60000;
+        HorseCheckerThread.SICK_LIMIT = getConfig().getInt("misc.sick_limit") * 60000;
+        HorseCheckerThread.DEFECATE_INTERVAL = getConfig().getInt("misc.defecate_interval") * 60000;
+        HorseCheckerThread.ILL_WAIT = getConfig().getLong("misc.ill_wait");
+        HorseCheckerThread.SICK_PROBABILITY = getConfig().getInt("misc.sick_probability");
+        HorseCheckerThread.VACCINATED_PROBABILITY = getConfig().getInt("misc.vaccinated_sick_probability");
+        OP_REQ = getConfig().getBoolean("misc.op_req");
+        BLOCK_HUNGER = getConfig().getBoolean("misc.block_hunger");
     }
 
     private void saveProperties() {
-        final File f = new File(PROPERTIES_FILE);
-        if (!f.exists()) {
-            try {
-                f.createNewFile();
-            } catch (IOException ex) {
-                getLogger().log(Level.SEVERE, null, ex);
-            }
-        }
-        try (OutputStream os = new FileOutputStream(PROPERTIES_FILE)) {
-            properties.setProperty("EAT_LIMIT", Long.toString(MyHorse.EAT_LIMIT / 60000));
-            properties.setProperty("DRINK_LIMIT", Long.toString(MyHorse.DRINK_LIMIT / 60000));
-            properties.setProperty("SICK_LIMIT", Long.toString(HorseCheckerThread.SICK_LIMIT / 60000));
-            properties.setProperty("DEFECATE_INTERVAL", Long.toString(HorseCheckerThread.DEFECATE_INTERVAL / 60000));
-            properties.setProperty("ILL_WAIT", Long.toString(HorseCheckerThread.ILL_WAIT / 60000));
-            properties.setProperty("BUCK_PROBABILITY", Double.toString(HorseCheckerThread.BUCK_PROBABILITY));
-            properties.setProperty("BREED_PROBABILITY", Double.toString(HorseCheckerThread.BREED_PROBABILITY));
-            properties.setProperty("SICK_PROBABILITY", Double.toString(HorseCheckerThread.SICK_PROBABILITY));
-            properties.setProperty("VACCINATED_SICK_PROBABILITY", Double.toString(HorseCheckerThread.VACCINATED_PROBABILITY));
-            properties.setProperty("OP_REQ", (OP_REQ ? "TRUE" : "FALSE"));
-            properties.setProperty("BLOCK_HUNGER", Boolean.toString(BLOCK_HUNGER));
-            properties.store(os, null);
-        } catch (FileNotFoundException ex) {
-            getLogger().log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            getLogger().log(Level.SEVERE, null, ex);
-        }
+        getConfig().set("misc.eat_limit", Long.toString(MyHorse.EAT_LIMIT / 60000));
+        getConfig().set("misc.drink_limit", Long.toString(MyHorse.DRINK_LIMIT / 60000));
+        getConfig().set("misc.sick_limit", Long.toString(HorseCheckerThread.SICK_LIMIT / 60000));
+        getConfig().set("misc.defecate_interval", Long.toString(HorseCheckerThread.DEFECATE_INTERVAL / 60000));
+        getConfig().set("misc.ill_wait", Long.toString(HorseCheckerThread.ILL_WAIT / 60000));
+        getConfig().set("misc.sick_probability", Double.toString(HorseCheckerThread.SICK_PROBABILITY));
+        getConfig().set("misc.vaccinated_sick_probability", Double.toString(HorseCheckerThread.VACCINATED_PROBABILITY));
+        getConfig().set("misc.op_req", (OP_REQ ? "TRUE" : "FALSE"));
+        getConfig().set("misc.block_hunger", Boolean.toString(BLOCK_HUNGER));
     }
 }

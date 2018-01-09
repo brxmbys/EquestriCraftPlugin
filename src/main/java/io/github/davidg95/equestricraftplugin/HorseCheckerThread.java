@@ -38,16 +38,6 @@ public class HorseCheckerThread extends Thread {
     public static long ILL_WAIT = 259200000L; //Three days.
 
     /**
-     * The probability of the horse bucking.
-     */
-    public static double BUCK_PROBABILITY = 0.05;
-
-    /**
-     * The probability of a horse breeding.
-     */
-    public static double BREED_PROBABILITY = 0.2;
-
-    /**
      * The probability of an un vaccinated horse getting sick.
      */
     public static double SICK_PROBABILITY = 0.002;
@@ -288,7 +278,7 @@ public class HorseCheckerThread extends Thread {
                     Logger.getLogger(HorseCheckerThread.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 loop++;
-                if(loop == 11){
+                if (loop == 11) {
                     loop = 1;
                 }
             }

@@ -18,7 +18,7 @@ import org.bukkit.entity.Player;
 public class AuctionHandler implements CommandExecutor {
 
     private Auction auction;
-    
+
     private final EquestriCraftPlugin plugin;
 
     public AuctionHandler(EquestriCraftPlugin plugin) {

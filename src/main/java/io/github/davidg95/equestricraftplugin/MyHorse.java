@@ -42,7 +42,6 @@ public class MyHorse implements Serializable {
     private int trainingLevel;
 
 //    private transient Horse horse;
-
     /**
      * The length of time a vaccination will last.
      */
@@ -182,7 +181,7 @@ public class MyHorse implements Serializable {
             personality = new Personality[]{Personality.randomType(), Personality.randomType()};
         }
     }
-    
+
     /**
      * Generate a random month between the age of 25 and 35.
      *
@@ -192,7 +191,7 @@ public class MyHorse implements Serializable {
         double r = Math.random();
         return (int) (r * 120) + 300;
     }
-    
+
     /**
      * Get the UUID of the horse.
      *
@@ -201,7 +200,7 @@ public class MyHorse implements Serializable {
     public UUID getUuid() {
         return uuid;
     }
-    
+
 //    /**
 //     * Check if a horse is near a mate.
 //     *
@@ -227,7 +226,6 @@ public class MyHorse implements Serializable {
 //        }
 //        return null;
 //    }
-
     /**
      * Method to generate a random gender. Either MyHorse.STALLION or
      * MyHorse.MARE.
@@ -298,15 +296,14 @@ public class MyHorse implements Serializable {
     public void setLastBreed() {
         this.lastBreed = getCurrentTime();
     }
-    
-    public void allowBreed(){
+
+    public void allowBreed() {
         this.lastBreed = 0;
     }
 
 //    public Horse getHorse() {
 //        return horse;
 //    }
-
     /**
      * Returns the duration in ms since that last vaccination.
      *
@@ -493,7 +490,6 @@ public class MyHorse implements Serializable {
 //            player.setHealth(player.getHealth() - (player.getHealthScale() / 10));
 //        }
 //    }
-
     /**
      * Get the time since the horse last bred in ms.
      *
@@ -521,7 +517,6 @@ public class MyHorse implements Serializable {
 //        this.horse = h;
 //        this.uuid = h.getUniqueId();
 //    }
-
     /**
      * Get the HorseBreed.
      *
@@ -708,6 +703,38 @@ public class MyHorse implements Serializable {
 
     public void setTrainingLevel(int trainingLevel) {
         this.trainingLevel = trainingLevel;
+    }
+
+    /**
+     * Get a horses rank.
+     *
+     * @param h the horse to check.
+     * @return 1 = Novice, 2 = Intermediate, 3 = Advanced, 4 = Master, 5 =
+     * Instructor, 6 = Champion, 7 = Elite, 8 = Olympian.
+     */
+    public static int getRank(Horse h) {
+        final double jump = h.getJumpStrength();
+        final double speed = HorseNMS.getSpeed(h) * 10;
+
+        if (jump >= 1.2 && speed >= 8) {
+            return 8;
+        } else if (jump >= 1.1 && speed >= 7.9) {
+            return 7;
+        } else if (jump >= 1.09 && speed >= 7) {
+            return 6;
+        } else if (jump >= 1.05 && speed >= 6.5) {
+            return 5;
+        } else if (jump >= 0.91 && speed >= 5.9) {
+            return 4;
+        } else if (jump >= 0.81 && speed >= 5) {
+            return 3;
+        } else if (jump >= 0.69 && speed >= 4.5) {
+            return 2;
+        } else if (jump >= 0.68 && speed >= 4) {
+            return 1;
+        } else {
+            return 0;
+        }
     }
 
     public String getInsertValues() {

@@ -876,7 +876,7 @@ public abstract class Database {
             }
         }
     }
-    
+
     public int getHorseLevel(UUID uuid) {
         Connection conn = null;
         Statement ps = null;

@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.github.davidg95</groupId>
     <artifactId>EquestriCraftPlugin</artifactId>
-    <version>1.0-BETA</version>
+    <version>1.0</version>
     <packaging>jar</packaging>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -65,5 +65,5 @@
         </dependency>
     </dependencies>
     <name>EquestriCraftPlugin</name>
-    <description>Plugin developed from equestricraft.serv.nu.</description>
+    <description>Plugin developed for equestricraft.serv.nu.</description>
 </project>
