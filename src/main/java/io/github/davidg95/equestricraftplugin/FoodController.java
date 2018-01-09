@@ -22,6 +22,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 /**
+ * Class for handling the food side of the plugin.
  *
  * @author David
  */
@@ -126,6 +127,11 @@ public class FoodController implements CommandExecutor, Listener {
         return lores;
     }
 
+    /**
+     * Handles when a horse is fed wheat.
+     *
+     * @param event the event.
+     */
     @EventHandler
     public void onWheatFeed(PlayerInteractEntityEvent event) {
         final Player player = event.getPlayer();
@@ -158,6 +164,11 @@ public class FoodController implements CommandExecutor, Listener {
         player.sendMessage(ChatColor.GREEN + "Your horse has been fed");
     }
 
+    /**
+     * Handles when a horse is fed seeds.
+     *
+     * @param event the event.
+     */
     @EventHandler
     public void onSeedFeed(PlayerInteractEntityEvent event) {
         final Player player = event.getPlayer();
@@ -190,6 +201,11 @@ public class FoodController implements CommandExecutor, Listener {
         player.sendMessage(ChatColor.GREEN + "Your horse has been fed");
     }
 
+    /**
+     * Handles when a horse is fed water.
+     *
+     * @param event the event.
+     */
     @EventHandler
     public void onWaterFeed(PlayerInteractEntityEvent event) {
         final Player player = event.getPlayer();
