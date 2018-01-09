@@ -161,8 +161,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         try {
             getConfig().load(getDataFolder() + File.separator + "config.yml");
         } catch (IOException | InvalidConfigurationException ex) {
-            initRaceConfig();
-            getLogger().log(Level.SEVERE, "Error loading config.yml", ex);
+            initConfig();
+            getLogger().log(Level.SEVERE, "Error loading config.yml. It has been regenerated.", ex);
         }
         ONE_USE_COST = getConfig().getInt("tools.one_use_vaccination_price");
         GAPPLE_PRICE = getConfig().getInt("tools.gapple_price");
@@ -203,7 +203,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         return economy != null;
     }
 
-    private void initRaceConfig() {
+    private void initConfig() {
         getConfig().set("finish.z1", 11135);
         getConfig().set("finish.z2", 11130);
         getConfig().set("finish.x1", -2124);
@@ -215,6 +215,16 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         getConfig().set("check.x1", -2124);
         getConfig().set("check.x2", -2093);
         getConfig().set("check.yl", 20);
+
+        getConfig().set("misc.eat_limit", Long.toString(MyHorse.EAT_LIMIT / 60000));
+        getConfig().set("misc.drink_limit", Long.toString(MyHorse.DRINK_LIMIT / 60000));
+        getConfig().set("misc.sick_limit", Long.toString(HorseCheckerThread.SICK_LIMIT / 60000));
+        getConfig().set("misc.defecate_interval", Long.toString(HorseCheckerThread.DEFECATE_INTERVAL / 60000));
+        getConfig().set("misc.ill_wait", Long.toString(HorseCheckerThread.ILL_WAIT / 60000));
+        getConfig().set("misc.sick_probability", Double.toString(HorseCheckerThread.SICK_PROBABILITY));
+        getConfig().set("misc.vaccinated_sick_probability", Double.toString(HorseCheckerThread.VACCINATED_PROBABILITY));
+        getConfig().set("misc.op_req", (OP_REQ ? "TRUE" : "FALSE"));
+        getConfig().set("misc.block_hunger", Boolean.toString(BLOCK_HUNGER));
 
         getConfig().set("tools.one_use_vaccination_price", 100);
         try {
@@ -1688,17 +1698,5 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         HorseCheckerThread.VACCINATED_PROBABILITY = getConfig().getInt("misc.vaccinated_sick_probability");
         OP_REQ = getConfig().getBoolean("misc.op_req");
         BLOCK_HUNGER = getConfig().getBoolean("misc.block_hunger");
-    }
-
-    private void saveProperties() {
-        getConfig().set("misc.eat_limit", Long.toString(MyHorse.EAT_LIMIT / 60000));
-        getConfig().set("misc.drink_limit", Long.toString(MyHorse.DRINK_LIMIT / 60000));
-        getConfig().set("misc.sick_limit", Long.toString(HorseCheckerThread.SICK_LIMIT / 60000));
-        getConfig().set("misc.defecate_interval", Long.toString(HorseCheckerThread.DEFECATE_INTERVAL / 60000));
-        getConfig().set("misc.ill_wait", Long.toString(HorseCheckerThread.ILL_WAIT / 60000));
-        getConfig().set("misc.sick_probability", Double.toString(HorseCheckerThread.SICK_PROBABILITY));
-        getConfig().set("misc.vaccinated_sick_probability", Double.toString(HorseCheckerThread.VACCINATED_PROBABILITY));
-        getConfig().set("misc.op_req", (OP_REQ ? "TRUE" : "FALSE"));
-        getConfig().set("misc.block_hunger", Boolean.toString(BLOCK_HUNGER));
     }
 }
