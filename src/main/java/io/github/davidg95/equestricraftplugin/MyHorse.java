@@ -716,21 +716,21 @@ public class MyHorse implements Serializable {
         final double jump = h.getJumpStrength();
         final double speed = HorseNMS.getSpeed(h) * 10;
 
-        if (jump >= 1.2 && speed >= 8) {
+        if (jump >= 1.2 || speed >= 8) {
             return 8;
-        } else if (jump >= 1.1 && speed >= 7.9) {
+        } else if (jump >= 1.1 || speed >= 7.9) {
             return 7;
-        } else if (jump >= 1.09 && speed >= 7) {
+        } else if (jump >= 1.09 || speed >= 7) {
             return 6;
-        } else if (jump >= 1.05 && speed >= 6.5) {
+        } else if (jump >= 1.05 || speed >= 6.5) {
             return 5;
-        } else if (jump >= 0.91 && speed >= 5.9) {
+        } else if (jump >= 0.91 || speed >= 5.9) {
             return 4;
-        } else if (jump >= 0.81 && speed >= 5) {
+        } else if (jump >= 0.81 || speed >= 5) {
             return 3;
-        } else if (jump >= 0.69 && speed >= 4.5) {
+        } else if (jump >= 0.69 || speed >= 4.5) {
             return 2;
-        } else if (jump >= 0.68 && speed >= 4) {
+        } else if (jump >= 0.68 || speed >= 4) {
             return 1;
         } else {
             return 0;
