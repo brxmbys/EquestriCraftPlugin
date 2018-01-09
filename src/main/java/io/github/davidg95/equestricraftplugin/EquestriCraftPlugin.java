@@ -786,6 +786,11 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     if (sender instanceof Player) {
                         getLogger().log(Level.INFO, message);
                     }
+                } else if (arg.equalsIgnoreCase("rl")) {
+                    if (sender.isOp()) {
+                        loadProperties();
+                        sender.sendMessage("config.yml reloaded");
+                    }
                 }
             }
             return true;
