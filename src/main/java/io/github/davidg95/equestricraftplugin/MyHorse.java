@@ -18,17 +18,11 @@ public class MyHorse implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private long vaccinationTime;
-    private boolean vaccination;
     private int gender;
     private UUID uuid;
     private long lastEat;
-    private boolean hunger;
-    private long hungerSince;
     private long lastDrink;
-    private boolean thirst;
-    private long thirstSince;
     private long illSince;
-    private boolean ill;
     private long wellSince;
     private long lastBreed;
     private boolean defecateSinceEat;
@@ -41,7 +35,6 @@ public class MyHorse implements Serializable {
     private boolean shod;
     private int trainingLevel;
 
-//    private transient Horse horse;
     /**
      * The length of time a vaccination will last.
      */
@@ -70,15 +63,9 @@ public class MyHorse implements Serializable {
 
     public MyHorse(Horse h) {
         this.gender = MyHorse.generateRandomGender();
-        this.vaccination = false;
         this.vaccinationTime = 0;
         this.lastEat = getCurrentTime();
-        this.hunger = false;
         this.lastDrink = getCurrentTime();
-        this.hunger = false;
-        this.ill = false;
-        this.thirst = false;
-        this.thirstSince = getCurrentTime();
         this.illSince = 0;
         this.wellSince = getCurrentTime();
         this.lastBreed = getCurrentTime();
@@ -101,38 +88,12 @@ public class MyHorse implements Serializable {
             }
         }
         this.personality = new Personality[]{p1, p2};
-//        this.horse = h;
         this.dieat = randomDieAt();
         this.illness = null;
         h.setBaby();
         h.setAgeLock(true);
         shod = false;
         trainingLevel = 1;
-    }
-
-    public MyHorse(long vaccinationTime, boolean vaccination, int gender, UUID uuid, long lastEat, boolean hunger, long hungerSince, long lastDrink, boolean thirst, long thirstSince, long illSince, boolean ill, long wellSince, long lastBreed, boolean defecateSinceEat, HorseBreed[] breedArr, long birthTime, Personality[] personality, int dieat, Illness illness, boolean shod, int trainingLevel) {
-        this.vaccinationTime = vaccinationTime;
-        this.vaccination = vaccination;
-        this.gender = gender;
-        this.uuid = uuid;
-        this.lastEat = lastEat;
-        this.hunger = hunger;
-        this.hungerSince = hungerSince;
-        this.lastDrink = lastDrink;
-        this.thirst = thirst;
-        this.thirstSince = thirstSince;
-        this.illSince = illSince;
-        this.ill = ill;
-        this.wellSince = wellSince;
-        this.lastBreed = lastBreed;
-        this.defecateSinceEat = defecateSinceEat;
-        this.breedArr = breedArr;
-        this.birthTime = birthTime;
-        this.personality = personality;
-        this.dieat = dieat;
-        this.illness = illness;
-        this.shod = shod;
-        this.trainingLevel = trainingLevel;
     }
 
     public MyHorse(long vaccinationTime, int gender, UUID uuid, long lastEat, long lastDrink, long illSince, long wellSince, long lastBreed, boolean defecate, HorseBreed breed[], long birth, Personality person[], long dieat, Illness illness, boolean shoed, int trainingLevel) {
@@ -201,31 +162,6 @@ public class MyHorse implements Serializable {
         return uuid;
     }
 
-//    /**
-//     * Check if a horse is near a mate.
-//     *
-//     * @param horse the horse.
-//     * @return true if they are near a mate, false if they are not.
-//     */
-//    public static HorseBreed nearMate(MyHorse horse) {
-//        if (horse.getGender() != MARE) { //If it is not a mare, return false.
-//            return null;
-//        }
-//        final List<Entity> nearby = horse.getHorse().getNearbyEntities(1.5, 1.5, 1.5); //Get entites withing a 1.5 block radius.
-//        for (Entity e : nearby) {
-//            if (e.getType() == EntityType.HORSE) { //Check if the entity is a horse.
-//                final Horse h = (Horse) e;
-//                final MyHorse mh = EquestriCraftPlugin.database.getHorse(h.getUniqueId());
-//                if (horse.getGender() != STALLION) { //If it is a gelding, return false.
-//                    return null;
-//                }
-//                if (horse.getGender() != mh.getGender()) { //If it is the opposite gender, return true.
-//                    return mh.getBreed()[0];
-//                }
-//            }
-//        }
-//        return null;
-//    }
     /**
      * Method to generate a random gender. Either MyHorse.STALLION or
      * MyHorse.MARE.
@@ -250,8 +186,7 @@ public class MyHorse implements Serializable {
     }
 
     public boolean isVaccinated() {
-        vaccination = this.getDurationSinceLastVaccinated() < VACCINATION_DURATION;
-        return vaccination;
+        return this.getDurationSinceLastVaccinated() < VACCINATION_DURATION;
     }
 
     public long getLastEat() {
@@ -301,9 +236,6 @@ public class MyHorse implements Serializable {
         this.lastBreed = 0;
     }
 
-//    public Horse getHorse() {
-//        return horse;
-//    }
     /**
      * Returns the duration in ms since that last vaccination.
      *
@@ -326,7 +258,6 @@ public class MyHorse implements Serializable {
      */
     public void drink() {
         this.lastDrink = getCurrentTime();
-        this.thirst = false;
     }
 
     /**
@@ -335,8 +266,7 @@ public class MyHorse implements Serializable {
      * @return the thirst state as a boolean.
      */
     public boolean isThirsty() {
-        this.thirst = this.getDurationSinceLastDrink() > DRINK_LIMIT; //Check if the horse is thirsty.
-        return thirst;
+        return this.getDurationSinceLastDrink() > DRINK_LIMIT; //Check if the horse is thirsty.
     }
 
     /**
@@ -354,7 +284,6 @@ public class MyHorse implements Serializable {
     public void eat() {
         this.lastEat = getCurrentTime();
         this.defecateSinceEat = false;
-        this.hunger = true;
     }
 
     /**
@@ -392,8 +321,7 @@ public class MyHorse implements Serializable {
      * @return the state as a boolean.
      */
     public boolean isHungry() {
-        this.hunger = this.getDurationSinceLastEat() > EAT_LIMIT; //Check if the horse is thirsty.
-        return hunger;
+        return this.getDurationSinceLastEat() > EAT_LIMIT; //Check if the horse is thirsty.
     }
 
     /**
@@ -439,7 +367,6 @@ public class MyHorse implements Serializable {
      */
     public void setSick(boolean sick) {
         if (sick) {
-//            setSideEffects(true);
             while (true) {
                 this.illness = Illness.randomIllness();
                 if (gender == MyHorse.MARE) {
@@ -453,9 +380,7 @@ public class MyHorse implements Serializable {
             this.illSince = getCurrentTime();
         } else {
             this.wellSince = getCurrentTime();
-//            setSideEffects(false);
         }
-        this.ill = sick;
     }
 
     /**
@@ -476,20 +401,6 @@ public class MyHorse implements Serializable {
         return getCurrentTime() - this.wellSince;
     }
 
-//    /**
-//     * If there is a player on the horse, they will be removed and lose a
-//     * fraction of their health.
-//     */
-//    public void buck() {
-//        if (horse == null) {
-//            return;
-//        }
-//        final Player player = (Player) horse.getPassenger();
-//        if (player != null) {
-//            horse.eject();
-//            player.setHealth(player.getHealth() - (player.getHealthScale() / 10));
-//        }
-//    }
     /**
      * Get the time since the horse last bred in ms.
      *
@@ -508,15 +419,6 @@ public class MyHorse implements Serializable {
         this.gender = gender;
     }
 
-//    /**
-//     * Set the horse object.
-//     *
-//     * @param h the horse object.
-//     */
-//    public void setHorse(Horse h) {
-//        this.horse = h;
-//        this.uuid = h.getUniqueId();
-//    }
     /**
      * Get the HorseBreed.
      *
