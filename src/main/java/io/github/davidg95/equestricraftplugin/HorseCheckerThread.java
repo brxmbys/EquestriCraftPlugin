@@ -55,9 +55,9 @@ public class HorseCheckerThread extends Thread {
 
     private final EquestriCraftPlugin plugin;
 
-    public HorseCheckerThread(EquestriCraftPlugin plugin) {
+    public HorseCheckerThread(EquestriCraftPlugin plugin, Database database) {
         super("Horse_Checker_Thread");
-        database = EquestriCraftPlugin.database;
+        this.database = database;
         run = true;
         this.plugin = plugin;
     }
@@ -186,7 +186,7 @@ public class HorseCheckerThread extends Thread {
             }
             try {
                 Thread.sleep(MAIN_THREAD_INTERVAL); //Wait
-            } catch (Exception ex) {
+            } catch (InterruptedException ex) {
                 Logger.getLogger(HorseCheckerThread.class.getName()).log(Level.SEVERE, null, ex);
             }
         }

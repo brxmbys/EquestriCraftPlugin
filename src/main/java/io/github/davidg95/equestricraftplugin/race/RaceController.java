@@ -82,15 +82,20 @@ public class RaceController implements CommandExecutor {
                 return true;
             }
             int result = race.addPlayer(player);
-            if (result == 2) {
-                player.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "Race already started");
-            } else if (result == 3) {
-                player.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "Max players already reached.");
-            } else if (result == 4) {
-                player.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "You are already in the race!.");
-            } else {
-                player.sendMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "You are in the race!");
-                Bukkit.broadcastMessage(player.getDisplayName() + " is in the race!");
+            switch (result) {
+                case 2:
+                    player.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "Race already started");
+                    break;
+                case 3:
+                    player.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "Max players already reached.");
+                    break;
+                case 4:
+                    player.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "You are already in the race!.");
+                    break;
+                default:
+                    player.sendMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "You are in the race!");
+                    Bukkit.broadcastMessage(player.getDisplayName() + " is in the race!");
+                    break;
             }
             return true;
         } else if (args[0].equalsIgnoreCase("countdown")) {

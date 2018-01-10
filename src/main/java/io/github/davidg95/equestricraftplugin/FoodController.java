@@ -52,14 +52,17 @@ public class FoodController implements CommandExecutor, Listener {
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         if (args.length == 0) {
             sender.sendMessage(ChatColor.GREEN + "Options-\n"
-                    + ChatColor.RESET + "/food buy-wheat - " + ChatColor.AQUA + "$" + wheat_cost + "\n"
                     + ChatColor.RESET + "/food buy-seeds - " + ChatColor.AQUA + "$" + seeds_cost + "\n"
+                    + ChatColor.RESET + "/food buy-wheat - " + ChatColor.AQUA + "$" + wheat_cost + "\n"
                     + ChatColor.RESET + "/food buy-water - " + ChatColor.AQUA + "$" + water_cost + "\n");
             return true;
         }
-        Player player = null;
+        Player player;
         if (sender instanceof Player) {
             player = (Player) sender;
+        } else {
+            sender.sendMessage("Only a player can use this command");
+            return false;
         }
         if (args[0].equalsIgnoreCase("buy-seeds")) {
             int quantity = 1;
@@ -114,8 +117,8 @@ public class FoodController implements CommandExecutor, Listener {
             plugin.getLogger().log(Level.INFO, player.getDisplayName() + " has bought some drinking water for $" + water_cost);
         } else {
             sender.sendMessage("Incorrect command\n"
-                    + ChatColor.RESET + "/food buy-wheat - " + ChatColor.AQUA + "$" + wheat_cost + "\n"
                     + ChatColor.RESET + "/food buy-seeds - " + ChatColor.AQUA + "$" + seeds_cost + "\n"
+                    + ChatColor.RESET + "/food buy-wheat - " + ChatColor.AQUA + "$" + wheat_cost + "\n"
                     + ChatColor.RESET + "/food buy-water - " + ChatColor.AQUA + "$" + water_cost + "\n");
         }
         return true;
@@ -151,7 +154,7 @@ public class FoodController implements CommandExecutor, Listener {
         event.setCancelled(true);
         final Horse horse = (Horse) event.getRightClicked();
         MyHorse mh = database.getHorse(horse.getUniqueId());
-        if (horse == null) {
+        if (mh == null) {
             return;
         }
         mh.eat();
@@ -188,7 +191,7 @@ public class FoodController implements CommandExecutor, Listener {
         event.setCancelled(true);
         final Horse horse = (Horse) event.getRightClicked();
         MyHorse mh = database.getHorse(horse.getUniqueId());
-        if (horse == null) {
+        if (mh == null) {
             return;
         }
         mh.eat();
@@ -225,7 +228,7 @@ public class FoodController implements CommandExecutor, Listener {
         event.setCancelled(true);
         final Horse horse = (Horse) event.getRightClicked();
         MyHorse mh = database.getHorse(horse.getUniqueId());
-        if (horse == null) {
+        if (mh == null) {
             return;
         }
         mh.drink();

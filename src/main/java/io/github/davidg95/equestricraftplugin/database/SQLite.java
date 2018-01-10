@@ -92,7 +92,7 @@ public class SQLite extends Database {
             s.executeUpdate(createBreedLogTable);
             s.close();
         } catch (SQLException ex) {
-            ex.printStackTrace();
+            plugin.getLogger().log(Level.SEVERE, "Error opening database", ex);
         }
         initialize();
     }

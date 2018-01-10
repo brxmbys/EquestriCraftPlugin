@@ -18,7 +18,6 @@ import java.util.LinkedList;
 import java.util.UUID;
 import java.util.concurrent.locks.StampedLock;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
@@ -395,10 +394,8 @@ public abstract class Database {
     }
 
     public void addHorse(MyHorse h) {
-        Connection conn = null;
+        Connection conn = getSQLConnection();
         PreparedStatement ps = null;
-
-        conn = getSQLConnection();
 
         final long stamp = lock.writeLock();
         try {
@@ -440,10 +437,8 @@ public abstract class Database {
     }
 
     public void changeGender(UUID uuid, int gender) {
-        Connection conn = null;
+        Connection conn = getSQLConnection();
         PreparedStatement ps = null;
-
-        conn = getSQLConnection();
 
         final long stamp = lock.writeLock();
         try {
@@ -469,10 +464,8 @@ public abstract class Database {
     }
 
     public void changeBreed(UUID uuid, HorseBreed b1, HorseBreed b2) {
-        Connection conn = null;
+        Connection conn = getSQLConnection();
         PreparedStatement ps = null;
-
-        conn = getSQLConnection();
 
         final long stamp = lock.writeLock();
         try {
@@ -499,10 +492,8 @@ public abstract class Database {
     }
 
     public void changePersonality(UUID uuid, Personality p1, Personality p2) {
-        Connection conn = null;
+        Connection conn = getSQLConnection();
         PreparedStatement ps = null;
-
-        conn = getSQLConnection();
 
         final long stamp = lock.writeLock();
         try {
@@ -616,7 +607,7 @@ public abstract class Database {
                 set.getInt(1);
             }
         } catch (SQLException ex) {
-            Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+            plugin.getLogger().log(Level.SEVERE, "Error getting Gender", ex);
         } finally {
             lock.unlockWrite(stamp);
             try {
@@ -645,7 +636,7 @@ public abstract class Database {
             s = conn.createStatement();
             s.executeUpdate("UPDATE " + table + " SET training_level = " + level + " WHERE uuid = '" + uuid + "'");
         } catch (SQLException ex) {
-            Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+            plugin.getLogger().log(Level.SEVERE, "Error setting level", ex);
         } finally {
             lock.unlockWrite(stamp);
             try {
@@ -662,10 +653,8 @@ public abstract class Database {
     }
 
     public void saveHorse(MyHorse h) {
-        Connection conn = null;
+        Connection conn = getSQLConnection();
         PreparedStatement ps = null;
-
-        conn = getSQLConnection();
 
         final long stamp = lock.writeLock();
         try {
@@ -707,15 +696,14 @@ public abstract class Database {
     }
 
     public LinkedList<MyHorse> getHorses(int g) {
-        Connection conn = null;
+        Connection conn = getSQLConnection();
         Statement ps = null;
-        ResultSet rs = null;
+        ResultSet rs;
 
         LinkedList<MyHorse> horses = new LinkedList<>();
 
         final long stamp = lock.writeLock();
         try {
-            conn = getSQLConnection();
             ps = conn.createStatement();
             if (g == -1) {
                 rs = ps.executeQuery("SELECT * FROM " + table);
@@ -772,16 +760,15 @@ public abstract class Database {
     }
 
     public MyHorse getHorse(UUID uuid) {
-        Connection conn = null;
+        Connection conn = getSQLConnection();
         Statement ps = null;
-        ResultSet rs = null;
+        ResultSet rs;
 
         MyHorse horse;
 
         final long stamp = lock.writeLock();
 
         try {
-            conn = getSQLConnection();
             ps = conn.createStatement();
 
             rs = ps.executeQuery("SELECT * FROM " + table + " WHERE UUID = '" + uuid.toString() + "'");
@@ -838,9 +825,9 @@ public abstract class Database {
     }
 
     public boolean hadBredRecently(Player p) {
-        Connection conn = null;
+        Connection conn = getSQLConnection();
         PreparedStatement ps = null;
-        ResultSet rs = null;
+        ResultSet rs;
 
         try {
             conn = getSQLConnection();
@@ -849,10 +836,7 @@ public abstract class Database {
             rs = ps.executeQuery();
             while (rs.next()) {
                 long breedTime = rs.getLong("time");
-                if (new Date().getTime() < breedTime) {
-                    return true;
-                }
-                return false;
+                return new Date().getTime() < breedTime;
             }
         } catch (SQLException ex) {
             plugin.getLogger().log(Level.SEVERE, "DB Error", ex);
@@ -896,12 +880,11 @@ public abstract class Database {
     }
 
     public int getTotalBreeds(OfflinePlayer p) {
-        Connection conn = null;
+        Connection conn = getSQLConnection();
         PreparedStatement ps = null;
-        ResultSet rs = null;
+        ResultSet rs;
 
         try {
-            conn = getSQLConnection();
             ps = conn.prepareStatement("SELECT COUNT(*) FROM " + breedTable + " WHERE UUID = '" + p.getUniqueId().toString() + "'");
 
             rs = ps.executeQuery();
@@ -926,12 +909,11 @@ public abstract class Database {
     }
 
     public long getLastBreed(OfflinePlayer p) {
-        Connection conn = null;
+        Connection conn = getSQLConnection();
         PreparedStatement ps = null;
-        ResultSet rs = null;
+        ResultSet rs;
 
         try {
-            conn = getSQLConnection();
             ps = conn.prepareStatement("SELECT * FROM " + breedTable + " WHERE UUID = '" + p.getUniqueId().toString() + "' ORDER BY time DESC");
 
             rs = ps.executeQuery();
@@ -1012,16 +994,13 @@ public abstract class Database {
     }
 
     public int getHorseLevel(UUID uuid) {
-        Connection conn = null;
+        Connection conn = getSQLConnection();
         Statement ps = null;
-        ResultSet rs = null;
-
-        MyHorse horse;
+        ResultSet rs;
 
         final long stamp = lock.writeLock();
 
         try {
-            conn = getSQLConnection();
             ps = conn.createStatement();
 
             rs = ps.executeQuery("SELECT training_level FROM " + table + " WHERE UUID = '" + uuid.toString() + "'");
@@ -1051,7 +1030,7 @@ public abstract class Database {
         return -1;
     }
 
-    public void close(PreparedStatement ps, ResultSet rs) {
+    private void close(PreparedStatement ps, ResultSet rs) {
         try {
             if (ps != null) {
                 ps.close();

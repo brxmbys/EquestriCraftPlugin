@@ -86,9 +86,7 @@ public class HorseNMS {
             Field field = cl.getDeclaredField(field_name);
             field.setAccessible(true);
             return field;
-        } catch (SecurityException e) {
-            e.printStackTrace();
-        } catch (NoSuchFieldException e) {
+        } catch (SecurityException | NoSuchFieldException e) {
             e.printStackTrace();
         }
         return null;

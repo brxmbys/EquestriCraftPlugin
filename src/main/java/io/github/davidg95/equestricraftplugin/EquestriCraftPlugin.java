@@ -68,9 +68,9 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
 
     public static Economy economy;
 
-    private static final Inventory navigator = Bukkit.createInventory(null, 45, "Navigator");
+    private static final Inventory NAVIGATOR = Bukkit.createInventory(null, 45, "Navigator");
 
-    public static Database database;
+    public Database database;
 
     public RaceController raceController;
     public AuctionHandler auctionHandler;
@@ -132,15 +132,15 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         m9.setLore(createLore("View the server rules"));
         rules.setItemMeta(m9);
 
-        navigator.setItem(22, spawn);
-        navigator.setItem(4, leaseBarn);
-        navigator.setItem(40, raceTrack);
-        navigator.setItem(24, rescue);
-        navigator.setItem(20, town);
-        navigator.setItem(30, trails);
-        navigator.setItem(31, showgrounds);
-        navigator.setItem(32, dentist);
-        navigator.setItem(44, rules);
+        NAVIGATOR.setItem(22, spawn);
+        NAVIGATOR.setItem(4, leaseBarn);
+        NAVIGATOR.setItem(40, raceTrack);
+        NAVIGATOR.setItem(24, rescue);
+        NAVIGATOR.setItem(20, town);
+        NAVIGATOR.setItem(30, trails);
+        NAVIGATOR.setItem(31, showgrounds);
+        NAVIGATOR.setItem(32, dentist);
+        NAVIGATOR.setItem(44, rules);
     }
 
     private static List<String> createLore(String lore) {
@@ -167,7 +167,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         ONE_USE_COST = getConfig().getInt("tools.one_use_vaccination_price");
         GAPPLE_PRICE = getConfig().getInt("tools.gapple_price");
         loadProperties();
-        checkerThread = new HorseCheckerThread(this);
+        checkerThread = new HorseCheckerThread(this, database);
         checkerThread.start();
         buckThread = checkerThread.new BuckThread();
         buckThread.start();
@@ -1358,7 +1358,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             return;
         }
         evt.setCancelled(true);
-        evt.getPlayer().openInventory(navigator);
+        evt.getPlayer().openInventory(NAVIGATOR);
     }
 
     @EventHandler
@@ -1388,7 +1388,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                             getLogger().log(Level.INFO, "Creating horse in database");
                             MyHorse mh = new MyHorse(horse);
                             database.addHorse(mh);
-                        };
+                        }
                         player.setMetadata("horse", new FixedMetadataValue(this, horse.getUniqueId()));
                         player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "You are now editing this horse");
                     }
@@ -1583,66 +1583,79 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         Player player = (Player) event.getWhoClicked();
         ItemStack clicked = event.getCurrentItem();
         Inventory inventory = event.getInventory();
-        if (!inventory.getName().equals(navigator.getName())) {
+        if (!inventory.getName().equals(NAVIGATOR.getName())) {
             return;
         }
         event.setCancelled(true);
         player.closeInventory();
         World w = Bukkit.getWorld("Equestricraft");
         Location l;
-        if (clicked.getType() == Material.MONSTER_EGG) {
-            //Spawn
-            l = new Location(w, 3442, 7, 215, 90, 0);
-            player.sendMessage("Teleporting to Spawn...");
-        } else if (clicked.getType() == Material.NAME_TAG) {
-            //Lease Barn
-            l = new Location(w, 621, 4.8, 2078);
-            player.sendMessage("Teleporting to the Lease Barn...");
-        } else if (clicked.getType() == Material.SADDLE) {
-            //Race Track
-            l = new Location(w, -2268, 4.8, 10966);
-            player.sendMessage("Teleporting to the Race Track...");
-        } else if (clicked.getType() == Material.GOLD_BARDING) {
-            //Rescue
-            l = new Location(w, -856, 4.8, 473, 90, 0);
-            player.sendMessage("Teleporting to the Rescue...");
-        } else if (clicked.getType() == Material.WOOD) {
-            //Town
-            l = new Location(w, 161, 4.8, 1460, 180, 0);
-            player.sendMessage("Teleporting to the Town...");
-        } else if (clicked.getType() == Material.MAP) {
-            //Trails
-            l = new Location(w, -3199, 4.8, 4800);
-            player.sendMessage("Teleporting to the Trails...");
-        } else if (clicked.getType() == Material.FISHING_ROD) {
-            //Showgrounds
-            l = new Location(w, 635, 4.8, 1498);
-            player.sendMessage("Teleporting to the Showgrounds...");
-        } else if (clicked.getType() == Material.SHEARS) {
-            //Dentist
-            l = new Location(w, -93, 4.8, 1166);
-            player.sendMessage("Teleporting to the Dentist...");
-        } else if (clicked.getType() == Material.BOOK) {
-            ItemStack book = new ItemStack(Material.WRITTEN_BOOK, 1);
-            BookMeta bm = (BookMeta) book.getItemMeta();
-            String page1 = "EQUESTRICRAFT\n\n"
-                    + "[1] Do not log off on horses.\n"
-                    + "[2] Do not use strong language.\n"
-                    + "[3] Respect others.\n"
-                    + "[4] Griefing is not tolerated\n"
-                    + "[5] Breeding is not aloud until advanced+\n"
-                    + "[6] You can not Spawn or take horses from the wild.";
-
-            bm.addPage("1");
-            bm.setPage(1, page1);
-            bm.setAuthor("EquestriCraft");
-            bm.setTitle("Rules");
-            book.setItemMeta(bm);
-
-            player.getInventory().addItem(book);
+        if (null == clicked.getType()) {
             return;
         } else {
-            return;
+            switch (clicked.getType()) {
+                case MONSTER_EGG:
+                    //Spawn
+                    l = new Location(w, 3442, 7, 215, 90, 0);
+                    player.sendMessage("Teleporting to Spawn...");
+                    break;
+                case NAME_TAG:
+                    //Lease Barn
+                    l = new Location(w, 621, 4.8, 2078);
+                    player.sendMessage("Teleporting to the Lease Barn...");
+                    break;
+                case SADDLE:
+                    //Race Track
+                    l = new Location(w, -2268, 4.8, 10966);
+                    player.sendMessage("Teleporting to the Race Track...");
+                    break;
+                case GOLD_BARDING:
+                    //Rescue
+                    l = new Location(w, -856, 4.8, 473, 90, 0);
+                    player.sendMessage("Teleporting to the Rescue...");
+                    break;
+                case WOOD:
+                    //Town
+                    l = new Location(w, 161, 4.8, 1460, 180, 0);
+                    player.sendMessage("Teleporting to the Town...");
+                    break;
+                case MAP:
+                    //Trails
+                    l = new Location(w, -3199, 4.8, 4800);
+                    player.sendMessage("Teleporting to the Trails...");
+                    break;
+                case FISHING_ROD:
+                    //Showgrounds
+                    l = new Location(w, 635, 4.8, 1498);
+                    player.sendMessage("Teleporting to the Showgrounds...");
+                    break;
+                case SHEARS:
+                    //Dentist
+                    l = new Location(w, -93, 4.8, 1166);
+                    player.sendMessage("Teleporting to the Dentist...");
+                    break;
+                case BOOK:
+                    ItemStack book = new ItemStack(Material.WRITTEN_BOOK, 1);
+                    BookMeta bm = (BookMeta) book.getItemMeta();
+                    String page1 = "EQUESTRICRAFT\n\n"
+                            + "[1] Do not log off on horses.\n"
+                            + "[2] Do not use strong language.\n"
+                            + "[3] Respect others.\n"
+                            + "[4] Griefing is not tolerated\n"
+                            + "[5] Breeding is not aloud until advanced+\n"
+                            + "[6] You can not Spawn or take horses from the wild.";
+
+                    bm.addPage("1");
+                    bm.setPage(1, page1);
+                    bm.setAuthor("EquestriCraft");
+                    bm.setTitle("Rules");
+                    book.setItemMeta(bm);
+
+                    player.getInventory().addItem(book);
+                    return;
+                default:
+                    return;
+            }
         }
 
         player.teleport(l);
