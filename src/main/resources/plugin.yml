@@ -67,7 +67,7 @@ commands:
         udage: /navigator
     auction:
         description: Auction commands.
-        usage: /auction [open|bid|sell]
+        usage: /auction [open|bid|sell|end]
     breeding:
         description: breeding commands.
         usage: /breeding [gapple|check]
