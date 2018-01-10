@@ -1289,14 +1289,14 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         if (event.getEntity() instanceof Horse) {
                             UUID uuid = event.getEntity().getUniqueId();
                             database.vaccinateHorse(uuid);
-                            player.sendMessage(ChatColor.BOLD + "Horse has been vaccinated");
+                            player.sendMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "Horse successfully vaccinated");
                         }
                     } else if (inHand.getItemMeta().getDisplayName().equals(ONE_USE_VACCINATION)) {
                         event.setCancelled(true);
                         if (event.getEntity() instanceof Horse) {
                             UUID uuid = event.getEntity().getUniqueId();
                             database.vaccinateHorse(uuid);
-                            player.sendMessage(ChatColor.BOLD + "Horse has been vaccinated");
+                            player.sendMessage(ChatColor.BOLD + "Horse successfully vaccinated");
                             if (inHand.getAmount() > 1) {
                                 inHand.setAmount(inHand.getAmount() - 1);
                             } else {
@@ -1474,10 +1474,10 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                             database.addHorse(mhFoal);
                             database.saveHorse(mh1);
                             database.saveHorse(mh2);
-                            if (inHand.getAmount() == 1) {
-                                player.getInventory().removeItem(inHand);
-                            } else {
+                            if (inHand.getAmount() > 1) {
                                 inHand.setAmount(inHand.getAmount() - 1);
+                            } else {
+                                player.getInventory().removeItem(inHand);
                             }
                             player.removeMetadata("HORSE_BREED", this);
                             player.sendMessage(ChatColor.GREEN + "Breeding Successful");
@@ -1490,18 +1490,10 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                             } else {
                                 player.sendMessage(ChatColor.GREEN + "Select a stallion");
                             }
-                            if (inHand.getAmount() == 0) {
-                                final PlayerInventory inventory = player.getInventory();
-                                final ItemStack gapple = new ItemStack(Material.GOLDEN_APPLE, 1);
-                                final ItemMeta im = gapple.getItemMeta();
-                                im.setDisplayName(BREEDING_APPLE);
-                                final List<String> comments = new ArrayList<>();
-                                comments.add("Breed a horse");
-                                im.setLore(comments);
-                                gapple.setItemMeta(im);
-                                inventory.addItem(gapple);
+                            if (inHand.getAmount() > 1) {
+                                inHand.setAmount(inHand.getAmount() - 1);
                             } else {
-//                                inHand.setAmount(inHand.getAmount() + 1);
+                                player.getInventory().removeItem(inHand);
                             }
                         }
                     } catch (Exception e) {
