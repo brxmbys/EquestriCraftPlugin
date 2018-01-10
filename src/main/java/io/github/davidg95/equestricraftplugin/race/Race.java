@@ -67,12 +67,23 @@ public class Race implements Listener {
 
     static {
         Block b = Bukkit.getWorld("EquestriCraft").getBlockAt(-2033, 7, 11125);
+        if (b.getType() != Material.SIGN) {
+            b.setType(Material.SIGN);
+        }
         RACE_MONITOR = (Sign) b.getState();
         PLAYER_SIGNS = new Sign[5];
         for (int i = -2032; i <= -2028; i++) {
-            PLAYER_SIGNS[i + 2032] = (Sign) Bukkit.getWorld("EquestriCraft").getBlockAt(i, 7, 11125).getState();
+            Block bl = Bukkit.getWorld("EquestriCraft").getBlockAt(i, 7, 11125);
+            if (bl.getType() != Material.SIGN) {
+                bl.setType(Material.SIGN);
+            }
+            PLAYER_SIGNS[i + 2032] = (Sign) bl.getState();
         }
-        PODIUM_SIGN = (Sign) Bukkit.getWorld("EquestriCraft").getBlockAt(-2034, 7, 11125).getState();
+        Block blo = Bukkit.getWorld("EquestriCraft").getBlockAt(-2034, 7, 11125);
+        if (blo.getType() != Material.SIGN) {
+            blo.setType(Material.SIGN);
+        }
+        PODIUM_SIGN = (Sign) blo.getState();
     }
 
     public Race(EquestriCraftPlugin plugin, int laps, double prize1, double prize2, double prize3) {
