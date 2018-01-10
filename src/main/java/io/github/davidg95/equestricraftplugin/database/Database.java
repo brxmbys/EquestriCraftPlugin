@@ -18,7 +18,6 @@ import java.util.LinkedList;
 import java.util.UUID;
 import java.util.concurrent.locks.StampedLock;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
@@ -187,7 +186,7 @@ public abstract class Database {
         final long stamp = lock.writeLock();
         try {
             conn = getSQLConnection();
-            ps = conn.prepareStatement("SELECT COUNT(*) FROM " + table + " WHERE shoed = TRUE");
+            ps = conn.prepareStatement("SELECT COUNT(*) FROM " + table + " WHERE shoed = 1");
 
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
