@@ -605,7 +605,7 @@ public abstract class Database {
             s = conn.createStatement();
             set = s.executeQuery("SELECT gender FROM " + table + " WHERE uuid = '" + uuid + "'");
             while (set.next()) {
-                set.getInt(1);
+                return set.getInt(1);
             }
         } catch (SQLException ex) {
             plugin.getLogger().log(Level.SEVERE, "Error getting Gender", ex);
