@@ -552,7 +552,7 @@ public abstract class Database {
         final long stamp = lock.writeLock();
         try {
             s = conn.createStatement();
-            s.executeUpdate("UPDATE " + table + " SET shoed = true WHERE uuid = '" + uuid + "'");
+            s.executeUpdate("UPDATE " + table + " SET shoed = 1 WHERE uuid = '" + uuid + "'");
         } catch (SQLException ex) {
             plugin.getLogger().log(Level.SEVERE, "Error shoeing horse", ex);
         } finally {
