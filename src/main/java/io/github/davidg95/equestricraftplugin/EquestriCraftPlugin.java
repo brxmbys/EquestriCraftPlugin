@@ -694,15 +694,21 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         } else if (args[1].equalsIgnoreCase("show-shoed")) {
                             int shoed = database.shoedHorses();
                             sender.sendMessage("There are " + shoed + " shoed horses");
-                        } else if (args[1].equalsIgnoreCase("show-old")) {
-                            int old = database.oldHorses(Integer.parseInt(args[2]));
-                            sender.sendMessage("There are " + old + " old horses");
+                        } else if (args[1].equalsIgnoreCase("show-age")) {
+                            if (args.length >= 3) {
+                                int old = database.oldHorses(Integer.parseInt(args[2]));
+                                sender.sendMessage("There are " + old + " horses older than " + args[2] + " months");
+                            } else {
+                                sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "Must specify the age");
+                            }
                         } else if (args[1].equalsIgnoreCase("show-dead")) {
                             int dead = database.deadHorses();
                             sender.sendMessage("There are " + dead + " dead horses");
                         } else if (args[1].equalsIgnoreCase("kill-dead")) {
                             database.killDead();
                             sender.sendMessage("Dead horses removed from database");
+                        } else {
+                            sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "db command '" + args[1] + "' not recognised");
                         }
                     }
                     return true;
