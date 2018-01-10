@@ -751,6 +751,30 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     Horse h = getEntityByUniqueId(uuid);
                     Object o = HorseNMS.getAttribute(h, attr);
                     player.sendMessage("Type: " + o.getClass().toString() + "=" + o);
+                } else if (args[0].equalsIgnoreCase("show-nulls")) {
+                    int count = 0;
+                    for (World w : Bukkit.getWorlds()) {
+                        for (Horse h : w.getEntitiesByClass(Horse.class)) {
+                            MyHorse mh = database.getHorse(h.getUniqueId());
+                            if (mh == null) {
+                                count++;
+                            }
+                        }
+                    }
+                    sender.sendMessage(count + " null horses");
+                } else if (args[0].equalsIgnoreCase("fix-nulls")) {
+                    int count = 0;
+                    for (World w : Bukkit.getWorlds()) {
+                        for (Horse h : w.getEntitiesByClass(Horse.class)) {
+                            MyHorse mh = database.getHorse(h.getUniqueId());
+                            if (mh == null) {
+                                mh = new MyHorse(h);
+                                database.addHorse(mh);
+                                count++;
+                            }
+                        }
+                    }
+                    sender.sendMessage(count + " horses added");
                 }
             }
             return true;
