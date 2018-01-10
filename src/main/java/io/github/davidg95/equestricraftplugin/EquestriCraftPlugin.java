@@ -644,8 +644,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             return true;
         } else if (cmd.getName().equalsIgnoreCase("eqh")) {
             if (args.length >= 1) {
-                String arg = args[0];
-                if (arg.equalsIgnoreCase("kill")) {
+                if (args[0].equalsIgnoreCase("kill")) {
                     if (sender instanceof Player) {
                         final Player player = (Player) sender;
                         if (player.isOp()) {
@@ -664,10 +663,10 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         }
                         return true;
                     }
-                } else if (arg.equalsIgnoreCase("times")) {
+                } else if (args[0].equalsIgnoreCase("times")) {
                     HorseCheckerThread.SHOW_TIME = !HorseCheckerThread.SHOW_TIME;
                     sender.sendMessage("Horse checker times " + (HorseCheckerThread.SHOW_TIME ? "activated" : "deactivated"));
-                } else if (arg.equalsIgnoreCase("db")) {
+                } else if (args[0].equalsIgnoreCase("db")) {
                     if (args.length >= 2) {
                         if (args[1].equalsIgnoreCase("show-hungry")) {
                             int hungry = database.hungryHorses();
@@ -696,58 +695,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         }
                     }
                     return true;
-                } else if (arg.equalsIgnoreCase("integrity")) {
-                    sender.sendMessage("Searching...");
-                    int count = 0;
-                    for (World world : Bukkit.getWorlds()) {
-                        for (Horse h : world.getEntitiesByClass(Horse.class)) {
-                            MyHorse mh = database.getHorse(h.getUniqueId());
-                            int amount = database.uuidCheck(h.getUniqueId());
-                            sender.sendMessage("Database occurances: " + amount);
-                            if (mh == null) {
-                                count++;
-                            }
-                        }
-                    }
-                    sender.sendMessage("Horses not in database: " + count);
-                    return true;
-                } else if (arg.equalsIgnoreCase("fix")) {
-                    for (MyHorse mh : database.getHorses(-1)) {
-                        try {
-                            if (mh.getBreed() == null || mh.getBreed().length == 0) {
-                                mh.setBreed(new HorseBreed[]{HorseBreed.randomType()});
-                            }
-                        } catch (Exception e) {
-                            if (mh == null) {
-                                sender.sendMessage("mh is null");
-                                continue;
-                            }
-                            try {
-                                mh.setBreed(new HorseBreed[]{HorseBreed.randomType(), HorseBreed.randomType()});
-                            } catch (Exception ex) {
-                                sender.sendMessage("Error");
-                            }
-                        }
-                    }
-                    Iterator<MyHorse> it = database.getHorses(-1).iterator();
-                    while (it.hasNext()) {
-                        MyHorse mh = it.next();
-                        if (mh == null) {
-                            it.remove();
-                            sender.sendMessage("One null horse has been removed");
-                        }
-                    }
-                    sender.sendMessage("Assigned breeds to horses");
-                    return true;
-                } else if (arg.equalsIgnoreCase("velo")) {
-                    if (args.length > 1) {
-                        Player p = Bukkit.getPlayer(args[1]);
-                        if (p == null) {
-                            sender.sendMessage("Player not found");
-                            return true;
-                        }
-                    }
-                } else if (arg.equalsIgnoreCase("allowbreed")) {
+                } else if (args[0].equalsIgnoreCase("allowbreed")) {
                     Player player = (Player) sender;
                     MyHorse horse;
                     if (player.getVehicle() != null || player.getVehicle() instanceof Horse) {
@@ -763,31 +711,24 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     database.saveHorse(horse);
                     player.sendMessage("This horse can now breed");
                     return true;
-                } else if (arg.equalsIgnoreCase("handt")) {
+                } else if (args[0].equalsIgnoreCase("handt")) {
                     database.removeHungerAndThrist();
                     sender.sendMessage("Hunger and thirst reset on ALL horses");
-                } else if (arg.equalsIgnoreCase("set")) {
-                    Player player = (Player) sender;
-                    UUID uuid = UUID.fromString(player.getMetadata("horse").get(0).asString());
-                    Horse h = this.getEntityByUniqueId(uuid);
-                    MyHorse horse = new MyHorse(h);
-                    database.addHorse(horse);
-                    sender.sendMessage("Horse set");
-                } else if (arg.equalsIgnoreCase("cure-all")) {
+                } else if (args[0].equalsIgnoreCase("cure-all")) {
                     database.cureAll();
                     sender.sendMessage("All horses have been cured");
-                } else if (arg.equalsIgnoreCase("bucking-toggle")) {
+                } else if (args[0].equalsIgnoreCase("bucking-toggle")) {
                     String message = "Bucking thread " + (buckThread.toggle() ? ChatColor.GREEN + "Activated" : ChatColor.RED + "Deactivated");
                     sender.sendMessage(message);
                     if (sender instanceof Player) {
                         getLogger().log(Level.INFO, message);
                     }
-                } else if (arg.equalsIgnoreCase("rl")) {
+                } else if (args[0].equalsIgnoreCase("rl")) {
                     if (sender.isOp()) {
                         loadProperties();
                         sender.sendMessage("config.yml reloaded");
                     }
-                } else if (arg.equalsIgnoreCase("attr")) {
+                } else if (args[0].equalsIgnoreCase("attr")) {
                     String attr = args[1];
                     Player player = (Player) sender;
                     UUID uuid = UUID.fromString(player.getMetadata("horse").get(0).asString());
