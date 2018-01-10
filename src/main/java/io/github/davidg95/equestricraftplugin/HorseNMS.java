@@ -61,6 +61,20 @@ public class HorseNMS {
         }
         return 0;
     }
+    
+    public static Object getAttribute(Horse horse, String attr) {
+        try {
+            Object entityHorse = getHandle(horse);
+            Object genericattributeD = getField(getCraftClass("GenericAttributes"), attr).get(null);
+            Method getAttributeInstance = getMethod(getCraftClass("EntityLiving"), "getAttributeInstance", new Class<?>[]{getCraftClass("IAttribute")});
+            Object iattrbute = getAttributeInstance.invoke(entityHorse, genericattributeD);
+            Method getValue = getMethod(getCraftClass("AttributeInstance"), "getValue");
+            return getValue.invoke(iattrbute);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
 
     public static Object getHandle(Entity entity) throws Exception {
         Object nms_entity = null;

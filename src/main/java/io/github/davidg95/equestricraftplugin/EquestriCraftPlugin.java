@@ -787,6 +787,18 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         loadProperties();
                         sender.sendMessage("config.yml reloaded");
                     }
+                } else if (arg.equalsIgnoreCase("attr")) {
+                    String attr = args[1];
+                    Player player = (Player) sender;
+                    UUID uuid = UUID.fromString(player.getMetadata("horse").get(0).asString());
+                    if (uuid == null) {
+                        sender.sendMessage("No horse selected");
+                        return true;
+                    }
+
+                    Horse h = getEntityByUniqueId(uuid);
+                    Object o = HorseNMS.getAttribute(h, attr);
+                    player.sendMessage("Type: " + o.getClass().toString() + "=" + o);
                 }
             }
             return true;

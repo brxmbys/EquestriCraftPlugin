@@ -81,7 +81,6 @@ public class FoodController implements CommandExecutor, Listener {
             player.getInventory().addItem(seeds);
             econ.withdrawPlayer(player, seeds_cost * quantity);
             player.sendMessage(ChatColor.GREEN + "You have been charged " + ChatColor.AQUA + "$" + seeds_cost * quantity);
-            plugin.getLogger().log(Level.INFO, player.getDisplayName() + " has bought some feeding seeds for $" + seeds_cost * quantity);
         } else if (args[0].equalsIgnoreCase("buy-wheat")) {
             int quantity = 1;
             if (args.length == 2) {
@@ -100,7 +99,6 @@ public class FoodController implements CommandExecutor, Listener {
             player.getInventory().addItem(seeds);
             econ.withdrawPlayer(player, wheat_cost * quantity);
             player.sendMessage(ChatColor.GREEN + "You have been charged " + ChatColor.AQUA + "$" + wheat_cost * quantity);
-            plugin.getLogger().log(Level.INFO, player.getDisplayName() + " has bought some feeding wheat for $" + wheat_cost * quantity);
         } else if (args[0].equalsIgnoreCase("buy-water")) {
             if (econ.getBalance(player) < water_cost) {
                 player.sendMessage(ChatColor.RED + "You do not have enough money");
@@ -114,7 +112,6 @@ public class FoodController implements CommandExecutor, Listener {
             player.getInventory().addItem(seeds);
             econ.withdrawPlayer(player, water_cost);
             player.sendMessage(ChatColor.GREEN + "You have been charged " + ChatColor.AQUA + "$" + water_cost);
-            plugin.getLogger().log(Level.INFO, player.getDisplayName() + " has bought some drinking water for $" + water_cost);
         } else {
             sender.sendMessage("Incorrect command\n"
                     + ChatColor.RESET + "/food buy-seeds - " + ChatColor.AQUA + "$" + seeds_cost + "\n"
