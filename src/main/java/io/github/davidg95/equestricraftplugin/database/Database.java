@@ -18,6 +18,7 @@ import java.util.LinkedList;
 import java.util.UUID;
 import java.util.concurrent.locks.StampedLock;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
@@ -517,6 +518,139 @@ public abstract class Database {
             try {
                 if (ps != null) {
                     ps.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+                plugin.getLogger().log(Level.SEVERE, "Error closing connection", ex);
+            }
+        }
+    }
+
+    public void vaccinateHorse(UUID uuid) {
+        Connection conn = getSQLConnection();
+        Statement s = null;
+
+        final long stamp = lock.writeLock();
+        try {
+            s = conn.createStatement();
+            s.executeUpdate("UPDATE " + table + " SET vaccinationTime = " + new Date().getTime() + " WHERE uuid = '" + uuid + "'");
+        } catch (SQLException ex) {
+            plugin.getLogger().log(Level.SEVERE, "Error vaccinating horse", ex);
+        } finally {
+            lock.unlockWrite(stamp);
+            try {
+                if (s != null) {
+                    s.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+                plugin.getLogger().log(Level.SEVERE, "Error closing connection", ex);
+            }
+        }
+    }
+
+    public void shoeHorse(UUID uuid) {
+        Connection conn = getSQLConnection();
+        Statement s = null;
+
+        final long stamp = lock.writeLock();
+        try {
+            s = conn.createStatement();
+            s.executeUpdate("UPDATE " + table + " SET shoed = true WHERE uuid = '" + uuid + "'");
+        } catch (SQLException ex) {
+            plugin.getLogger().log(Level.SEVERE, "Error shoeing horse", ex);
+        } finally {
+            lock.unlockWrite(stamp);
+            try {
+                if (s != null) {
+                    s.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+                plugin.getLogger().log(Level.SEVERE, "Error closing connection", ex);
+            }
+        }
+    }
+
+    public void setGender(UUID uuid, int gender) {
+        Connection conn = getSQLConnection();
+        Statement s = null;
+
+        final long stamp = lock.writeLock();
+        try {
+            s = conn.createStatement();
+            s.executeUpdate("UPDATE " + table + " SET gender = " + gender + " WHERE uuid = '" + uuid + "'");
+        } catch (SQLException ex) {
+            plugin.getLogger().log(Level.SEVERE, "Error changing gender", ex);
+        } finally {
+            lock.unlockWrite(stamp);
+            try {
+                if (s != null) {
+                    s.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+                plugin.getLogger().log(Level.SEVERE, "Error closing connection", ex);
+            }
+        }
+    }
+
+    public int getGender(UUID uuid) {
+        Connection conn = getSQLConnection();
+        Statement s = null;
+        ResultSet set = null;
+
+        final long stamp = lock.writeLock();
+        try {
+            s = conn.createStatement();
+            set = s.executeQuery("SELECT gender FROM " + table + " WHERE uuid = '" + uuid + "'");
+            while (set.next()) {
+                set.getInt(1);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            lock.unlockWrite(stamp);
+            try {
+                if (set != null) {
+                    set.close();
+                }
+                if (s != null) {
+                    s.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+                plugin.getLogger().log(Level.SEVERE, "Error closing connection", ex);
+            }
+        }
+        return -1;
+    }
+
+    public void setLevel(UUID uuid, int level) {
+        Connection conn = getSQLConnection();
+        Statement s = null;
+
+        final long stamp = lock.writeLock();
+        try {
+            s = conn.createStatement();
+            s.executeUpdate("UPDATE " + table + " SET training_level = " + level + " WHERE uuid = '" + uuid + "'");
+        } catch (SQLException ex) {
+            Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            lock.unlockWrite(stamp);
+            try {
+                if (s != null) {
+                    s.close();
                 }
                 if (conn != null) {
                     conn.close();

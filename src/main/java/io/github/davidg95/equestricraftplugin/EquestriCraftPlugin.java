@@ -260,34 +260,16 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             if (!sender.hasPermission("equestricraft.spawnhorse")) {
                 return true;
             }
-            switch (args.length) {
-                case 0:
-                    if (sender instanceof Player) {
-                        final Player player = (Player) sender;
-                        final Horse h = player.getWorld().spawn(player.getLocation(), Horse.class);
-                        HorseNMS.setSpeed(h, 0.4);
-                        h.setJumpStrength(0.68);
-                        final MyHorse mh = new MyHorse(h);
-                        h.setBaby();
-                        database.addHorse(mh);
-                    } else {
-                        sender.sendMessage("This command can only be run by a player");
-                    }
-                    break;
-                case 1:
-                    final String name = args[0];
-                    final Player pl = Bukkit.getPlayer(name);
-                    if (pl == null) {
-                        sender.sendMessage(ChatColor.BOLD + "Player not found");
-                        return true;
-                    }
-                    final Horse h = pl.getWorld().spawn(pl.getLocation(), Horse.class);
-                    final MyHorse mh = new MyHorse(h);
-                    database.saveHorse(mh);
-                    sender.sendMessage(ChatColor.BOLD + "Created horse for " + pl.getName());
-                    break;
-                default:
-                    break;
+            if (sender instanceof Player) {
+                final Player player = (Player) sender;
+                final Horse h = player.getWorld().spawn(player.getLocation(), Horse.class);
+                HorseNMS.setSpeed(h, 0.4);
+                h.setJumpStrength(0.68);
+                final MyHorse mh = new MyHorse(h);
+                h.setBaby();
+                database.addHorse(mh);
+            } else {
+                sender.sendMessage("This command can only be run by a player");
             }
             return true;
         } else if (cmd.getName().equalsIgnoreCase("geldingtool")) {   //geldingtool command
@@ -392,30 +374,29 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                 if (sender instanceof Player) {
                     final Player player = (Player) sender;
                     if (!OP_REQ || player.isOp()) {
-                        MyHorse horse;
+                        UUID uuid;
                         if (player.getVehicle() != null || player.getVehicle() instanceof Horse) {
-                            horse = database.getHorse(player.getVehicle().getUniqueId());
+                            uuid = player.getVehicle().getUniqueId();
                         } else {
-                            horse = database.getHorse(UUID.fromString(player.getMetadata("horse").get(0).asString()));
+                            uuid = UUID.fromString(player.getMetadata("horse").get(0).asString());
                         }
-                        if (horse == null) {
+                        if (uuid == null) {
                             player.sendMessage(ChatColor.RED + "No horse selected");
                             return true;
                         }
                         String genderStr;
                         if (args[0].equalsIgnoreCase("stallion")) {
-                            horse.setGender(MyHorse.STALLION);
+                            database.changeGender(uuid, MyHorse.STALLION);
                             genderStr = ChatColor.DARK_RED + "Stallion";
                         } else if (args[0].equalsIgnoreCase("mare")) {
-                            horse.setGender(MyHorse.MARE);
+                            database.changeGender(uuid, MyHorse.MARE);
                             genderStr = ChatColor.DARK_PURPLE + "Mare";
                         } else if (args[0].equalsIgnoreCase("gelding")) {
-                            horse.setGender(MyHorse.GELDING);
+                            database.changeGender(uuid, MyHorse.GELDING);
                             genderStr = ChatColor.DARK_AQUA + "Gelding";
                         } else {
                             return false;
                         }
-                        database.saveHorse(horse);
                         sender.sendMessage(ChatColor.BOLD + "Gender set to " + genderStr);
                     }
                 } else {
@@ -776,7 +757,6 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         player.sendMessage("No horse selected");
                         return true;
                     }
-                    Horse h = this.getEntityByUniqueId(horse.getUuid());
                     horse.allowBreed();
                     database.saveHorse(horse);
                     player.sendMessage("This horse can now breed");
@@ -861,14 +841,14 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                 if (sender instanceof Player) {
                     final Player player = (Player) sender;
                     if (!OP_REQ || player.isOp()) {
-                        MyHorse mh;
+                        UUID uuid;
                         if (player.getVehicle() != null && player.getVehicle() instanceof Horse) {
                             final Horse horse = (Horse) player.getVehicle();
-                            mh = database.getHorse(horse.getUniqueId());
+                            uuid = horse.getUniqueId();
                         } else {
-                            mh = database.getHorse(UUID.fromString(player.getMetadata("horse").get(0).asString()));
+                            uuid = UUID.fromString(player.getMetadata("horse").get(0).asString());
                         }
-                        if (mh == null) {
+                        if (uuid == null) {
                             sender.sendMessage("No horse selected");
                             return true;
                         }
@@ -878,8 +858,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                                 player.sendMessage("Level must be between 1 and 10");
                                 return true;
                             }
-                            mh.setTrainingLevel(level);
-                            database.saveHorse(mh);
+                            database.setLevel(uuid, level);
                             player.sendMessage("Level set");
                         } catch (NumberFormatException ex) {
                             player.sendMessage("Must enter a number for level between 1 and 10");
@@ -1147,13 +1126,13 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     }
                     event.setCancelled(true);
                     if (event.getEntity() instanceof Horse) { //Check it was a horse they are hitting.
-                        final MyHorse horse = database.getHorse(event.getEntity().getUniqueId()); //Get the Horse instance.
-                        if (horse.getGender() != MyHorse.STALLION) { //Check it was a stallion.
+                        UUID uuid = event.getEntity().getUniqueId(); //Get the Horse instance.
+                        int currentGender = database.getGender(uuid);
+                        if (currentGender != MyHorse.STALLION) { //Check it was a stallion.
                             player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "This horse is not a stallion");
                             return;
                         }
-                        horse.setGender(MyHorse.GELDING); //Turn the horse into a gelding.
-                        database.saveHorse(horse);
+                        database.changeGender(uuid, MyHorse.GELDING); //Turn the horse into a gelding.
                         player.sendMessage(ChatColor.BOLD + "This horse has been gelded");
                     }
                     break;
@@ -1306,33 +1285,15 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     if (inHand.getItemMeta().getDisplayName().equals(VACCINATION_TOOL)) {
                         event.setCancelled(true);
                         if (event.getEntity() instanceof Horse) {
-                            final MyHorse horse = database.getHorse(event.getEntity().getUniqueId());
-                            if (horse == null) {
-                                player.sendMessage(ChatColor.RED + "Error retrieving horse details. Error code 4");
-                                return;
-                            }
-                            if (horse.isVaccinated()) {
-                                player.sendMessage(ChatColor.BOLD + "Horse already vaccinated");
-                                return;
-                            }
-                            horse.vaccinate();
-                            database.saveHorse(horse);
+                            UUID uuid = event.getEntity().getUniqueId();
+                            database.vaccinateHorse(uuid);
                             player.sendMessage(ChatColor.BOLD + "Horse has been vaccinated");
                         }
                     } else if (inHand.getItemMeta().getDisplayName().equals(ONE_USE_VACCINATION)) {
                         event.setCancelled(true);
                         if (event.getEntity() instanceof Horse) {
-                            final MyHorse horse = database.getHorse(event.getEntity().getUniqueId());
-                            if (horse == null) {
-                                player.sendMessage(ChatColor.RED + "Error retrieving horse details. Error code 3");
-                                return;
-                            }
-                            if (horse.isVaccinated()) {
-                                player.sendMessage(ChatColor.BOLD + "Horse already vaccinated");
-                                return;
-                            }
-                            horse.vaccinate();
-                            database.saveHorse(horse);
+                            UUID uuid = event.getEntity().getUniqueId();
+                            database.vaccinateHorse(uuid);
                             player.sendMessage(ChatColor.BOLD + "Horse has been vaccinated");
                             if (inHand.getAmount() > 1) {
                                 inHand.setAmount(inHand.getAmount() - 1);
@@ -1366,10 +1327,9 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     }
                     event.setCancelled(true);
                     if (event.getEntity() instanceof Horse) {
-                        final MyHorse horse = database.getHorse(event.getEntity().getUniqueId());
-                        horse.setShod(true);
-                        database.saveHorse(horse);
-                        player.sendMessage(ChatColor.BOLD + "Horse has been shod");
+                        UUID uuid = event.getEntity().getUniqueId();
+                        database.shoeHorse(uuid);
+                        player.sendMessage(ChatColor.BOLD + "Horse has been shoed");
                     }
                     break;
                 default:
