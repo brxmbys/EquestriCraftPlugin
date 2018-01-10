@@ -6,6 +6,7 @@ package io.github.davidg95.equestricraftplugin;
 import io.github.davidg95.equestricraftplugin.database.Database;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.logging.Level;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.ChatColor;
@@ -150,12 +151,8 @@ public class FoodController implements CommandExecutor, Listener {
         }
         event.setCancelled(true);
         final Horse horse = (Horse) event.getRightClicked();
-        MyHorse mh = database.getHorse(horse.getUniqueId());
-        if (mh == null) {
-            return;
-        }
-        mh.eat();
-        database.saveHorse(mh);
+        UUID uuid = horse.getUniqueId();
+        database.feedHorse(uuid);
         if (inHand.getAmount() == 1) {
             player.getInventory().remove(inHand);
         } else {
@@ -187,12 +184,8 @@ public class FoodController implements CommandExecutor, Listener {
         }
         event.setCancelled(true);
         final Horse horse = (Horse) event.getRightClicked();
-        MyHorse mh = database.getHorse(horse.getUniqueId());
-        if (mh == null) {
-            return;
-        }
-        mh.eat();
-        database.saveHorse(mh);
+        UUID uuid = horse.getUniqueId();
+        database.feedHorse(uuid);
         if (inHand.getAmount() == 1) {
             player.getInventory().remove(inHand);
         } else {
@@ -224,12 +217,8 @@ public class FoodController implements CommandExecutor, Listener {
         }
         event.setCancelled(true);
         final Horse horse = (Horse) event.getRightClicked();
-        MyHorse mh = database.getHorse(horse.getUniqueId());
-        if (mh == null) {
-            return;
-        }
-        mh.drink();
-        database.saveHorse(mh);
+        UUID uuid = horse.getUniqueId();
+        database.waterHorse(uuid);
         inHand.setType(Material.BUCKET);
         player.sendMessage(ChatColor.GREEN + "Your horse has had a drink");
     }

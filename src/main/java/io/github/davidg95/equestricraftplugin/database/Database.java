@@ -18,6 +18,7 @@ import java.util.LinkedList;
 import java.util.UUID;
 import java.util.concurrent.locks.StampedLock;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
@@ -637,6 +638,56 @@ public abstract class Database {
             s.executeUpdate("UPDATE " + table + " SET training_level = " + level + " WHERE uuid = '" + uuid + "'");
         } catch (SQLException ex) {
             plugin.getLogger().log(Level.SEVERE, "Error setting level", ex);
+        } finally {
+            lock.unlockWrite(stamp);
+            try {
+                if (s != null) {
+                    s.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+                plugin.getLogger().log(Level.SEVERE, "Error closing connection", ex);
+            }
+        }
+    }
+
+    public void feedHorse(UUID uuid) {
+        Connection conn = getSQLConnection();
+        Statement s = null;
+
+        final long stamp = lock.writeLock();
+        try {
+            s = conn.createStatement();
+            s.executeUpdate("UPDATE " + table + " SET last_eat = " + new Date().getTime() + ", defacate_since_eat = 0 WHERE uuid='" + uuid + "'");
+        } catch (SQLException ex) {
+            plugin.getLogger().log(Level.SEVERE, "Error feeding horse", ex);
+        } finally {
+            lock.unlockWrite(stamp);
+            try {
+                if (s != null) {
+                    s.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+                plugin.getLogger().log(Level.SEVERE, "Error closing connection", ex);
+            }
+        }
+    }
+
+    public void waterHorse(UUID uuid) {
+        Connection conn = getSQLConnection();
+        Statement s = null;
+
+        final long stamp = lock.writeLock();
+        try {
+            s = conn.createStatement();
+            s.executeUpdate("UPDATE " + table + " SET last_drink = " + new Date().getTime() + " WHERE uuid='" + uuid + "'");
+        } catch (SQLException ex) {
+            plugin.getLogger().log(Level.SEVERE, "Error watering horse", ex);
         } finally {
             lock.unlockWrite(stamp);
             try {
