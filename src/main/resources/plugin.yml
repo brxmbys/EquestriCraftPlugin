@@ -25,16 +25,16 @@ commands:
         usage: /doctortool
     changegender:
         description: Change the gender of a horse.
-        usage: /changegender <stallion|mare|gelding> (must be on a horse)
+        usage: /changegender <stallion|mare|gelding>
     savehorses:
         description: Saves the horses to file.
         usage: /savehorses
     setbreed:
         description: Set the breed of a horse.
-        usage: /setbreed <breed> (must be on a horse)
+        usage: /setbreed <breed1> <breed2>
     setpersonality:
         description: Set the personality of a horse.
-        usage: /setpersonality <personality> (must be on a horse)
+        usage: /setpersonality <personality>
     showbreeds:
         description: Show a list of the breeds.
         usage: /showbreeds
@@ -46,10 +46,10 @@ commands:
         usage: /eqhelp
     setage:
         description: Set the age of the horse.
-        usage: /setage <age> (must be on a horse
+        usage: /setage <age>
     race:
         description: Race commands.
-        usage: /race <options>
+        usage: /race [open [laps] <[p1] [p2] [p3]> | join <ign> | end | spectate | start | countdown | withdraw | list | clearall]
     eqh:
         decription: general command
         usage: /eqh
