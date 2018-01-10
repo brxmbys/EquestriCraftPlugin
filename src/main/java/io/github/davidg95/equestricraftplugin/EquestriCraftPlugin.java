@@ -166,15 +166,13 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             initConfig();
             getLogger().log(Level.SEVERE, "Error loading config.yml. It has been regenerated.", ex);
         }
-        ONE_USE_COST = getConfig().getInt("tools.one_use_vaccination_price");
-        GAPPLE_PRICE = getConfig().getInt("tools.gapple_price");
         loadProperties();
         checkerThread = new HorseCheckerThread(this, database);
         checkerThread.start();
         buckThread = checkerThread.new BuckThread();
         buckThread.start();
-        defecateThread = checkerThread.new DefecateThread();
-        defecateThread.start();
+//        defecateThread = checkerThread.new DefecateThread();
+//        defecateThread.start();
         getServer().getPluginManager().registerEvents(this, this);
         if (!setupEconomy()) {
             getLogger().log(Level.SEVERE, "Vault not detected, Disciplines, Auctions, Races and Food have been disabled");
@@ -1660,5 +1658,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         HorseCheckerThread.VACCINATED_PROBABILITY = getConfig().getInt("misc.vaccinated_sick_probability");
         OP_REQ = getConfig().getBoolean("misc.op_req");
         BLOCK_HUNGER = getConfig().getBoolean("misc.block_hunger");
+        ONE_USE_COST = getConfig().getInt("tools.one_use_vaccination_price");
+        GAPPLE_PRICE = getConfig().getInt("tools.gapple_price");
     }
 }
