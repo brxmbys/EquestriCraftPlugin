@@ -51,7 +51,7 @@ commands:
         description: Race commands.
         usage: /race [open [laps] <[p1] [p2] [p3]> | join <ign> | end | spectate | start | countdown | withdraw | list | clearall]
     eqh:
-        decription: general command
+        decription: admin command.
         usage: /eqh
     farrier:
         description: farrier commands.
