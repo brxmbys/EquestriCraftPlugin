@@ -248,9 +248,9 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         if (cmd.getName().equalsIgnoreCase("equestristatus")) {   //equestristatus command
             String message = "";
-            message += "Horses in database: " + ChatColor.AQUA + database.horseCount(-1);
-            message += "Checker Thread: " + (checkerThread.isAlive() ? ChatColor.GREEN + "Active" : ChatColor.RED + "Not Active");
-            message += "Bucking thread: " + (buckThread.isActive() ? ChatColor.GREEN + "Active" : ChatColor.RED + "Not Active");
+            message += "Horses in database: " + ChatColor.AQUA + database.horseCount(-1) + "\n";
+            message += "Checker Thread: " + (checkerThread.isAlive() ? ChatColor.GREEN + "Active" : ChatColor.RED + "Not Active") + "\n";
+            message += "Bucking thread: " + (buckThread.isActive() ? ChatColor.GREEN + "Active" : ChatColor.RED + "Not Active") + "\n";
             int count = 0;
             for (World world : Bukkit.getWorlds()) {
                 count += world.getEntitiesByClass(Horse.class).size();
