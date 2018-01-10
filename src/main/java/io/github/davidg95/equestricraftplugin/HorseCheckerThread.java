@@ -11,7 +11,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
+import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Horse;
 import org.bukkit.entity.Player;
@@ -111,12 +113,6 @@ public class HorseCheckerThread extends Thread {
                             plugin.getLogger().log(Level.INFO, "A horse died of thirst");
                         }
                     }
-                    if (horse.getDurationSinceLastEat() > DEFECATE_INTERVAL) { //Check if the horse needs to defecate.
-                        if (!horse.hasDefecate()) {
-                            horse.defecate();
-                            database.saveHorse(horse);
-                        }
-                    }
 
                     if (horse.getWellDuration() > ILL_WAIT) { //Check the horse as not been ill too recently.
                         final double r = Math.random();
@@ -150,22 +146,12 @@ public class HorseCheckerThread extends Thread {
                     if (months >= 12 && months <= 24) {//Check if the horse can become an adult
                         Horse h = getEntityByUniqueId(horse.getUuid());
                         if (h != null) {
-//                            new BukkitRunnable() {
-//                                @Override
-//                                public void run() {
                             h.setAdult();
-//                                }
-//                            }.runTask(EquestriCraftPlugin.plugin);
                         }
                     } else if (months < 12) {
                         Horse h = getEntityByUniqueId(horse.getUuid());
                         if (h != null) {
-//                            new BukkitRunnable() {
-//                                @Override
-//                                public void run() {
                             h.setBaby();
-//                                }
-//                            }.runTask(EquestriCraftPlugin.plugin);
                         }
                     }
                     if (SHOW_TIME) {
@@ -230,6 +216,59 @@ public class HorseCheckerThread extends Thread {
 
     public void setRun(boolean run) {
         this.run = run;
+    }
+
+    public class DefecateThread extends Thread {
+
+        public DefecateThread() {
+            super("Defecate_Thread");
+        }
+
+        @Override
+        public void run() {
+            plugin.getLogger().log(Level.INFO, "Running defecate thread every 2 minutes");
+            while (run) {
+                try {
+                    Thread.sleep(120000);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(HorseCheckerThread.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                try {
+                    for (World w : Bukkit.getWorlds()) {
+                        for (Horse h : w.getEntitiesByClass(Horse.class)) {
+                            if (h == null) {
+                                continue;
+                            }
+                            MyHorse mh = database.getHorse(h.getUniqueId());
+                            if (mh == null) {
+                                continue;
+                            }
+                            if (mh.getDurationSinceLastEat() > DEFECATE_INTERVAL && !mh.hasDefecate()) {
+                                final Horse horse = h;
+                                new BukkitRunnable() {
+                                    @Override
+                                    public void run() {
+                                        try {
+                                            final Block block = horse.getLocation().add(0, -1, 0).getBlock();
+                                            if (block.getType() == Material.AIR) {
+                                                block.setType(Material.CARPET);
+                                                byte b = 12;
+                                                block.setData(b);
+                                            }
+                                        } catch (Exception e) {
+                                            plugin.getLogger().log(Level.SEVERE, null, e);
+                                        }
+                                    }
+                                }.runTask(plugin);
+                                mh.setDefecated();
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    plugin.getLogger().log(Level.SEVERE, "Error in defecate thread", e);
+                }
+            }
+        }
     }
 
     public class BuckThread extends Thread {

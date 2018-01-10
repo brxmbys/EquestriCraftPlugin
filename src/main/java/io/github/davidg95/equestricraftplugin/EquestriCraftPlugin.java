@@ -4,6 +4,7 @@
 package io.github.davidg95.equestricraftplugin;
 
 import io.github.davidg95.equestricraftplugin.HorseCheckerThread.BuckThread;
+import io.github.davidg95.equestricraftplugin.HorseCheckerThread.DefecateThread;
 import io.github.davidg95.equestricraftplugin.auctions.*;
 import io.github.davidg95.equestricraftplugin.database.*;
 import io.github.davidg95.equestricraftplugin.disciplines.*;
@@ -38,6 +39,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
 
     private HorseCheckerThread checkerThread;
     private BuckThread buckThread;
+    private DefecateThread defecateThread;
 
     public static final String MEDICINE = "Healer";
     public static final String GELDING_TOOL = "Gelding Shears";
@@ -171,6 +173,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         checkerThread.start();
         buckThread = checkerThread.new BuckThread();
         buckThread.start();
+        defecateThread = checkerThread.new DefecateThread();
+        defecateThread.start();
         getServer().getPluginManager().registerEvents(this, this);
         if (!setupEconomy()) {
             getLogger().log(Level.SEVERE, "Vault not detected, Disciplines, Auctions, Races and Food have been disabled");

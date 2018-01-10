@@ -294,24 +294,8 @@ public class MyHorse implements Serializable {
     public boolean hasDefecate() {
         return this.defecateSinceEat;
     }
-
-    /**
-     * Make the horse defecate.
-     */
-    public void defecate() {
-//        new BukkitRunnable() {
-//            @Override
-//            public void run() {
-//                if (horse != null) {
-//                    final Block block = horse.getLocation().getBlock();
-//                    if (block.getType() == Material.AIR) {
-//                        block.setType(Material.CARPET);
-//                        byte b = 12;
-//                        block.setData(b);
-//                    }
-//                }
-//            }
-//        }.runTask(EquestriCraftPlugin.plugin);
+    
+    public void setDefecated(){
         this.defecateSinceEat = true;
     }
 
@@ -343,9 +327,9 @@ public class MyHorse implements Serializable {
     }
 
     /**
-     * Get the duration since the horse last ate.
+     * Get the duration since the horse last ate in ms.
      *
-     * @return the time since the horse last ate.
+     * @return the time since the horse last ate in ms.
      */
     public long getDurationSinceLastEat() {
         return getCurrentTime() - this.lastEat;
