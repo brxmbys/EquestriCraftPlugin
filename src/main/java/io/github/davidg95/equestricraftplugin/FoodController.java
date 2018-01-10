@@ -67,7 +67,8 @@ public class FoodController implements CommandExecutor, Listener {
             if (args.length == 2) {
                 quantity = Integer.parseInt(args[1]);
             }
-            if (econ.getBalance(player) < seeds_cost * quantity) {
+            double cost = seeds_cost * quantity;
+            if (econ.getBalance(player) < cost) {
                 player.sendMessage(ChatColor.RED + "You do not have enough money");
                 return true;
             }
@@ -77,39 +78,44 @@ public class FoodController implements CommandExecutor, Listener {
             meta.setLore(createLore("Used to feed your horse"));
             seeds.setItemMeta(meta);
             player.getInventory().addItem(seeds);
-            econ.withdrawPlayer(player, seeds_cost * quantity);
-            player.sendMessage(ChatColor.GREEN + "You have been charged " + ChatColor.AQUA + "$" + seeds_cost * quantity);
+            econ.withdrawPlayer(player, cost);
+            player.sendMessage(ChatColor.GREEN + "You have been charged " + ChatColor.AQUA + "$" + cost);
         } else if (args[0].equalsIgnoreCase("buy-wheat")) {
             int quantity = 1;
             if (args.length == 2) {
                 quantity = Integer.parseInt(args[1]);
             }
-            if (econ.getBalance(player) < wheat_cost * quantity) {
+            double cost = wheat_cost * quantity;
+            if (econ.getBalance(player) < cost) {
                 player.sendMessage(ChatColor.RED + "You do not have enough money");
                 return true;
             }
-            econ.withdrawPlayer(player, wheat_cost);
             ItemStack seeds = new ItemStack(Material.WHEAT, quantity);
             ItemMeta meta = seeds.getItemMeta();
             meta.setDisplayName("Feeding Wheat");
             meta.setLore(createLore("Used to feed your horse"));
             seeds.setItemMeta(meta);
             player.getInventory().addItem(seeds);
-            econ.withdrawPlayer(player, wheat_cost * quantity);
-            player.sendMessage(ChatColor.GREEN + "You have been charged " + ChatColor.AQUA + "$" + wheat_cost * quantity);
+            econ.withdrawPlayer(player, cost);
+            player.sendMessage(ChatColor.GREEN + "You have been charged " + ChatColor.AQUA + "$" + cost);
         } else if (args[0].equalsIgnoreCase("buy-water")) {
-            if (econ.getBalance(player) < water_cost) {
+            int quantity = 1;
+            if (args.length == 2) {
+                quantity = Integer.parseInt(args[1]);
+            }
+            double cost = water_cost * quantity;
+            if (econ.getBalance(player) < cost) {
                 player.sendMessage(ChatColor.RED + "You do not have enough money");
                 return true;
             }
-            ItemStack seeds = new ItemStack(Material.WATER_BUCKET, 1);
+            ItemStack seeds = new ItemStack(Material.WATER_BUCKET, quantity);
             ItemMeta meta = seeds.getItemMeta();
             meta.setDisplayName("Drinking Water");
             meta.setLore(createLore("Give your horse a drink of water"));
             seeds.setItemMeta(meta);
             player.getInventory().addItem(seeds);
-            econ.withdrawPlayer(player, water_cost);
-            player.sendMessage(ChatColor.GREEN + "You have been charged " + ChatColor.AQUA + "$" + water_cost);
+            econ.withdrawPlayer(player, cost);
+            player.sendMessage(ChatColor.GREEN + "You have been charged " + ChatColor.AQUA + "$" + cost);
         } else {
             sender.sendMessage("Incorrect command\n"
                     + ChatColor.RESET + "/food buy-seeds - " + ChatColor.AQUA + "$" + seeds_cost + "\n"
