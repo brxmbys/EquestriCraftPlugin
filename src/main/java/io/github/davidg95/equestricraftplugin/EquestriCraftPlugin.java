@@ -1543,6 +1543,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                             }
                         }
                     } catch (Exception e) {
+                        getLogger().log(Level.SEVERE, "Error with breeding", e);
                         player.sendMessage(ChatColor.RED + "Error breeding. Error code 2");
                     }
                     break;
