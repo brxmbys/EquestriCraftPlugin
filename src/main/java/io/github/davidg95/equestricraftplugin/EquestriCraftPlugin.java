@@ -705,6 +705,22 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         } else if (args[1].equalsIgnoreCase("kill-dead")) {
                             database.killDead();
                             sender.sendMessage("Dead horses removed from database");
+                        } else if (args[1].equalsIgnoreCase("comm")) {
+                            if (sender.isOp()) {
+                                if (args.length > 2) {
+                                    String command = "";
+                                    for (int i = 2; i < args.length; i++) {
+                                        command += args[i] + " ";
+                                    }
+                                    Object res = database.submitCommand(command);
+                                    if (res == null) {
+                                        sender.sendMessage("No return");
+                                        return true;
+                                    }
+                                    sender.sendMessage(res.toString());
+                                }
+                            }
+                            return true;
                         } else {
                             sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "db command '" + args[1] + "' not recognised");
                         }
@@ -788,12 +804,13 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                                 sender.sendMessage("No horse selected");
                                 return true;
                             }
-                            Horse h = getEntityByUniqueId(uuid);
+                            final Horse h = getEntityByUniqueId(uuid);
                             if (args[1].equalsIgnoreCase("foal")) {
                                 h.setBaby();
                             } else if (args[1].equalsIgnoreCase("adult")) {
                                 h.setAdult();
                             }
+                            sender.sendMessage("Age set");
                             return true;
                         }
                         return true;

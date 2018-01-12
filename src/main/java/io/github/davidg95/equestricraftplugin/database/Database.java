@@ -1079,6 +1079,38 @@ public abstract class Database {
         return -1;
     }
 
+    public Object submitCommand(String command) {
+        Connection conn = getSQLConnection();
+        Statement s = null;
+        ResultSet rs;
+
+        final long stamp = lock.writeLock();
+        try {
+            s = conn.createStatement();
+            rs = s.executeQuery(command);
+            return rs.getInt(1);
+        } catch (SQLException ex) {
+            plugin.getLogger().log(Level.SEVERE, "Error submitting command", ex);
+        } finally {
+            try {
+                if (s != null) {
+                    s.close();
+                } else {
+                    plugin.getLogger().log(Level.SEVERE, "Error closing statement");
+                }
+                if (conn != null) {
+                    conn.close();
+                } else {
+                    plugin.getLogger().log(Level.SEVERE, "Error closing connection");
+                }
+            } catch (SQLException ex) {
+                plugin.getLogger().log(Level.SEVERE, "Error closing connection", ex);
+            }
+            lock.unlockWrite(stamp);
+        }
+        return null;
+    }
+
     private void close(Statement ps, ResultSet rs) {
         try {
             if (ps != null) {
