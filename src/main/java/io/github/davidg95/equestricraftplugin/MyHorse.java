@@ -26,13 +26,12 @@ public class MyHorse implements Serializable {
     private long wellSince;
     private long lastBreed;
     private boolean defecateSinceEat;
-    private HorseBreed breed;
     private HorseBreed[] breedArr;
     private volatile long birthTime;
     private Personality[] personality;
     private int dieat;
     private Illness illness;
-    private boolean shod;
+    private boolean shoed;
     private int trainingLevel;
 
     /**
@@ -92,7 +91,7 @@ public class MyHorse implements Serializable {
         this.illness = null;
         h.setBaby();
         h.setAgeLock(true);
-        shod = false;
+        shoed = false;
         trainingLevel = 1;
     }
 
@@ -111,7 +110,7 @@ public class MyHorse implements Serializable {
         this.personality = person;
         this.dieat = (int) dieat;
         this.illness = illness;
-        this.shod = shoed;
+        this.shoed = shoed;
         this.trainingLevel = trainingLevel;
     }
 
@@ -148,7 +147,7 @@ public class MyHorse implements Serializable {
      *
      * @return in between 300 and 420
      */
-    public static int randomDieAt() {
+    private static int randomDieAt() {
         double r = Math.random();
         return (int) (r * 120) + 300;
     }
@@ -168,7 +167,7 @@ public class MyHorse implements Serializable {
      *
      * @return the gender.
      */
-    public static int generateRandomGender() {
+    private static int generateRandomGender() {
         final double r = Math.random();
         if (r < 0.5) {
             return STALLION;
@@ -209,16 +208,8 @@ public class MyHorse implements Serializable {
         return illSince;
     }
 
-    public void setIllSince(long illSince) {
-        this.illSince = illSince;
-    }
-
     public long getWellSince() {
         return wellSince;
-    }
-
-    public void setWellSince(long wellSince) {
-        this.wellSince = wellSince;
     }
 
     public long getLastBreed() {
@@ -294,8 +285,8 @@ public class MyHorse implements Serializable {
     public boolean hasDefecate() {
         return this.defecateSinceEat;
     }
-    
-    public void setDefecated(){
+
+    public void setDefecated() {
         this.defecateSinceEat = true;
     }
 
@@ -410,10 +401,7 @@ public class MyHorse implements Serializable {
      */
     public HorseBreed[] getBreed() {
         if (breedArr == null || breedArr.length == 0) {
-            if (breed == null) {
-                throw new NullPointerException("This horse has not breed");
-            }
-            return new HorseBreed[]{breed, breed};
+            throw new NullPointerException("This horse has no breed");
         }
         if (breedArr[0] == null) {
             breedArr[0] = HorseBreed.randomType();
@@ -427,10 +415,6 @@ public class MyHorse implements Serializable {
         return breedArr;
     }
 
-    public HorseBreed getOldBreed() {
-        return breed;
-    }
-
     /**
      * Set the breed of the horse.
      *
@@ -438,27 +422,6 @@ public class MyHorse implements Serializable {
      */
     public void setBreed(HorseBreed[] br) {
         this.breedArr = br;
-//        try {
-//            if (this.horse == null) {
-//                return;
-//            }
-//        } catch (Exception e) {
-//            return;
-//        }
-//        if (br[0] == HorseBreed.Donkey) {
-//            this.horse.setVariant(Variant.DONKEY);
-//        } else if (br[0] == HorseBreed.Mule) {
-//            this.horse.setVariant(Variant.MULE);
-//        } else if (br[0] == HorseBreed.FjordHorse) {
-//            double d = Math.random();
-//            if (d > 0.5) {
-//                this.horse.setVariant(Variant.SKELETON_HORSE);
-//            } else {
-//                this.horse.setVariant(Variant.UNDEAD_HORSE);
-//            }
-//        } else {
-//            this.horse.setVariant(Variant.HORSE);
-//        }
     }
 
     /**
@@ -575,12 +538,12 @@ public class MyHorse implements Serializable {
         this.illness = illness;
     }
 
-    public boolean isShod() {
-        return shod;
+    public boolean isShoed() {
+        return shoed;
     }
 
-    public void setShod(boolean shod) {
-        this.shod = shod;
+    public void setShoed(boolean shoed) {
+        this.shoed = shoed;
     }
 
     public int getTrainingLevel() {
@@ -641,12 +604,12 @@ public class MyHorse implements Serializable {
                 + getPersonalities()[1].toString() + "',"
                 + getDieAt() + ",'"
                 + getIllnessString() + "',"
-                + (isShod() ? "1" : "0") + ","
+                + (isShoed() ? "1" : "0") + ","
                 + getTrainingLevel() + ")";
     }
 
     @Override
     public String toString() {
-        return "Horse";
+        return uuid.toString();
     }
 }

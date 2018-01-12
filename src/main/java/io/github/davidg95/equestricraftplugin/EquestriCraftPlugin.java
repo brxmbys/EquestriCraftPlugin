@@ -779,6 +779,25 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         }
                     }
                     sender.sendMessage(count + " horses added");
+                } else if (args[0].equalsIgnoreCase("age")) {
+                    if (args.length >= 2) {
+                        final Player player = (Player) sender;
+                        if (player.isOp()) {
+                            UUID uuid = UUID.fromString(player.getMetadata("horse").get(0).asString());
+                            if (uuid == null) {
+                                sender.sendMessage("No horse selected");
+                                return true;
+                            }
+                            Horse h = getEntityByUniqueId(uuid);
+                            if (args[1].equalsIgnoreCase("foal")) {
+                                h.setBaby();
+                            } else if (args[1].equalsIgnoreCase("adult")) {
+                                h.setAdult();
+                            }
+                            return true;
+                        }
+                        return true;
+                    }
                 }
             }
             return true;
@@ -1148,7 +1167,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                             boolean hunger = horse.isHungry();
                             boolean thirst = horse.isThirsty();
                             boolean vaccination = horse.isVaccinated();
-                            boolean shod = horse.isShod();
+                            boolean shod = horse.isShoed();
                             String genderStr = ChatColor.BOLD + "Gender: " + ChatColor.RESET;
                             switch (gender) {
                                 case MyHorse.STALLION:

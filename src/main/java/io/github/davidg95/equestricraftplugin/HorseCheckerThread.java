@@ -71,7 +71,6 @@ public class HorseCheckerThread extends Thread {
         while (run) {
             final long start = new Date().getTime();
             int horsesChecked = 0;
-            int nulls = 0;
             try {
                 List<MyHorse> horses = database.getHorses(iter);
                 if (iter == 3) {
@@ -82,13 +81,6 @@ public class HorseCheckerThread extends Thread {
                 plugin.getLogger().log(Level.INFO, "Checking " + horses.size() + " horses...");
                 for (MyHorse horse : horses) {
                     horsesChecked++;
-                    if (horse == null) {
-                        nulls++;
-                        if (nulls % 50 == 0) {
-                            plugin.getLogger().log(Level.WARNING, nulls + " null horses");
-                        }
-                        continue;
-                    }
                     if (horse.isSick() && horse.getIllDuration() > SICK_LIMIT) { //Check if the horse has been sick for too long.
                         Horse h = getEntityByUniqueId(horse.getUuid());
                         if (h != null) {

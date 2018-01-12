@@ -416,7 +416,7 @@ public abstract class Database {
                     + h.getPersonalities()[1].name() + "',"
                     + h.getDieAt() + ",'"
                     + h.getIllnessString() + "',"
-                    + (h.isShod() ? "1" : "0") + ","
+                    + (h.isShoed() ? "1" : "0") + ","
                     + h.getTrainingLevel() + ")");
             ps.executeUpdate();
         } catch (SQLException ex) {
@@ -724,7 +724,7 @@ public abstract class Database {
                     + "', person2 = '" + h.getPersonalities()[1].name()
                     + "', dieat = " + h.getDieAt()
                     + ", illness = '" + h.getIllnessString()
-                    + "', shoed = " + (h.isShod() ? "1" : "0")
+                    + "', shoed = " + (h.isShoed() ? "1" : "0")
                     + ", training_level = " + h.getTrainingLevel()
                     + " WHERE uuid = '" + h.getUuid() + "'");
             ps.executeUpdate();

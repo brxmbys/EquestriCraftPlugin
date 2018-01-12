@@ -223,7 +223,8 @@ public class FoodController implements CommandExecutor, Listener {
         UUID uuid = horse.getUniqueId();
         database.waterHorse(uuid);
         if (inHand.getAmount() == 1) {
-            player.getInventory().remove(inHand);
+            int slot = player.getInventory().getHeldItemSlot();
+            player.getInventory().setItem(slot, new ItemStack(Material.AIR));
         } else {
             inHand.setAmount(inHand.getAmount() - 1);
         }
