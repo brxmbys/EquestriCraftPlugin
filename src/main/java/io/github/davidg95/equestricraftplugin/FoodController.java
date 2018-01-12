@@ -222,7 +222,11 @@ public class FoodController implements CommandExecutor, Listener {
         final Horse horse = (Horse) event.getRightClicked();
         UUID uuid = horse.getUniqueId();
         database.waterHorse(uuid);
-        inHand.setType(Material.BUCKET);
+        if (inHand.getAmount() == 1) {
+            player.getInventory().remove(inHand);
+        } else {
+            inHand.setAmount(inHand.getAmount() - 1);
+        }
         player.sendMessage(ChatColor.GREEN + "Your horse has had a drink");
     }
 }
