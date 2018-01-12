@@ -9,7 +9,6 @@ import io.github.davidg95.equestricraftplugin.Illness;
 import io.github.davidg95.equestricraftplugin.MyHorse;
 import io.github.davidg95.equestricraftplugin.Personality;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -47,9 +46,9 @@ public abstract class Database {
     public void initialize() {
         connection = getSQLConnection();
         try {
-            PreparedStatement ps = connection.prepareStatement("SELECT * FROM " + table);
-            ResultSet rs = ps.executeQuery();
-            close(ps, rs);
+            Statement s = connection.createStatement();
+            ResultSet rs = s.executeQuery("SELECT * FROM " + table);
+            close(s, rs);
         } catch (SQLException ex) {
             plugin.getLogger().log(Level.SEVERE, "Unable to retrieve connection", ex);
         }
@@ -57,14 +56,14 @@ public abstract class Database {
 
     public int hungryHorses() {
         Connection conn = null;
-        PreparedStatement ps = null;
+        Statement s = null;
 
         final long stamp = lock.writeLock();
         try {
             conn = getSQLConnection();
-            ps = conn.prepareStatement("SELECT COUNT(*) FROM " + table + " WHERE " + new Date().getTime() + " - last_eat > 604800000");
+            s = conn.createStatement();
 
-            ResultSet rs = ps.executeQuery();
+            ResultSet rs = s.executeQuery("SELECT COUNT(*) FROM " + table + " WHERE " + new Date().getTime() + " - last_eat > 604800000");
             while (rs.next()) {
                 return rs.getInt(1);
             }
@@ -73,8 +72,8 @@ public abstract class Database {
         } finally {
             lock.unlockWrite(stamp);
             try {
-                if (ps != null) {
-                    ps.close();
+                if (s != null) {
+                    s.close();
                 }
                 if (conn != null) {
                     conn.close();
@@ -88,14 +87,14 @@ public abstract class Database {
 
     public int thirstyHorses() {
         Connection conn = null;
-        PreparedStatement ps = null;
+        Statement s = null;
 
         final long stamp = lock.writeLock();
         try {
             conn = getSQLConnection();
-            ps = conn.prepareStatement("SELECT COUNT(*) FROM " + table + " WHERE " + new Date().getTime() + " - last_drink > 604800000");
+            s = conn.createStatement();
 
-            ResultSet rs = ps.executeQuery();
+            ResultSet rs = s.executeQuery("SELECT COUNT(*) FROM " + table + " WHERE " + new Date().getTime() + " - last_drink > 604800000");
             while (rs.next()) {
                 return rs.getInt(1);
             }
@@ -104,8 +103,8 @@ public abstract class Database {
         } finally {
             lock.unlockWrite(stamp);
             try {
-                if (ps != null) {
-                    ps.close();
+                if (s != null) {
+                    s.close();
                 }
                 if (conn != null) {
                     conn.close();
@@ -119,14 +118,14 @@ public abstract class Database {
 
     public int illHorses() {
         Connection conn = null;
-        PreparedStatement ps = null;
+        Statement s = null;
 
         final long stamp = lock.writeLock();
         try {
             conn = getSQLConnection();
-            ps = conn.prepareStatement("SELECT COUNT(*) FROM " + table + " WHERE ill_since > well_since");
+            s = conn.createStatement();
 
-            ResultSet rs = ps.executeQuery();
+            ResultSet rs = s.executeQuery("SELECT COUNT(*) FROM " + table + " WHERE ill_since > well_since");
             while (rs.next()) {
                 return rs.getInt(1);
             }
@@ -135,8 +134,8 @@ public abstract class Database {
         } finally {
             lock.unlockWrite(stamp);
             try {
-                if (ps != null) {
-                    ps.close();
+                if (s != null) {
+                    s.close();
                 }
                 if (conn != null) {
                     conn.close();
@@ -150,14 +149,14 @@ public abstract class Database {
 
     public int vaccedHorses() {
         Connection conn = null;
-        PreparedStatement ps = null;
+        Statement s = null;
 
         final long stamp = lock.writeLock();
         try {
             conn = getSQLConnection();
-            ps = conn.prepareStatement("SELECT COUNT(*) FROM " + table + " WHERE " + new Date().getTime() + " - vaccinationTime > 2419200000");
+            s = conn.createStatement();
 
-            ResultSet rs = ps.executeQuery();
+            ResultSet rs = s.executeQuery("SELECT COUNT(*) FROM " + table + " WHERE " + new Date().getTime() + " - vaccinationTime > 2419200000");
             while (rs.next()) {
                 return rs.getInt(1);
             }
@@ -166,8 +165,8 @@ public abstract class Database {
         } finally {
             lock.unlockWrite(stamp);
             try {
-                if (ps != null) {
-                    ps.close();
+                if (s != null) {
+                    s.close();
                 }
                 if (conn != null) {
                     conn.close();
@@ -181,14 +180,14 @@ public abstract class Database {
 
     public int shoedHorses() {
         Connection conn = null;
-        PreparedStatement ps = null;
+        Statement s = null;
 
         final long stamp = lock.writeLock();
         try {
             conn = getSQLConnection();
-            ps = conn.prepareStatement("SELECT COUNT(*) FROM " + table + " WHERE shoed = 1");
+            s = conn.createStatement();
 
-            ResultSet rs = ps.executeQuery();
+            ResultSet rs = s.executeQuery("SELECT COUNT(*) FROM " + table + " WHERE shoed = 1");
             while (rs.next()) {
                 return rs.getInt(1);
             }
@@ -197,8 +196,8 @@ public abstract class Database {
         } finally {
             lock.unlockWrite(stamp);
             try {
-                if (ps != null) {
-                    ps.close();
+                if (s != null) {
+                    s.close();
                 }
                 if (conn != null) {
                     conn.close();
@@ -212,14 +211,14 @@ public abstract class Database {
 
     public int oldHorses(int months) {
         Connection conn = null;
-        PreparedStatement ps = null;
+        Statement s = null;
 
         final long stamp = lock.writeLock();
         try {
             conn = getSQLConnection();
-            ps = conn.prepareStatement("SELECT COUNT(*) FROM " + table + " WHERE " + new Date().getTime() + " - birth > " + months + " * 2.5 * 24 * 60 * 60 * 1000");
+            s = conn.createStatement();
 
-            ResultSet rs = ps.executeQuery();
+            ResultSet rs = s.executeQuery("SELECT COUNT(*) FROM " + table + " WHERE " + new Date().getTime() + " - birth > " + months + " * 2.5 * 24 * 60 * 60 * 1000");
             while (rs.next()) {
                 return rs.getInt(1);
             }
@@ -228,8 +227,8 @@ public abstract class Database {
         } finally {
             lock.unlockWrite(stamp);
             try {
-                if (ps != null) {
-                    ps.close();
+                if (s != null) {
+                    s.close();
                 }
                 if (conn != null) {
                     conn.close();
@@ -243,14 +242,14 @@ public abstract class Database {
 
     public int deadHorses() {
         Connection conn = null;
-        PreparedStatement ps = null;
+        Statement s = null;
 
         final long stamp = lock.writeLock();
         try {
             conn = getSQLConnection();
-            ps = conn.prepareStatement("SELECT COUNT(*) FROM " + table + " WHERE ill_since > well_since AND " + new Date().getTime() + " - ill_since > 7 * 24 * 60 * 60 * 1000");
+            s = conn.createStatement();
 
-            ResultSet rs = ps.executeQuery();
+            ResultSet rs = s.executeQuery("SELECT COUNT(*) FROM " + table + " WHERE ill_since > well_since AND " + new Date().getTime() + " - ill_since > 7 * 24 * 60 * 60 * 1000");
             while (rs.next()) {
                 return rs.getInt(1);
             }
@@ -259,8 +258,8 @@ public abstract class Database {
         } finally {
             lock.unlockWrite(stamp);
             try {
-                if (ps != null) {
-                    ps.close();
+                if (s != null) {
+                    s.close();
                 }
                 if (conn != null) {
                     conn.close();
@@ -274,21 +273,21 @@ public abstract class Database {
 
     public int killDead() {
         Connection conn = null;
-        PreparedStatement ps = null;
+        Statement s = null;
 
         final long stamp = lock.writeLock();
         try {
             conn = getSQLConnection();
-            ps = conn.prepareStatement("DELETE FROM " + table + " WHERE ill_since > well_since AND " + new Date().getTime() + " - ill_since > 7 * 24 * 60 * 60 * 1000");
+            s = conn.createStatement();
 
-            return ps.executeUpdate();
+            return s.executeUpdate("DELETE FROM " + table + " WHERE ill_since > well_since AND " + new Date().getTime() + " - ill_since > 7 * 24 * 60 * 60 * 1000");
         } catch (SQLException ex) {
             plugin.getLogger().log(Level.SEVERE, "Error getting horse count", ex);
         } finally {
             lock.unlockWrite(stamp);
             try {
-                if (ps != null) {
-                    ps.close();
+                if (s != null) {
+                    s.close();
                 }
                 if (conn != null) {
                     conn.close();
@@ -302,14 +301,14 @@ public abstract class Database {
 
     public int uuidCheck(UUID uuid) {
         Connection conn = null;
-        PreparedStatement ps = null;
+        Statement s = null;
 
         final long stamp = lock.writeLock();
         try {
             conn = getSQLConnection();
-            ps = conn.prepareStatement("SELECT COUNT(*) FROM " + table + " WHERE '" + uuid.toString() + "' = uuid");
+            s = conn.createStatement();
 
-            ResultSet rs = ps.executeQuery();
+            ResultSet rs = s.executeQuery("SELECT COUNT(*) FROM " + table + " WHERE '" + uuid.toString() + "' = uuid");
             while (rs.next()) {
                 return rs.getInt(1);
             }
@@ -318,8 +317,8 @@ public abstract class Database {
         } finally {
             lock.unlockWrite(stamp);
             try {
-                if (ps != null) {
-                    ps.close();
+                if (s != null) {
+                    s.close();
                 }
                 if (conn != null) {
                     conn.close();
@@ -333,21 +332,21 @@ public abstract class Database {
 
     public void removeHorse(UUID uuid) {
         Connection conn = null;
-        PreparedStatement ps = null;
+        Statement s = null;
 
         final long stamp = lock.writeLock();
         try {
             conn = getSQLConnection();
-            ps = conn.prepareStatement("DELETE FROM " + table + " WHERE uuid='" + uuid.toString() + "'");
-            ps.executeUpdate();
+            s = conn.createStatement();
+            s.executeUpdate("DELETE FROM " + table + " WHERE uuid='" + uuid.toString() + "'");
             plugin.getLogger().log(Level.INFO, "Horse " + uuid + " has been removed from the database");
         } catch (SQLException ex) {
             plugin.getLogger().log(Level.SEVERE, "Error removing horse", ex);
         } finally {
             lock.unlockWrite(stamp);
             try {
-                if (ps != null) {
-                    ps.close();
+                if (s != null) {
+                    s.close();
                 }
                 if (conn != null) {
                     conn.close();
@@ -360,18 +359,20 @@ public abstract class Database {
 
     public int horseCount(int gender) {
         Connection conn = null;
-        PreparedStatement ps = null;
+        Statement s = null;
 
         final long stamp = lock.writeLock();
         try {
             conn = getSQLConnection();
+            s = conn.createStatement();
+            String query;
             if (gender == -1) {
-                ps = conn.prepareStatement("SELECT COUNT(*) FROM " + table);
+                query = "SELECT COUNT(*) FROM " + table;
             } else {
-                ps = conn.prepareStatement("SELECT COUNT(*) FROM " + table + " WHERE gender = " + gender);
+                query = "SELECT COUNT(*) FROM " + table + " WHERE gender = " + gender;
             }
 
-            ResultSet rs = ps.executeQuery();
+            ResultSet rs = s.executeQuery(query);
             while (rs.next()) {
                 return rs.getInt(1);
             }
@@ -380,8 +381,8 @@ public abstract class Database {
         } finally {
             lock.unlockWrite(stamp);
             try {
-                if (ps != null) {
-                    ps.close();
+                if (s != null) {
+                    s.close();
                 }
                 if (conn != null) {
                     conn.close();
@@ -395,11 +396,12 @@ public abstract class Database {
 
     public void addHorse(MyHorse h) {
         Connection conn = getSQLConnection();
-        PreparedStatement ps = null;
+        Statement s = null;
 
         final long stamp = lock.writeLock();
         try {
-            ps = conn.prepareStatement("INSERT INTO " + table + " (uuid, gender, vaccinationTime, last_eat, last_drink, ill_since, well_since, last_breed, defacate_since_eat, breed1, breed2, birth, person1, person2, dieat, illness, shoed, training_level) VALUES ('"
+            s = conn.createStatement();
+            s.executeUpdate("INSERT INTO " + table + " (uuid, gender, vaccinationTime, last_eat, last_drink, ill_since, well_since, last_breed, defacate_since_eat, breed1, breed2, birth, person1, person2, dieat, illness, shoed, training_level) VALUES ('"
                     + h.getUuid() + "',"
                     + h.getGender() + ","
                     + h.getVaccinationTime() + ","
@@ -418,14 +420,13 @@ public abstract class Database {
                     + h.getIllnessString() + "',"
                     + (h.isShoed() ? "1" : "0") + ","
                     + h.getTrainingLevel() + ")");
-            ps.executeUpdate();
         } catch (SQLException ex) {
             plugin.getLogger().log(Level.SEVERE, "Error adding new horse", ex);
         } finally {
             lock.unlockWrite(stamp);
             try {
-                if (ps != null) {
-                    ps.close();
+                if (s != null) {
+                    s.close();
                 }
                 if (conn != null) {
                     conn.close();
@@ -438,21 +439,21 @@ public abstract class Database {
 
     public void changeGender(UUID uuid, int gender) {
         Connection conn = getSQLConnection();
-        PreparedStatement ps = null;
+        Statement s = null;
 
         final long stamp = lock.writeLock();
         try {
-            ps = conn.prepareStatement("UPDATE " + table
+            s = conn.createStatement();
+            s.executeUpdate("UPDATE " + table
                     + " SET gender = " + gender
                     + " WHERE uuid = '" + uuid + "'");
-            ps.executeUpdate();
         } catch (SQLException ex) {
             plugin.getLogger().log(Level.SEVERE, "Error saving horse", ex);
         } finally {
             lock.unlockWrite(stamp);
             try {
-                if (ps != null) {
-                    ps.close();
+                if (s != null) {
+                    s.close();
                 }
                 if (conn != null) {
                     conn.close();
@@ -465,22 +466,22 @@ public abstract class Database {
 
     public void changeBreed(UUID uuid, HorseBreed b1, HorseBreed b2) {
         Connection conn = getSQLConnection();
-        PreparedStatement ps = null;
+        Statement s = null;
 
         final long stamp = lock.writeLock();
         try {
-            ps = conn.prepareStatement("UPDATE " + table
+            s = conn.createStatement();
+            s.executeUpdate("UPDATE " + table
                     + " SET breed1 = " + b1.name()
                     + ", SET breed2 = " + b2.name()
                     + " WHERE uuid = '" + uuid + "'");
-            ps.executeUpdate();
         } catch (SQLException ex) {
             plugin.getLogger().log(Level.SEVERE, "Error saving horse", ex);
         } finally {
             lock.unlockWrite(stamp);
             try {
-                if (ps != null) {
-                    ps.close();
+                if (s != null) {
+                    s.close();
                 }
                 if (conn != null) {
                     conn.close();
@@ -493,22 +494,22 @@ public abstract class Database {
 
     public void changePersonality(UUID uuid, Personality p1, Personality p2) {
         Connection conn = getSQLConnection();
-        PreparedStatement ps = null;
+        Statement s = null;
 
         final long stamp = lock.writeLock();
         try {
-            ps = conn.prepareStatement("UPDATE " + table
+            s = conn.createStatement();
+            s.executeUpdate("UPDATE " + table
                     + " SET person1 = " + p1.name()
                     + ", SET person2 = " + p2.name()
                     + " WHERE uuid = '" + uuid + "'");
-            ps.executeUpdate();
         } catch (SQLException ex) {
             plugin.getLogger().log(Level.SEVERE, "Error saving horse", ex);
         } finally {
             lock.unlockWrite(stamp);
             try {
-                if (ps != null) {
-                    ps.close();
+                if (s != null) {
+                    s.close();
                 }
                 if (conn != null) {
                     conn.close();
@@ -704,11 +705,12 @@ public abstract class Database {
 
     public void saveHorse(MyHorse h) {
         Connection conn = getSQLConnection();
-        PreparedStatement ps = null;
+        Statement s = null;
 
         final long stamp = lock.writeLock();
         try {
-            ps = conn.prepareStatement("UPDATE " + table
+            s = conn.createStatement();
+            s.executeUpdate("UPDATE " + table
                     + " SET gender = " + h.getGender()
                     + ", vaccinationTime = " + h.getVaccinationTime()
                     + ", last_eat = " + h.getLastEat()
@@ -727,14 +729,13 @@ public abstract class Database {
                     + "', shoed = " + (h.isShoed() ? "1" : "0")
                     + ", training_level = " + h.getTrainingLevel()
                     + " WHERE uuid = '" + h.getUuid() + "'");
-            ps.executeUpdate();
         } catch (SQLException ex) {
             plugin.getLogger().log(Level.SEVERE, "Error saving horse", ex);
         } finally {
             lock.unlockWrite(stamp);
             try {
-                if (ps != null) {
-                    ps.close();
+                if (s != null) {
+                    s.close();
                 }
                 if (conn != null) {
                     conn.close();
@@ -876,14 +877,14 @@ public abstract class Database {
 
     public boolean hadBredRecently(Player p) {
         Connection conn = getSQLConnection();
-        PreparedStatement ps = null;
+        Statement s = null;
         ResultSet rs;
 
         try {
             conn = getSQLConnection();
-            ps = conn.prepareStatement("SELECT * FROM " + breedTable + " WHERE UUID = '" + p.getUniqueId().toString() + "' ORDER BY time DESC");
+            s = conn.createStatement();
 
-            rs = ps.executeQuery();
+            rs = s.executeQuery("SELECT * FROM " + breedTable + " WHERE UUID = '" + p.getUniqueId().toString() + "' ORDER BY time DESC");
             while (rs.next()) {
                 long breedTime = rs.getLong("time");
                 return new Date().getTime() < breedTime;
@@ -892,8 +893,8 @@ public abstract class Database {
             plugin.getLogger().log(Level.SEVERE, "DB Error", ex);
         } finally {
             try {
-                if (ps != null) {
-                    ps.close();
+                if (s != null) {
+                    s.close();
                 }
                 if (conn != null) {
                     conn.close();
@@ -907,18 +908,18 @@ public abstract class Database {
 
     public void breedNow(Player p) {
         Connection conn = null;
-        PreparedStatement ps = null;
+        Statement s = null;
 
         try {
             conn = getSQLConnection();
-            ps = conn.prepareStatement("INSERT INTO " + breedTable + " (uuid, time) VALUES('" + p.getUniqueId() + "'," + new Date().getTime() + ")");
-            ps.executeUpdate();
+            s = conn.createStatement();
+            s.executeUpdate("INSERT INTO " + breedTable + " (uuid, time) VALUES('" + p.getUniqueId() + "'," + new Date().getTime() + ")");
         } catch (SQLException ex) {
             plugin.getLogger().log(Level.SEVERE, "DB Error", ex);
         } finally {
             try {
-                if (ps != null) {
-                    ps.close();
+                if (s != null) {
+                    s.close();
                 }
                 if (conn != null) {
                     conn.close();
@@ -931,13 +932,13 @@ public abstract class Database {
 
     public int getTotalBreeds(OfflinePlayer p) {
         Connection conn = getSQLConnection();
-        PreparedStatement ps = null;
+        Statement s = null;
         ResultSet rs;
 
         try {
-            ps = conn.prepareStatement("SELECT COUNT(*) FROM " + breedTable + " WHERE UUID = '" + p.getUniqueId().toString() + "'");
+            s = conn.createStatement();
 
-            rs = ps.executeQuery();
+            rs = s.executeQuery("SELECT COUNT(*) FROM " + breedTable + " WHERE UUID = '" + p.getUniqueId().toString() + "'");
             while (rs.next()) {
                 return rs.getInt(1);
             }
@@ -945,8 +946,8 @@ public abstract class Database {
             plugin.getLogger().log(Level.SEVERE, "DB Error", ex);
         } finally {
             try {
-                if (ps != null) {
-                    ps.close();
+                if (s != null) {
+                    s.close();
                 }
                 if (conn != null) {
                     conn.close();
@@ -960,13 +961,13 @@ public abstract class Database {
 
     public long getLastBreed(OfflinePlayer p) {
         Connection conn = getSQLConnection();
-        PreparedStatement ps = null;
+        Statement s = null;
         ResultSet rs;
 
         try {
-            ps = conn.prepareStatement("SELECT * FROM " + breedTable + " WHERE UUID = '" + p.getUniqueId().toString() + "' ORDER BY time DESC");
+            s = conn.createStatement();
 
-            rs = ps.executeQuery();
+            rs = s.executeQuery("SELECT * FROM " + breedTable + " WHERE UUID = '" + p.getUniqueId().toString() + "' ORDER BY time DESC");
             while (rs.next()) {
                 return rs.getLong("time");
             }
@@ -974,8 +975,8 @@ public abstract class Database {
             plugin.getLogger().log(Level.SEVERE, "DB Error", ex);
         } finally {
             try {
-                if (ps != null) {
-                    ps.close();
+                if (s != null) {
+                    s.close();
                 }
                 if (conn != null) {
                     conn.close();
@@ -989,22 +990,21 @@ public abstract class Database {
 
     public void removeHungerAndThrist() {
         Connection conn = null;
-        PreparedStatement ps = null;
-        ResultSet rs = null;
+        Statement s = null;
 
         long now = new Date().getTime();
 
         try {
             conn = getSQLConnection();
-            ps = conn.prepareStatement("UPDATE " + table + " SET last_eat = " + now + ", last_drink= " + now);
+            s = conn.createStatement();
 
-            ps.executeUpdate();
+            s.executeUpdate("UPDATE " + table + " SET last_eat = " + now + ", last_drink= " + now);
         } catch (SQLException ex) {
             plugin.getLogger().log(Level.SEVERE, "DB Error", ex);
         } finally {
             try {
-                if (ps != null) {
-                    ps.close();
+                if (s != null) {
+                    s.close();
                 }
                 if (conn != null) {
                     conn.close();
@@ -1017,22 +1017,21 @@ public abstract class Database {
 
     public void cureAll() {
         Connection conn = null;
-        PreparedStatement ps = null;
-        ResultSet rs = null;
+        Statement s = null;
 
         long now = new Date().getTime();
 
         try {
             conn = getSQLConnection();
-            ps = conn.prepareStatement("UPDATE " + table + " SET well_since = " + now);
+            s = conn.createStatement();
 
-            ps.executeUpdate();
+            s.executeUpdate("UPDATE " + table + " SET well_since = " + now);
         } catch (SQLException ex) {
             plugin.getLogger().log(Level.SEVERE, "DB Error", ex);
         } finally {
             try {
-                if (ps != null) {
-                    ps.close();
+                if (s != null) {
+                    s.close();
                 }
                 if (conn != null) {
                     conn.close();
@@ -1080,7 +1079,7 @@ public abstract class Database {
         return -1;
     }
 
-    private void close(PreparedStatement ps, ResultSet rs) {
+    private void close(Statement ps, ResultSet rs) {
         try {
             if (ps != null) {
                 ps.close();
