@@ -171,8 +171,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         checkerThread.start();
         buckThread = checkerThread.new BuckThread();
         buckThread.start();
-//        defecateThread = checkerThread.new DefecateThread();
-//        defecateThread.start();
+        defecateThread = checkerThread.new DefecateThread();
+        defecateThread.start();
         getServer().getPluginManager().registerEvents(this, this);
         if (!setupEconomy()) {
             getLogger().log(Level.SEVERE, "Vault not detected, Disciplines, Auctions, Races and Food have been disabled");

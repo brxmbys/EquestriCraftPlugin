@@ -221,43 +221,31 @@ public class HorseCheckerThread extends Thread {
             plugin.getLogger().log(Level.INFO, "Running defecate thread every 2 minutes");
             while (run) {
                 try {
-                    Thread.sleep(120000);
-                } catch (InterruptedException ex) {
-                    Logger.getLogger(HorseCheckerThread.class.getName()).log(Level.SEVERE, null, ex);
-                }
-                try {
-                    for (World w : Bukkit.getWorlds()) {
-                        for (Horse h : w.getEntitiesByClass(Horse.class)) {
-                            if (h == null) {
-                                continue;
-                            }
-                            MyHorse mh = database.getHorse(h.getUniqueId());
-                            if (mh == null) {
-                                continue;
-                            }
-                            if (mh.getDurationSinceLastEat() > DEFECATE_INTERVAL && !mh.hasDefecate()) {
-                                final Horse horse = h;
-                                new BukkitRunnable() {
-                                    @Override
-                                    public void run() {
-                                        try {
-                                            final Block block = horse.getLocation().add(0, -1, 0).getBlock();
-                                            if (block.getType() == Material.AIR) {
-                                                block.setType(Material.CARPET);
-                                                byte b = 12;
-                                                block.setData(b);
-                                            }
-                                        } catch (Exception e) {
-                                            plugin.getLogger().log(Level.SEVERE, null, e);
-                                        }
+                    new BukkitRunnable() {
+                        @Override
+                        public void run() {
+                            for (World world : Bukkit.getWorlds()) {
+                                for (Horse h : world.getEntitiesByClass(Horse.class)) {
+                                    MyHorse mh = database.getHorse(h.getUniqueId());
+                                    if (mh == null) {
+                                        continue;
                                     }
-                                }.runTask(plugin);
-                                mh.setDefecated();
+                                    if (mh.getDurationSinceLastEat() > DEFECATE_INTERVAL && !mh.hasDefecate()) {
+                                        final Block block = h.getLocation().add(0, -1, 0).getBlock();
+                                        if (block.getType() == Material.AIR) {
+                                            block.setType(Material.CARPET);
+                                            byte b = 12;
+                                            block.setData(b);
+                                        }
+                                        database.defecateHorse(mh.getUuid());
+                                    }
+                                }
                             }
                         }
-                    }
-                } catch (Exception e) {
-                    plugin.getLogger().log(Level.SEVERE, "Error in defecate thread", e);
+                    }.runTask(plugin);
+                    Thread.sleep(1200000);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(HorseCheckerThread.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
         }

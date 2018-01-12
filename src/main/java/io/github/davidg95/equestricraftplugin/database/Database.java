@@ -17,6 +17,7 @@ import java.util.LinkedList;
 import java.util.UUID;
 import java.util.concurrent.locks.StampedLock;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
@@ -1088,7 +1089,9 @@ public abstract class Database {
         try {
             s = conn.createStatement();
             rs = s.executeQuery(command);
-            return rs.getInt(1);
+            while (rs.next()) {
+                return rs.getObject(1);
+            }
         } catch (SQLException ex) {
             plugin.getLogger().log(Level.SEVERE, "Error submitting command", ex);
         } finally {
@@ -1109,6 +1112,31 @@ public abstract class Database {
             lock.unlockWrite(stamp);
         }
         return null;
+    }
+
+    public void defecateHorse(UUID uuid) {
+        Connection conn = getSQLConnection();
+        Statement s = null;
+
+        final long stamp = lock.writeLock();
+        try {
+            s = conn.createStatement();
+            s.executeUpdate("UPDATE " + table + " SET defacate_since_eat = 1 WHERE uuid='" + uuid.toString() + "'");
+        } catch (SQLException ex) {
+            plugin.getLogger().log(Level.SEVERE, "Error defecating horse", ex);
+        } finally {
+            try {
+                if (s != null) {
+                    s.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+                plugin.getLogger().log(Level.SEVERE, "Error closing connection", ex);
+            }
+            lock.unlockWrite(stamp);
+        }
     }
 
     private void close(Statement ps, ResultSet rs) {
