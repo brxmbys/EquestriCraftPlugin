@@ -1371,7 +1371,47 @@ public abstract class Database {
                 return warp;
             }
         } catch (SQLException ex) {
-            Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+            plugin.getLogger().log(Level.SEVERE, "Error getting player warps", ex);
+        } finally {
+            try {
+                if (s != null) {
+                    s.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+                plugin.getLogger().log(Level.SEVERE, "Error closing connection", ex);
+            }
+            lock.unlockWrite(stamp);
+        }
+        return null;
+    }
+
+    public List<Warp> getAllWarps() {
+        Connection conn = getSQLConnection();
+        Statement s = null;
+
+        final long stamp = lock.writeLock();
+        try {
+            s = conn.createStatement();
+            ResultSet set = s.executeQuery("select * from " + warpsTable);
+            List<Warp> warps = new LinkedList<>();
+            while (set.next()) {
+                UUID uuid = UUID.fromString(set.getString(1));
+                String name = set.getString(2);
+                String world = set.getString(3);
+                int x = set.getInt(4);
+                int y = set.getInt(5);
+                int z = set.getInt(6);
+                OfflinePlayer player = Bukkit.getOfflinePlayer(uuid);
+                Location l = new Location(Bukkit.getWorld(world), x, y, z);
+                Warp warp = new Warp(player, name, l);
+                warps.add(warp);
+            }
+            return warps;
+        } catch (SQLException ex) {
+            plugin.getLogger().log(Level.SEVERE, "Error getting warps", ex);
         } finally {
             try {
                 if (s != null) {

@@ -34,6 +34,7 @@ public class WarpsHandler implements CommandExecutor {
         }
         if (args[0].equalsIgnoreCase("set")) {
             if (!(sender instanceof Player)) {
+                sender.sendMessage("Only a player can use this command");
                 return true;
             }
             if (args.length >= 2) {
@@ -47,6 +48,7 @@ public class WarpsHandler implements CommandExecutor {
             }
         } else if (args[0].equalsIgnoreCase("go")) {
             if (!(sender instanceof Player)) {
+                sender.sendMessage("Only a player can use this command");
                 return true;
             }
             if (args.length >= 2) {
@@ -63,6 +65,20 @@ public class WarpsHandler implements CommandExecutor {
             }
         } else if (args[0].equalsIgnoreCase("show-all")) {
             if (!(sender instanceof Player)) {
+                List<Warp> warps = database.getAllWarps();
+                if (warps == null) {
+                    sender.sendMessage("Error getting warps");
+                    return true;
+                }
+                if (warps.isEmpty()) {
+                    sender.sendMessage("No warps in database");
+                    return true;
+                }
+                String message = "";
+                for (Warp warp : warps) {
+                    message += warp.toString() + ", ";
+                }
+                sender.sendMessage(message);
                 return true;
             }
             Player player = (Player) sender;
