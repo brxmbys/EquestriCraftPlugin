@@ -44,6 +44,7 @@ public class SQLite extends Database {
             + "illness varchar(30),"
             + "shoed boolean NOT NULL,"
             + "training_level integer NOT NULL,"
+            + "ignore boolean,"
             + "PRIMARY KEY (uuid)"
             + ")";
 

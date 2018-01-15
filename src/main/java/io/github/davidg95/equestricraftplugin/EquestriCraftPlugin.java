@@ -251,7 +251,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         if (cmd.getName().equalsIgnoreCase("equestristatus")) {   //equestristatus command
             String message = "";
             message += ChatColor.GREEN + "Horses in database: " + ChatColor.AQUA + database.horseCount(-1) + "\n";
-            message += ChatColor.AQUA + "Checker Thread: " + (checkerThread.isAlive() ? ChatColor.GREEN + "Active" : ChatColor.RED + "Not Active") + "\n";
+            message += ChatColor.GREEN + "Ignored horses: " + ChatColor.AQUA + database.ignoredHorses() + "\n";
+            message += ChatColor.AQUA + "Checker thread: " + (checkerThread.isAlive() ? ChatColor.GREEN + "Active" : ChatColor.RED + "Not Active") + "\n";
             message += ChatColor.AQUA + "Bucking thread: " + (buckThread.isActive() ? ChatColor.GREEN + "Active" : ChatColor.RED + "Not Active") + "\n";
             int count = 0;
             for (World world : Bukkit.getWorlds()) {
@@ -721,6 +722,10 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                                 }
                             }
                             return true;
+                        } else if(args[1].equalsIgnoreCase("no-ignore")){
+                            database.noIgnore();
+                            sender.sendMessage("No horses will be ignored");
+                            return true;
                         } else {
                             sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "db command '" + args[1] + "' not recognised");
                         }
@@ -815,6 +820,35 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         }
                         return true;
                     }
+                } else if (args[0].equalsIgnoreCase("ignore")) {
+                    if (!(sender instanceof Player)) {
+                        sender.sendMessage(ChatColor.RED + "Only a player can use this command");
+                        return true;
+                    }
+                    if (args.length < 2) {
+                        sender.sendMessage(ChatColor.RED + "Must specify true or false");
+                        return true;
+                    }
+                    String boolStr = args[1];
+                    boolean ignore;
+                    if (boolStr.equalsIgnoreCase("true")) {
+                        ignore = true;
+                    } else if (boolStr.equalsIgnoreCase("false")) {
+                        ignore = false;
+                    } else {
+                        sender.sendMessage(ChatColor.RED + "Must specify true or false");
+                        return true;
+                    }
+                    final Player player = (Player) sender;
+                    if (player.isOp()) {
+                        UUID uuid = UUID.fromString(player.getMetadata("horse").get(0).asString());
+                        if (uuid == null) {
+                            sender.sendMessage("No horse selected");
+                            return true;
+                        }
+                        database.setIgnore(uuid, ignore);
+                    }
+                    return true;
                 }
             }
             return true;

@@ -17,6 +17,7 @@ import java.util.LinkedList;
 import java.util.UUID;
 import java.util.concurrent.locks.StampedLock;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
@@ -357,13 +358,41 @@ public abstract class Database {
         }
     }
 
-    public int horseCount(int gender) {
-        Connection conn = null;
+    public int ignoredHorses() {
+        Connection conn = getSQLConnection();
         Statement s = null;
 
         final long stamp = lock.writeLock();
         try {
-            conn = getSQLConnection();
+            s = conn.createStatement();
+            ResultSet set = s.executeQuery("SELECT COUNT(*) FROM " + table + " WHERE ignore = 1");
+            while (set.next()) {
+                return set.getInt(1);
+            }
+        } catch (SQLException ex) {
+            plugin.getLogger().log(Level.SEVERE, "Error getting ignored horse count", ex);
+        } finally {
+            try {
+                if (s != null) {
+                    s.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+                plugin.getLogger().log(Level.SEVERE, "Error closing connection", ex);
+            }
+            lock.unlockWrite(stamp);
+        }
+        return -1;
+    }
+
+    public int horseCount(int gender) {
+        Connection conn = getSQLConnection();
+        Statement s = null;
+
+        final long stamp = lock.writeLock();
+        try {
             s = conn.createStatement();
             String query;
             if (gender == -1) {
@@ -746,20 +775,20 @@ public abstract class Database {
         }
     }
 
-    public LinkedList<MyHorse> getHorses(int g) {
+    public LinkedList<MyHorse> getAllHorses(int g) {
         Connection conn = getSQLConnection();
-        Statement ps = null;
+        Statement s = null;
         ResultSet rs;
 
         LinkedList<MyHorse> horses = new LinkedList<>();
 
         final long stamp = lock.writeLock();
         try {
-            ps = conn.createStatement();
+            s = conn.createStatement();
             if (g == -1) {
-                rs = ps.executeQuery("SELECT * FROM " + table);
+                rs = s.executeQuery("SELECT * FROM " + table);
             } else {
-                rs = ps.executeQuery("SELECT * FROM " + table + " WHERE gender = " + g);
+                rs = s.executeQuery("SELECT * FROM " + table + " WHERE gender = " + g);
             }
             while (rs.next()) {
                 UUID uuid = UUID.fromString(rs.getString("uuid"));
@@ -796,8 +825,72 @@ public abstract class Database {
             plugin.getLogger().log(Level.SEVERE, "Error getting horses", ex);
         } finally {
             try {
-                if (ps != null) {
-                    ps.close();
+                if (s != null) {
+                    s.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+                plugin.getLogger().log(Level.SEVERE, "Error closing connection", ex);
+            }
+            lock.unlockWrite(stamp);
+        }
+        return new LinkedList<>();
+    }
+
+    public LinkedList<MyHorse> getHorses(int g) {
+        Connection conn = getSQLConnection();
+        Statement s = null;
+        ResultSet rs;
+
+        LinkedList<MyHorse> horses = new LinkedList<>();
+
+        final long stamp = lock.writeLock();
+        try {
+            s = conn.createStatement();
+            if (g == -1) {
+                rs = s.executeQuery("SELECT * FROM " + table + " WHERE ignore = 0");
+            } else {
+                rs = s.executeQuery("SELECT * FROM " + table + " WHERE gender = " + g + " AND ignore = 0");
+            }
+            while (rs.next()) {
+                UUID uuid = UUID.fromString(rs.getString("uuid"));
+                int gender = rs.getInt("gender");
+                long vacc_time = rs.getLong("vaccinationTime");
+                long lastEat = rs.getLong("last_eat");
+                long lastDrink = rs.getLong("last_drink");
+                long illSince = rs.getLong("ill_since");
+                long wellSince = rs.getLong("well_since");
+                long lastBreed = rs.getLong("last_breed");
+                boolean defacateSinceEat = rs.getBoolean("defacate_since_eat");
+                String breed1 = rs.getString("breed1");
+                String breed2 = rs.getString("breed2");
+                long birth = rs.getLong("birth");
+                String personality1 = rs.getString("person1");
+                String personality2 = rs.getString("person2");
+                int dieat = rs.getInt("dieat");
+                String illness = rs.getString("illness");
+                boolean shoed = rs.getBoolean("shoed");
+                int trainingLevel = rs.getInt("training_level");
+
+                HorseBreed breed[] = new HorseBreed[]{HorseBreed.valueOf(breed1), HorseBreed.valueOf(breed2)};
+                Personality person[] = new Personality[]{Personality.valueOf(personality1), Personality.valueOf(personality2)};
+                Illness ill_type = null;
+                if (illness != null && !illness.equals("") && !illness.equals("null")) {
+                    ill_type = Illness.valueOf(illness);
+                }
+
+                MyHorse horse = new MyHorse(vacc_time, gender, uuid, lastEat, lastDrink, illSince, wellSince, lastBreed, defacateSinceEat, breed, birth, person, dieat, ill_type, shoed, trainingLevel);
+                horses.add(horse);
+            }
+            return horses;
+        } catch (SQLException ex) {
+            plugin.getLogger().log(Level.SEVERE, "Error getting horses", ex);
+        } finally {
+            try {
+                if (s != null) {
+                    s.close();
                 }
                 if (conn != null) {
                     conn.close();
@@ -1138,10 +1231,60 @@ public abstract class Database {
         }
     }
 
-    private void close(Statement ps, ResultSet rs) {
+    public void setIgnore(UUID uuid, boolean ignore) {
+        Connection conn = getSQLConnection();
+        Statement s = null;
+
+        final long stamp = lock.writeLock();
         try {
-            if (ps != null) {
-                ps.close();
+            s = conn.createStatement();
+            s.executeUpdate("UPDATE " + table + " SET ignore = " + (ignore ? "1" : "0") + " WHERE uuid='" + uuid.toString() + "'");
+        } catch (SQLException ex) {
+            plugin.getLogger().log(Level.SEVERE, "Error changing horse", ex);
+        } finally {
+            try {
+                if (s != null) {
+                    s.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+                plugin.getLogger().log(Level.SEVERE, "Error closing connection", ex);
+            }
+            lock.unlockWrite(stamp);
+        }
+    }
+    
+    public void noIgnore() {
+        Connection conn = getSQLConnection();
+        Statement s = null;
+
+        final long stamp = lock.writeLock();
+        try {
+            s = conn.createStatement();
+            s.executeUpdate("UPDATE " + table + " SET ignore = 0");
+        } catch (SQLException ex) {
+            plugin.getLogger().log(Level.SEVERE, "Error changing horses", ex);
+        } finally {
+            try {
+                if (s != null) {
+                    s.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+                plugin.getLogger().log(Level.SEVERE, "Error closing connection", ex);
+            }
+            lock.unlockWrite(stamp);
+        }
+    }
+
+    private void close(Statement s, ResultSet rs) {
+        try {
+            if (s != null) {
+                s.close();
             }
             if (rs != null) {
                 rs.close();
