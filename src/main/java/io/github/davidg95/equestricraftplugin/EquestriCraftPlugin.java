@@ -9,6 +9,7 @@ import io.github.davidg95.equestricraftplugin.auctions.*;
 import io.github.davidg95.equestricraftplugin.database.*;
 import io.github.davidg95.equestricraftplugin.disciplines.*;
 import io.github.davidg95.equestricraftplugin.race.*;
+import io.github.davidg95.equestricraftplugin.warps.WarpsHandler;
 import java.io.*;
 import java.util.*;
 import java.util.logging.*;
@@ -78,6 +79,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     public AuctionHandler auctionHandler;
     public FoodController foodController;
     public DisciplinesHandler discipinesHander;
+    public WarpsHandler warpsHandler;
 
     static {
         ItemStack spawn = new ItemStack(Material.MONSTER_EGG, 1);
@@ -181,10 +183,12 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             this.auctionHandler = new AuctionHandler(this);
             this.foodController = new FoodController(this, economy, database);
             this.discipinesHander = new DisciplinesHandler(this);
+            this.warpsHandler = new WarpsHandler(this, database);
             this.getCommand("disciplines").setExecutor(discipinesHander);
             this.getCommand("food").setExecutor(foodController);
             this.getCommand("auction").setExecutor(auctionHandler);
             this.getCommand("race").setExecutor(raceController);
+            this.getCommand("pwarp").setExecutor(warpsHandler);
         }
     }
 

@@ -8,15 +8,20 @@ import io.github.davidg95.equestricraftplugin.HorseBreed;
 import io.github.davidg95.equestricraftplugin.Illness;
 import io.github.davidg95.equestricraftplugin.MyHorse;
 import io.github.davidg95.equestricraftplugin.Personality;
+import io.github.davidg95.equestricraftplugin.warps.Warp;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Date;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.locks.StampedLock;
 import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
@@ -30,6 +35,7 @@ public abstract class Database {
     Connection connection;
     public String table = "horses";
     public String breedTable = "breedLog";
+    public String warpsTable = "warps";
     public int tokens = 0;
 
     private final StampedLock lock;
@@ -1257,7 +1263,7 @@ public abstract class Database {
             lock.unlockWrite(stamp);
         }
     }
-    
+
     public void noIgnore() {
         Connection conn = getSQLConnection();
         Statement s = null;
@@ -1281,6 +1287,145 @@ public abstract class Database {
             }
             lock.unlockWrite(stamp);
         }
+    }
+
+    public void addWarp(Warp warp) {
+        Connection conn = getSQLConnection();
+        Statement s = null;
+
+        final long stamp = lock.writeLock();
+        try {
+            s = conn.createStatement();
+            s.executeUpdate("insert into " + warpsTable + " (owner, name, world, x, y, z) values ('" + warp.getPlayer().getUniqueId() + "','" + warp.getName() + "','" + warp.getLocation().getWorld().getName() + "'," + warp.getLocation().getX() + "," + warp.getLocation().getY() + "," + warp.getLocation().getZ() + ")");
+        } catch (SQLException ex) {
+            plugin.getLogger().log(Level.SEVERE, "Error saving warp", ex);
+        } finally {
+            try {
+                if (s != null) {
+                    s.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+                plugin.getLogger().log(Level.SEVERE, "Error closing connection", ex);
+            }
+            lock.unlockWrite(stamp);
+        }
+    }
+
+    public List<Warp> getPlayerWarps(Player p) {
+        Connection conn = getSQLConnection();
+        Statement s = null;
+
+        final long stamp = lock.writeLock();
+        try {
+            s = conn.createStatement();
+            ResultSet set = s.executeQuery("SELECT * FROM " + warpsTable + " WHERE player='" + p.getUniqueId() + "'");
+            List<Warp> warps = new LinkedList<>();
+            while (set.next()) {
+                String name = set.getString(2);
+                String world = set.getString(3);
+                int x = set.getInt(4);
+                int y = set.getInt(5);
+                int z = set.getInt(6);
+                Location l = new Location(Bukkit.getWorld(world), x, y, z);
+                Warp warp = new Warp(p, name, l);
+                warps.add(warp);
+            }
+            return warps;
+        } catch (SQLException ex) {
+            plugin.getLogger().log(Level.SEVERE, "Error getting player warps", ex);
+        } finally {
+            try {
+                if (s != null) {
+                    s.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+                plugin.getLogger().log(Level.SEVERE, "Error closing connection", ex);
+            }
+            lock.unlockWrite(stamp);
+        }
+        return new LinkedList<>();
+    }
+
+    public Warp getPlayerWarp(Player p, String w) {
+        Connection conn = getSQLConnection();
+        Statement s = null;
+
+        final long stamp = lock.writeLock();
+        try {
+            s = conn.createStatement();
+            ResultSet set = s.executeQuery("select * from " + warpsTable + " where player='" + p.getUniqueId() + "' and name='" + w + "'");
+            while (set.next()) {
+                String name = set.getString(2);
+                String world = set.getString(3);
+                int x = set.getInt(4);
+                int y = set.getInt(5);
+                int z = set.getInt(6);
+                Location l = new Location(Bukkit.getWorld(world), x, y, z);
+                Warp warp = new Warp(p, name, l);
+                return warp;
+            }
+        } catch (SQLException ex) {
+            plugin.getLogger().log(Level.SEVERE, "Error getting player warps", ex);
+        } finally {
+            try {
+                if (s != null) {
+                    s.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+                plugin.getLogger().log(Level.SEVERE, "Error closing connection", ex);
+            }
+            lock.unlockWrite(stamp);
+        }
+        return null;
+    }
+
+    public List<Warp> getAllWarps() {
+        Connection conn = getSQLConnection();
+        Statement s = null;
+
+        final long stamp = lock.writeLock();
+        try {
+            s = conn.createStatement();
+            ResultSet set = s.executeQuery("select * from " + warpsTable);
+            List<Warp> warps = new LinkedList<>();
+            while (set.next()) {
+                UUID uuid = UUID.fromString(set.getString(1));
+                String name = set.getString(2);
+                String world = set.getString(3);
+                int x = set.getInt(4);
+                int y = set.getInt(5);
+                int z = set.getInt(6);
+                OfflinePlayer player = Bukkit.getOfflinePlayer(uuid);
+                Location l = new Location(Bukkit.getWorld(world), x, y, z);
+                Warp warp = new Warp(player, name, l);
+                warps.add(warp);
+            }
+            return warps;
+        } catch (SQLException ex) {
+            plugin.getLogger().log(Level.SEVERE, "Error getting warps", ex);
+        } finally {
+            try {
+                if (s != null) {
+                    s.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+                plugin.getLogger().log(Level.SEVERE, "Error closing connection", ex);
+            }
+            lock.unlockWrite(stamp);
+        }
+        return null;
     }
 
     private void close(Statement s, ResultSet rs) {
