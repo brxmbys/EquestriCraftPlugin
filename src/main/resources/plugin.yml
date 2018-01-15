@@ -81,5 +81,5 @@ commands:
         description: Show color codes.
         usage: /color
     pwarp:
-        description: Private warps command.
+        description: Private warps commands.
         usage: /pwarp <set [name] | go [name] | show-all>
