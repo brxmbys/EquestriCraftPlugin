@@ -76,7 +76,7 @@ public class WarpsHandler implements CommandExecutor {
                 }
                 String message = "";
                 for (Warp warp : warps) {
-                    message += warp.toString() + ", ";
+                    message += warp.toString() + "\n";
                 }
                 sender.sendMessage(message);
                 return true;
