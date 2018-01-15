@@ -17,7 +17,6 @@ import java.util.LinkedList;
 import java.util.UUID;
 import java.util.concurrent.locks.StampedLock;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
@@ -809,6 +808,7 @@ public abstract class Database {
                 String illness = rs.getString("illness");
                 boolean shoed = rs.getBoolean("shoed");
                 int trainingLevel = rs.getInt("training_level");
+                boolean ignored = rs.getBoolean("ignored");
 
                 HorseBreed breed[] = new HorseBreed[]{HorseBreed.valueOf(breed1), HorseBreed.valueOf(breed2)};
                 Personality person[] = new Personality[]{Personality.valueOf(personality1), Personality.valueOf(personality2)};
@@ -817,7 +817,7 @@ public abstract class Database {
                     ill_type = Illness.valueOf(illness);
                 }
 
-                MyHorse horse = new MyHorse(vacc_time, gender, uuid, lastEat, lastDrink, illSince, wellSince, lastBreed, defacateSinceEat, breed, birth, person, dieat, ill_type, shoed, trainingLevel);
+                MyHorse horse = new MyHorse(vacc_time, gender, uuid, lastEat, lastDrink, illSince, wellSince, lastBreed, defacateSinceEat, breed, birth, person, dieat, ill_type, shoed, trainingLevel, ignored);
                 horses.add(horse);
             }
             return horses;
@@ -873,6 +873,7 @@ public abstract class Database {
                 String illness = rs.getString("illness");
                 boolean shoed = rs.getBoolean("shoed");
                 int trainingLevel = rs.getInt("training_level");
+                boolean ignored = rs.getBoolean("ignore");
 
                 HorseBreed breed[] = new HorseBreed[]{HorseBreed.valueOf(breed1), HorseBreed.valueOf(breed2)};
                 Personality person[] = new Personality[]{Personality.valueOf(personality1), Personality.valueOf(personality2)};
@@ -881,7 +882,7 @@ public abstract class Database {
                     ill_type = Illness.valueOf(illness);
                 }
 
-                MyHorse horse = new MyHorse(vacc_time, gender, uuid, lastEat, lastDrink, illSince, wellSince, lastBreed, defacateSinceEat, breed, birth, person, dieat, ill_type, shoed, trainingLevel);
+                MyHorse horse = new MyHorse(vacc_time, gender, uuid, lastEat, lastDrink, illSince, wellSince, lastBreed, defacateSinceEat, breed, birth, person, dieat, ill_type, shoed, trainingLevel, ignored);
                 horses.add(horse);
             }
             return horses;
@@ -934,6 +935,7 @@ public abstract class Database {
                 String illness = rs.getString("illness");
                 boolean shoed = rs.getBoolean("shoed");
                 int trainingLevel = rs.getInt("training_level");
+                boolean ignored = rs.getBoolean("ignore");
 
                 HorseBreed breed[] = new HorseBreed[]{HorseBreed.valueOf(breed1), HorseBreed.valueOf(breed2)};
                 Personality person[] = new Personality[]{Personality.valueOf(personality1), Personality.valueOf(personality2)};
@@ -942,7 +944,7 @@ public abstract class Database {
                     ill_type = Illness.valueOf(illness);
                 }
 
-                horse = new MyHorse(vacc_time, gender, uuid, lastEat, lastDrink, illSince, wellSince, lastBreed, defacateSinceEat, breed, birth, person, dieat, ill_type, shoed, trainingLevel);
+                horse = new MyHorse(vacc_time, gender, uuid, lastEat, lastDrink, illSince, wellSince, lastBreed, defacateSinceEat, breed, birth, person, dieat, ill_type, shoed, trainingLevel, ignored);
                 return horse;
             }
             plugin.getLogger().log(Level.WARNING, "Horse not found");

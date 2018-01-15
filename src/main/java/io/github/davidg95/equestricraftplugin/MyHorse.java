@@ -33,6 +33,7 @@ public class MyHorse implements Serializable {
     private Illness illness;
     private boolean shoed;
     private int trainingLevel;
+    private boolean ignored;
 
     /**
      * The length of time a vaccination will last.
@@ -93,9 +94,10 @@ public class MyHorse implements Serializable {
         h.setAgeLock(true);
         shoed = false;
         trainingLevel = 1;
+        ignored = false;
     }
 
-    public MyHorse(long vaccinationTime, int gender, UUID uuid, long lastEat, long lastDrink, long illSince, long wellSince, long lastBreed, boolean defecate, HorseBreed breed[], long birth, Personality person[], long dieat, Illness illness, boolean shoed, int trainingLevel) {
+    public MyHorse(long vaccinationTime, int gender, UUID uuid, long lastEat, long lastDrink, long illSince, long wellSince, long lastBreed, boolean defecate, HorseBreed breed[], long birth, Personality person[], long dieat, Illness illness, boolean shoed, int trainingLevel, boolean ignored) {
         this.vaccinationTime = vaccinationTime;
         this.gender = gender;
         this.uuid = uuid;
@@ -112,6 +114,7 @@ public class MyHorse implements Serializable {
         this.illness = illness;
         this.shoed = shoed;
         this.trainingLevel = trainingLevel;
+        this.ignored = ignored;
     }
 
     public static long getCurrentTime() {
@@ -552,6 +555,10 @@ public class MyHorse implements Serializable {
 
     public void setTrainingLevel(int trainingLevel) {
         this.trainingLevel = trainingLevel;
+    }
+    
+    public boolean isIgnored(){
+        return ignored;
     }
 
     /**

@@ -722,7 +722,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                                 }
                             }
                             return true;
-                        } else if(args[1].equalsIgnoreCase("no-ignore")){
+                        } else if (args[1].equalsIgnoreCase("no-ignore")) {
                             database.noIgnore();
                             sender.sendMessage("No horses will be ignored");
                             return true;
@@ -1295,10 +1295,12 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                             player.sendMessage(breedStr);
                             player.sendMessage(personalityStr);
                             player.sendMessage(ageStr);
-                            player.sendMessage(sickStr);
-                            player.sendMessage(hungerStr);
-                            player.sendMessage(thirstStr);
-                            player.sendMessage(vaccinationStr);
+                            if (!horse.isIgnored()) {
+                                player.sendMessage(sickStr);
+                                player.sendMessage(hungerStr);
+                                player.sendMessage(thirstStr);
+                                player.sendMessage(vaccinationStr);
+                            }
                             player.sendMessage(shodStr);
                             player.sendMessage(levelStr);
                             player.sendMessage(rank);
