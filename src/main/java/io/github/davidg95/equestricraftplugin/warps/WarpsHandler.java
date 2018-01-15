@@ -57,6 +57,7 @@ public class WarpsHandler implements CommandExecutor {
                     sender.sendMessage(ChatColor.RED + "Warp not found");
                     return true;
                 }
+                sender.sendMessage("Teleporting to " + warp.getName() + "...");
                 player.teleport(warp.getLocation());
                 return true;
             }
