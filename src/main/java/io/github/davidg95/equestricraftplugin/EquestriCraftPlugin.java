@@ -248,20 +248,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-        if (cmd.getName().equalsIgnoreCase("equestristatus")) {   //equestristatus command
-            String message = "";
-            message += ChatColor.GREEN + "Horses in database: " + ChatColor.AQUA + database.horseCount(-1) + "\n";
-            message += ChatColor.GREEN + "Ignored horses: " + ChatColor.AQUA + database.ignoredHorses() + "\n";
-            message += ChatColor.AQUA + "Checker thread: " + (checkerThread.isAlive() ? ChatColor.GREEN + "Active" : ChatColor.RED + "Not Active") + "\n";
-            message += ChatColor.AQUA + "Bucking thread: " + (buckThread.isActive() ? ChatColor.GREEN + "Active" : ChatColor.RED + "Not Active") + "\n";
-            int count = 0;
-            for (World world : Bukkit.getWorlds()) {
-                count += world.getEntitiesByClass(Horse.class).size();
-            }
-            message += ChatColor.GREEN + "Horses currently in world: " + ChatColor.AQUA + count;
-            sender.sendMessage(message);
-            return true;
-        } else if (cmd.getName().equalsIgnoreCase("createhorse")) {   //createhorse command
+        if (cmd.getName().equalsIgnoreCase("createhorse")) {   //createhorse command
             if (!sender.hasPermission("equestricraft.spawnhorse")) {
                 return true;
             }
@@ -848,6 +835,19 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         }
                         database.setIgnore(uuid, ignore);
                     }
+                    return true;
+                } else if (args[0].equalsIgnoreCase("status")) {
+                    String message = "";
+                    message += ChatColor.GREEN + "Horses in database: " + ChatColor.AQUA + database.horseCount(-1) + "\n";
+                    message += ChatColor.GREEN + "Ignored horses: " + ChatColor.AQUA + database.ignoredHorses() + "\n";
+                    message += ChatColor.AQUA + "Checker thread: " + (checkerThread.isAlive() ? ChatColor.GREEN + "Active" : ChatColor.RED + "Not Active") + "\n";
+                    message += ChatColor.AQUA + "Bucking thread: " + (buckThread.isActive() ? ChatColor.GREEN + "Active" : ChatColor.RED + "Not Active") + "\n";
+                    int count = 0;
+                    for (World world : Bukkit.getWorlds()) {
+                        count += world.getEntitiesByClass(Horse.class).size();
+                    }
+                    message += ChatColor.GREEN + "Horses currently in world: " + ChatColor.AQUA + count;
+                    sender.sendMessage(message);
                     return true;
                 }
             }
