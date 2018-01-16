@@ -1321,7 +1321,7 @@ public abstract class Database {
         final long stamp = lock.writeLock();
         try {
             s = conn.createStatement();
-            ResultSet set = s.executeQuery("SELECT * FROM " + warpsTable + " WHERE player='" + p.getUniqueId() + "'");
+            ResultSet set = s.executeQuery("SELECT * FROM " + warpsTable + " WHERE owner='" + p.getUniqueId() + "'");
             List<Warp> warps = new LinkedList<>();
             while (set.next()) {
                 String name = set.getString(2);
@@ -1359,7 +1359,7 @@ public abstract class Database {
         final long stamp = lock.writeLock();
         try {
             s = conn.createStatement();
-            ResultSet set = s.executeQuery("select * from " + warpsTable + " where player='" + p.getUniqueId() + "' and name='" + w + "'");
+            ResultSet set = s.executeQuery("select * from " + warpsTable + " where owner='" + p.getUniqueId() + "' and name='" + w + "'");
             while (set.next()) {
                 String name = set.getString(2);
                 String world = set.getString(3);
