@@ -17,12 +17,12 @@ import org.bukkit.entity.Player;
  *
  * @author David
  */
-public class WarpsHandler implements CommandExecutor {
+public class WarpsController implements CommandExecutor {
 
     private final EquestriCraftPlugin plugin;
     private final Database database;
 
-    public WarpsHandler(EquestriCraftPlugin plugin, Database database) {
+    public WarpsController(EquestriCraftPlugin plugin, Database database) {
         this.plugin = plugin;
         this.database = database;
     }
@@ -44,6 +44,18 @@ public class WarpsHandler implements CommandExecutor {
                 Warp warp = new Warp(player, name, l);
                 database.addWarp(warp);
                 sender.sendMessage(ChatColor.GREEN + "Warp added");
+                return true;
+            }
+        } else if (args[0].equalsIgnoreCase("remove")) {
+            if (!(sender instanceof Player)) {
+                sender.sendMessage("Only a player can use this command");
+                return true;
+            }
+            if (args.length >= 2) {
+                Player player = (Player) sender;
+                String warp = args[1];
+                database.removeWarp(player, warp);
+                sender.sendMessage(ChatColor.GREEN + "Warp " + warp + " removed");
                 return true;
             }
         } else if (args[0].equalsIgnoreCase("go")) {

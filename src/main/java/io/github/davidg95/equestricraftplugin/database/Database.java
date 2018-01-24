@@ -1430,6 +1430,31 @@ public abstract class Database {
         return null;
     }
 
+    public void removeWarp(Player p, String warp) {
+        Connection conn = getSQLConnection();
+        Statement s = null;
+
+        final long stamp = lock.writeLock();
+        try {
+            s = conn.createStatement();
+            s.executeUpdate("delete from " + warpsTable + " where owner = '" + p.getUniqueId() + "' and name = '" + warp + "'");
+        } catch (SQLException ex) {
+            plugin.getLogger().log(Level.SEVERE, "Error removing warp", ex);
+        } finally {
+            try {
+                if (s != null) {
+                    s.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+                plugin.getLogger().log(Level.SEVERE, "Error closing connection", ex);
+            }
+            lock.unlockWrite(stamp);
+        }
+    }
+
     public void addPayLog(PayLog pl) {
         Connection conn = getSQLConnection();
         Statement s = null;
