@@ -1354,7 +1354,7 @@ public abstract class Database {
         return new LinkedList<>();
     }
 
-    public Warp getPlayerWarp(Player p, String w) {
+    public Warp getPlayerWarp(OfflinePlayer p, String w) {
         Connection conn = getSQLConnection();
         Statement s = null;
 

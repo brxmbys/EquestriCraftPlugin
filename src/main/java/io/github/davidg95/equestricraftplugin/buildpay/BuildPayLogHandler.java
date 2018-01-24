@@ -6,6 +6,7 @@ package io.github.davidg95.equestricraftplugin.buildpay;
 import io.github.davidg95.equestricraftplugin.EquestriCraftPlugin;
 import io.github.davidg95.equestricraftplugin.database.Database;
 import java.util.List;
+import java.util.UUID;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -36,7 +37,7 @@ public class BuildPayLogHandler implements CommandExecutor {
         if (args.length >= 1) {
             if (args[0].equalsIgnoreCase("log")) {
                 if (args.length >= 2) {
-                    OfflinePlayer player = Bukkit.getOfflinePlayer(args[1]);
+                    OfflinePlayer player = Bukkit.getOfflinePlayer(UUID.fromString(args[1]));
                     if (player == null) {
                         sender.sendMessage(ChatColor.RED + "Player not found");
                         return true;
