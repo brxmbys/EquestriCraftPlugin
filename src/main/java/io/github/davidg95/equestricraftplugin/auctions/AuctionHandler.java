@@ -4,6 +4,7 @@
 package io.github.davidg95.equestricraftplugin.auctions;
 
 import io.github.davidg95.equestricraftplugin.EquestriCraftPlugin;
+import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -20,9 +21,12 @@ public class AuctionHandler implements CommandExecutor {
     private Auction auction;
 
     private final EquestriCraftPlugin plugin;
+    
+    private final Economy economy;
 
-    public AuctionHandler(EquestriCraftPlugin plugin) {
+    public AuctionHandler(EquestriCraftPlugin plugin, Economy economy) {
         this.plugin = plugin;
+        this.economy = economy;
     }
 
     @Override
@@ -47,11 +51,11 @@ public class AuctionHandler implements CommandExecutor {
                     return true;
                 }
                 if (auction == null) {
-                    auction = new Auction(plugin, player, startingBid, incrementValue);
+                    auction = new Auction(plugin, economy, player, startingBid, incrementValue);
                     return true;
                 }
                 if (auction.isComplete()) {
-                    auction = new Auction(plugin, player, startingBid, incrementValue);
+                    auction = new Auction(plugin, economy, player, startingBid, incrementValue);
                     return true;
                 }
                 player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "There is currently an active auction");

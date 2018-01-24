@@ -83,3 +83,6 @@ commands:
     pwarp:
         description: Private warps commands.
         usage: /pwarp <set [name] | go [name] | show-all>
+    buildpay:
+        descrption: BuildPay logs commands.
+        usage: /buildpay <amount> <reason>

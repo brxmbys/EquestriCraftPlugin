@@ -3,6 +3,7 @@
  */
 package io.github.davidg95.equestricraftplugin;
 
+import io.github.davidg95.equestricraftplugin.BuildPay.BuildPayHandler;
 import io.github.davidg95.equestricraftplugin.HorseCheckerThread.BuckThread;
 import io.github.davidg95.equestricraftplugin.HorseCheckerThread.DefecateThread;
 import io.github.davidg95.equestricraftplugin.auctions.*;
@@ -69,7 +70,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
      */
     public static final long BREED_INTERVAL = 86400000L; //One week.
 
-    public static Economy economy;
+    public Economy economy;
 
     private static final Inventory NAVIGATOR = Bukkit.createInventory(null, 45, "Navigator");
 
@@ -80,6 +81,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     public FoodController foodController;
     public DisciplinesHandler discipinesHander;
     public WarpsHandler warpsHandler;
+    public BuildPayHandler buildPayHandler;
 
     static {
         ItemStack spawn = new ItemStack(Material.MONSTER_EGG, 1);
@@ -179,16 +181,18 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         if (!setupEconomy()) {
             getLogger().log(Level.SEVERE, "Vault not detected, Disciplines, Auctions, Races and Food have been disabled");
         } else {
-            this.raceController = new RaceController(this);
-            this.auctionHandler = new AuctionHandler(this);
+            this.raceController = new RaceController(this, economy);
+            this.auctionHandler = new AuctionHandler(this, economy);
             this.foodController = new FoodController(this, economy, database);
-            this.discipinesHander = new DisciplinesHandler(this);
+            this.discipinesHander = new DisciplinesHandler(this, economy);
             this.warpsHandler = new WarpsHandler(this, database);
+            this.buildPayHandler = new BuildPayHandler(this, database, economy);
             this.getCommand("disciplines").setExecutor(discipinesHander);
             this.getCommand("food").setExecutor(foodController);
             this.getCommand("auction").setExecutor(auctionHandler);
             this.getCommand("race").setExecutor(raceController);
             this.getCommand("pwarp").setExecutor(warpsHandler);
+            this.getCommand("buildpay").setExecutor(buildPayHandler);
         }
     }
 

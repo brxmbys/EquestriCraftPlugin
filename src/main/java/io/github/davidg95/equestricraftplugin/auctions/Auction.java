@@ -51,12 +51,12 @@ public class Auction implements Listener {
     private Objective objective;
     private Score score;
 
-    public Auction(EquestriCraftPlugin plugin, Player seller, int startingBid, int incrementValue) {
+    public Auction(EquestriCraftPlugin plugin, Economy economy, Player seller, int startingBid, int incrementValue) {
         this.seller = seller;
         this.currentBid = startingBid;
         this.incrementValue = incrementValue;
         bidValue = -1;
-        this.econ = io.github.davidg95.equestricraftplugin.EquestriCraftPlugin.economy;
+        this.econ = economy;
         complete = false;
         initScoreboard();
         seller.setScoreboard(board);

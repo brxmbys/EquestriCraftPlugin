@@ -12,7 +12,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
-import org.bukkit.command.CommandException;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -102,10 +101,10 @@ public class DisciplinesHandler implements CommandExecutor, Listener {
         MENU.setItem(8, i9);
     }
 
-    public DisciplinesHandler(EquestriCraftPlugin plugin) {
+    public DisciplinesHandler(EquestriCraftPlugin plugin, Economy economy) {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         cont = new DisciplinesController(plugin);
-        economy = EquestriCraftPlugin.economy;
+        this.economy = economy;
     }
 
     @Override

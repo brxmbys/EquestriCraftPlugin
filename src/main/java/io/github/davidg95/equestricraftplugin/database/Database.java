@@ -3,6 +3,7 @@
  */
 package io.github.davidg95.equestricraftplugin.database;
 
+import io.github.davidg95.equestricraftplugin.BuildPay.PayLog;
 import io.github.davidg95.equestricraftplugin.EquestriCraftPlugin;
 import io.github.davidg95.equestricraftplugin.HorseBreed;
 import io.github.davidg95.equestricraftplugin.Illness;
@@ -36,6 +37,7 @@ public abstract class Database {
     public String table = "horses";
     public String breedTable = "breedLog";
     public String warpsTable = "warps";
+    public String payTable = "payTable";
     public int tokens = 0;
 
     private final StampedLock lock;
@@ -1426,6 +1428,72 @@ public abstract class Database {
             lock.unlockWrite(stamp);
         }
         return null;
+    }
+
+    public void addPayLog(PayLog pl) {
+        Connection conn = getSQLConnection();
+        Statement s = null;
+
+        final long stamp = lock.writeLock();
+        try {
+            s = conn.createStatement();
+            s.executeUpdate("insert into " + payTable + " (uuid, value, reason) values ('" + pl.getPlayer().getUniqueId() + "'," + pl.getValue() + ",'" + pl.getReason() + "'");
+        } catch (SQLException ex) {
+            plugin.getLogger().log(Level.SEVERE, "Error adding warp", ex);
+        } finally {
+            try {
+                if (s != null) {
+                    s.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+                plugin.getLogger().log(Level.SEVERE, "Error closing connection", ex);
+            }
+            lock.unlockWrite(stamp);
+        }
+    }
+
+    public List<PayLog> getPayLogs(OfflinePlayer p) {
+        Connection conn = getSQLConnection();
+        Statement s = null;
+
+        final long stamp = lock.writeLock();
+        try {
+            s = conn.createStatement();
+            ResultSet set;
+            if (p == null) {
+                set = s.executeQuery("select * from " + payTable);
+            } else {
+                set = s.executeQuery("select * from " + payTable + " where uuid='" + p.getUniqueId() + "'");
+            }
+            List<PayLog> logs = new LinkedList<>();
+            while (set.next()) {
+                int id = set.getInt(1);
+                UUID uuid = UUID.fromString(set.getString(2));
+                int value = set.getInt(3);
+                String reason = set.getString(4);
+                PayLog log = new PayLog(id, Bukkit.getOfflinePlayer(uuid), value, reason);
+                logs.add(log);
+            }
+            return logs;
+        } catch (SQLException ex) {
+            plugin.getLogger().log(Level.SEVERE, "Error getting build logs", ex);
+        } finally {
+            try {
+                if (s != null) {
+                    s.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+                plugin.getLogger().log(Level.SEVERE, "Error closing connection", ex);
+            }
+            lock.unlockWrite(stamp);
+        }
+        return new LinkedList<>();
     }
 
     private void close(Statement s, ResultSet rs) {

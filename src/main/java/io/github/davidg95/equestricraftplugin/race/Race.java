@@ -86,7 +86,7 @@ public class Race implements Listener {
         PODIUM_SIGN = (Sign) blo.getState();
     }
 
-    public Race(EquestriCraftPlugin plugin, int laps, double prize1, double prize2, double prize3) {
+    public Race(EquestriCraftPlugin plugin, Economy economy, int laps, double prize1, double prize2, double prize3) {
         this.laps = laps;
         this.plugin = plugin;
         players = new LinkedList<>();
@@ -95,7 +95,7 @@ public class Race implements Listener {
         started = false;
         finnished = false;
         Bukkit.getServer().getPluginManager().registerEvents(this, plugin);
-        economy = EquestriCraftPlugin.economy;
+        this.economy = economy;
         this.prize1 = prize1;
         this.prize2 = prize2;
         this.prize3 = prize3;

@@ -65,6 +65,14 @@ public class SQLite extends Database {
             + "primary key(owner, name)"
             + ")";
 
+    public String createPayLogsTable = "CREATE TABLE IF NOT EXISTS " + payTable + "("
+            + "id integer not null,"
+            + "uuid varchar(60) not null,"
+            + "value integer not null,"
+            + "reason varchar(60) not null,"
+            + "primary key(id)"
+            + ")";
+
     @Override
     public Connection getSQLConnection() {
         File datafolder = new File(plugin.getDataFolder(), dbname + ".db");
@@ -102,6 +110,7 @@ public class SQLite extends Database {
             s.executeUpdate("DROP TABLE " + breedTable);
             s.executeUpdate(createBreedLogTable);
             s.executeUpdate(createWarpsTable);
+            s.executeUpdate(createPayLogsTable);
             s.close();
         } catch (SQLException ex) {
             plugin.getLogger().log(Level.SEVERE, "Error opening database", ex);

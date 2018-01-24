@@ -5,6 +5,7 @@ package io.github.davidg95.equestricraftplugin.race;
 
 import io.github.davidg95.equestricraftplugin.EquestriCraftPlugin;
 import java.text.DecimalFormat;
+import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -21,8 +22,10 @@ public class RaceController implements CommandExecutor {
     private final EquestriCraftPlugin plugin;
 
     public Race race;
+    
+    private Economy economy;
 
-    public RaceController(EquestriCraftPlugin plugin) {
+    public RaceController(EquestriCraftPlugin plugin, Economy economy) {
         this.plugin = plugin;
     }
 
@@ -48,7 +51,7 @@ public class RaceController implements CommandExecutor {
                         prize3 = 0;
                         sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "You do not have permission to set a race with a prize");
                     }
-                    race = new Race(plugin, laps, prize1, prize2, prize3);
+                    race = new Race(plugin, economy, laps, prize1, prize2, prize3);
                     Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "***" + laps + " lap race is now open for entries" + (prize1 > 0 ? ". $" + new DecimalFormat("0").format(prize1) + " reward for first place!" : "") + "***");
                 } catch (NumberFormatException ex) {
                     sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Must specify a number value");
