@@ -3,7 +3,7 @@
  */
 package io.github.davidg95.equestricraftplugin.database;
 
-import io.github.davidg95.equestricraftplugin.BuildPay.PayLog;
+import io.github.davidg95.equestricraftplugin.buildpay.PayLog;
 import io.github.davidg95.equestricraftplugin.EquestriCraftPlugin;
 import io.github.davidg95.equestricraftplugin.HorseBreed;
 import io.github.davidg95.equestricraftplugin.Illness;

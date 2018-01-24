@@ -3,7 +3,7 @@
  */
 package io.github.davidg95.equestricraftplugin;
 
-import io.github.davidg95.equestricraftplugin.BuildPay.BuildPayLogHandler;
+import io.github.davidg95.equestricraftplugin.buildpay.BuildPayLogHandler;
 import io.github.davidg95.equestricraftplugin.HorseCheckerThread.BuckThread;
 import io.github.davidg95.equestricraftplugin.HorseCheckerThread.DefecateThread;
 import io.github.davidg95.equestricraftplugin.auctions.*;
