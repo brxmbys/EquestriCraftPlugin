@@ -3,14 +3,14 @@
  */
 package io.github.davidg95.equestricraftplugin;
 
-import io.github.davidg95.equestricraftplugin.buildpay.BuildPayLogHandler;
+import io.github.davidg95.equestricraftplugin.buildpay.BuildPayHandler;
 import io.github.davidg95.equestricraftplugin.HorseCheckerThread.BuckThread;
 import io.github.davidg95.equestricraftplugin.HorseCheckerThread.DefecateThread;
 import io.github.davidg95.equestricraftplugin.auctions.*;
 import io.github.davidg95.equestricraftplugin.database.*;
 import io.github.davidg95.equestricraftplugin.disciplines.*;
 import io.github.davidg95.equestricraftplugin.race.*;
-import io.github.davidg95.equestricraftplugin.warps.WarpsController;
+import io.github.davidg95.equestricraftplugin.warps.WarpsHandler;
 import java.io.*;
 import java.util.*;
 import java.util.logging.*;
@@ -80,8 +80,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     public AuctionHandler auctionHandler;
     public FoodController foodController;
     public DisciplinesHandler discipinesHander;
-    public WarpsController warpsHandler;
-    public BuildPayLogHandler buildPayHandler;
+    public WarpsHandler warpsHandler;
+    public BuildPayHandler buildPayHandler;
 
     static {
         ItemStack spawn = new ItemStack(Material.MONSTER_EGG, 1);
@@ -185,8 +185,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             this.auctionHandler = new AuctionHandler(this, economy);
             this.foodController = new FoodController(this, economy, database);
             this.discipinesHander = new DisciplinesHandler(this, economy);
-            this.warpsHandler = new WarpsController(this, database);
-            this.buildPayHandler = new BuildPayLogHandler(this, database, economy);
+            this.warpsHandler = new WarpsHandler(this, database);
+            this.buildPayHandler = new BuildPayHandler(this, database, economy);
             this.getCommand("disciplines").setExecutor(discipinesHander);
             this.getCommand("food").setExecutor(foodController);
             this.getCommand("auction").setExecutor(auctionHandler);

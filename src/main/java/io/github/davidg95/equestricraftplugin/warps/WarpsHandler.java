@@ -21,13 +21,13 @@ import org.bukkit.permissions.Permission;
  *
  * @author David
  */
-public class WarpsController implements CommandExecutor {
+public class WarpsHandler implements CommandExecutor {
 
     private final EquestriCraftPlugin plugin;
     private final Database database;
     private final Permission gotoPerm = new Permission("equestricraft.pwarp.goto");
 
-    public WarpsController(EquestriCraftPlugin plugin, Database database) {
+    public WarpsHandler(EquestriCraftPlugin plugin, Database database) {
         this.plugin = plugin;
         this.database = database;
     }

@@ -20,13 +20,13 @@ import org.bukkit.entity.Player;
  *
  * @author David
  */
-public class BuildPayLogHandler implements CommandExecutor {
+public class BuildPayHandler implements CommandExecutor {
 
     private final EquestriCraftPlugin plugin;
     private final Database database;
     private final Economy economy;
 
-    public BuildPayLogHandler(EquestriCraftPlugin plugin, Database database, Economy economy) {
+    public BuildPayHandler(EquestriCraftPlugin plugin, Database database, Economy economy) {
         this.plugin = plugin;
         this.database = database;
         this.economy = economy;
