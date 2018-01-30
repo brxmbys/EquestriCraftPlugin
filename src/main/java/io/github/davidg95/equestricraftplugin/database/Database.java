@@ -1316,7 +1316,7 @@ public abstract class Database {
         }
     }
 
-    public List<Warp> getPlayerWarps(Player p) {
+    public List<Warp> getPlayerWarps(OfflinePlayer p) {
         Connection conn = getSQLConnection();
         Statement s = null;
 

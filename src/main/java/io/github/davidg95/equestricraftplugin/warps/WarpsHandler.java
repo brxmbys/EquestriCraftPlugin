@@ -26,6 +26,7 @@ public class WarpsHandler implements CommandExecutor {
     private final EquestriCraftPlugin plugin;
     private final Database database;
     private final Permission gotoPerm = new Permission("equestricraft.pwarp.goto");
+    private final Permission showPerm = new Permission("equestricraft.pwarp.show");
 
     public WarpsHandler(EquestriCraftPlugin plugin, Database database) {
         this.plugin = plugin;
@@ -117,6 +118,17 @@ public class WarpsHandler implements CommandExecutor {
                 return true;
             }
             Player player = (Player) sender;
+            if (player.hasPermission(showPerm)) {
+                if (args.length >= 2) {
+                    OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(args[1]);
+                    List<Warp> warps = database.getPlayerWarps(offlinePlayer);
+                    String message = "Warps for " + offlinePlayer.getName() + "-\n";
+                    for (Warp warp : warps) {
+                        message += warp.getName() + ", ";
+                    }
+                    sender.sendMessage(message);
+                }
+            }
             List<Warp> warps = database.getPlayerWarps(player);
             if (warps.isEmpty()) {
                 sender.sendMessage("You have no private warps");
