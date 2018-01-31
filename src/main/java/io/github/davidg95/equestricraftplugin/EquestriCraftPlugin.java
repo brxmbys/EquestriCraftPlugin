@@ -3,14 +3,13 @@
  */
 package io.github.davidg95.equestricraftplugin;
 
-import io.github.davidg95.equestricraftplugin.buildpay.BuildPayHandler;
-import io.github.davidg95.equestricraftplugin.HorseCheckerThread.BuckThread;
-import io.github.davidg95.equestricraftplugin.HorseCheckerThread.DefecateThread;
+import io.github.davidg95.equestricraftplugin.buildpay.*;
+import io.github.davidg95.equestricraftplugin.HorseCheckerThread.*;
 import io.github.davidg95.equestricraftplugin.auctions.*;
 import io.github.davidg95.equestricraftplugin.database.*;
 import io.github.davidg95.equestricraftplugin.disciplines.*;
 import io.github.davidg95.equestricraftplugin.race.*;
-import io.github.davidg95.equestricraftplugin.warps.WarpsHandler;
+import io.github.davidg95.equestricraftplugin.warps.*;
 import java.io.*;
 import java.util.*;
 import java.util.logging.*;
@@ -1253,7 +1252,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                                 }
                             }
                             final String breedStr = ChatColor.BOLD + "Breed: " + ChatColor.RESET + brStr;
-                            final String personalityStr = ChatColor.BOLD + "Personalites: " + ChatColor.RESET + horse.getPersonalities()[0].toString() + ", " + horse.getPersonalities()[1].toString();
+                            final String personalityStr = ChatColor.BOLD + "Personalities: " + ChatColor.RESET + horse.getPersonalities()[0].toString() + ", " + horse.getPersonalities()[1].toString();
                             final String ageStr = ChatColor.BOLD + "Age: " + durToStringYears(horse.getAgeInMonths()) + " old";
                             String sickSince = durToString(horse.getIllDuration());
                             final String sickStr = ChatColor.BOLD + "Health: " + ChatColor.RESET + "" + (sickness ? ChatColor.RED + "Ill" + ChatColor.RESET + " for " + sickSince : ChatColor.GREEN + "Well") + (sickness ? ChatColor.RED + "\nYou will need to take the horse to a vet to find out the exact illness." : "");
