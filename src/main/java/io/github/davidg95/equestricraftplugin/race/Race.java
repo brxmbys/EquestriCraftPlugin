@@ -58,32 +58,35 @@ public class Race implements Listener {
     private Team team;
     private Objective objective;
 
-    private static final Sign RACE_MONITOR;
-    private static final Sign[] PLAYER_SIGNS;
-    private static final Sign PODIUM_SIGN;
+    private static Sign RACE_MONITOR;
+    private static Sign[] PLAYER_SIGNS;
+    private static Sign PODIUM_SIGN;
     private int lap;
 
     private final EquestriCraftPlugin plugin;
 
     static {
-        Block b = Bukkit.getWorld("EquestriCraft").getBlockAt(-2033, 7, 11125);
-        if (b.getType() != Material.SIGN) {
-            b.setType(Material.SIGN);
-        }
-        RACE_MONITOR = (Sign) b.getState();
-        PLAYER_SIGNS = new Sign[5];
-        for (int i = -2032; i <= -2028; i++) {
-            Block bl = Bukkit.getWorld("EquestriCraft").getBlockAt(i, 7, 11125);
-            if (bl.getType() != Material.SIGN) {
-                bl.setType(Material.SIGN);
+        try {
+            Block b = Bukkit.getWorld("EquestriCraft").getBlockAt(-2033, 7, 11125);
+            if (b.getType() != Material.SIGN) {
+                b.setType(Material.SIGN);
             }
-            PLAYER_SIGNS[i + 2032] = (Sign) bl.getState();
+            RACE_MONITOR = (Sign) b.getState();
+            PLAYER_SIGNS = new Sign[5];
+            for (int i = -2032; i <= -2028; i++) {
+                Block bl = Bukkit.getWorld("EquestriCraft").getBlockAt(i, 7, 11125);
+                if (bl.getType() != Material.SIGN) {
+                    bl.setType(Material.SIGN);
+                }
+                PLAYER_SIGNS[i + 2032] = (Sign) bl.getState();
+            }
+            Block blo = Bukkit.getWorld("EquestriCraft").getBlockAt(-2034, 7, 11125);
+            if (blo.getType() != Material.SIGN) {
+                blo.setType(Material.SIGN);
+            }
+            PODIUM_SIGN = (Sign) blo.getState();
+        } catch (Exception e) {
         }
-        Block blo = Bukkit.getWorld("EquestriCraft").getBlockAt(-2034, 7, 11125);
-        if (blo.getType() != Material.SIGN) {
-            blo.setType(Material.SIGN);
-        }
-        PODIUM_SIGN = (Sign) blo.getState();
     }
 
     public Race(EquestriCraftPlugin plugin, Economy economy, int laps, double prize1, double prize2, double prize3) {
@@ -100,14 +103,18 @@ public class Race implements Listener {
         this.prize2 = prize2;
         this.prize3 = prize3;
         initScoreboard();
-        RACE_MONITOR.setLine(1, "Laps: " + laps);
-        RACE_MONITOR.setLine(2, "Entrants: " + players.size() + "/20");
-        RACE_MONITOR.setLine(3, "Open for entries");
-        RACE_MONITOR.update();
-        PODIUM_SIGN.setLine(1, "1st: --------");
-        PODIUM_SIGN.setLine(2, "2nd: --------");
-        PODIUM_SIGN.setLine(3, "3rd: --------");
-        PODIUM_SIGN.update();
+        if (RACE_MONITOR != null) {
+            RACE_MONITOR.setLine(1, "Laps: " + laps);
+            RACE_MONITOR.setLine(2, "Entrants: " + players.size() + "/20");
+            RACE_MONITOR.setLine(3, "Open for entries");
+            RACE_MONITOR.update();
+        }
+        if (PODIUM_SIGN != null) {
+            PODIUM_SIGN.setLine(1, "1st: --------");
+            PODIUM_SIGN.setLine(2, "2nd: --------");
+            PODIUM_SIGN.setLine(3, "3rd: --------");
+            PODIUM_SIGN.update();
+        }
 
     }
 
@@ -240,10 +247,12 @@ public class Race implements Listener {
         if (thread != null) {
             thread.stopRun();
         }
-        RACE_MONITOR.setLine(1, "Laps: ---");
-        RACE_MONITOR.setLine(2, "Entrants: -/20");
-        RACE_MONITOR.setLine(3, "No active session");
-        RACE_MONITOR.update();
+        if (RACE_MONITOR != null) {
+            RACE_MONITOR.setLine(1, "Laps: ---");
+            RACE_MONITOR.setLine(2, "Entrants: -/20");
+            RACE_MONITOR.setLine(3, "No active session");
+            RACE_MONITOR.update();
+        }
         clearPlayerSigns();
         setGatesOpen(false);
         HandlerList.unregisterAll(this);
@@ -280,23 +289,27 @@ public class Race implements Listener {
     }
 
     private void setPlayerSigns() {
-        for (int i = 0; i < players.size(); i++) {
-            int sign = (int) Math.floor(i / 5);
-            int line = (i % 4);
-            PLAYER_SIGNS[sign].setLine(line, ChatColor.stripColor(stripName(players.get(i).getPlayer())));
-        }
-        for (Sign s : PLAYER_SIGNS) {
-            s.update();
+        if (PLAYER_SIGNS != null) {
+            for (int i = 0; i < players.size(); i++) {
+                int sign = (int) Math.floor(i / 5);
+                int line = (i % 4);
+                PLAYER_SIGNS[sign].setLine(line, ChatColor.stripColor(stripName(players.get(i).getPlayer())));
+            }
+            for (Sign s : PLAYER_SIGNS) {
+                s.update();
+            }
         }
     }
 
     private void clearPlayerSigns() {
-        for (Sign s : PLAYER_SIGNS) {
-            s.setLine(0, "");
-            s.setLine(1, "");
-            s.setLine(2, "");
-            s.setLine(3, "");
-            s.update();
+        if (PLAYER_SIGNS != null) {
+            for (Sign s : PLAYER_SIGNS) {
+                s.setLine(0, "");
+                s.setLine(1, "");
+                s.setLine(2, "");
+                s.setLine(3, "");
+                s.update();
+            }
         }
     }
 
