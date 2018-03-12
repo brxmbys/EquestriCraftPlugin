@@ -80,7 +80,6 @@ public class HorseCheckerThread extends Thread {
                 }
                 plugin.getLogger().log(Level.INFO, "Checking " + horses.size() + " horses...");
                 for (MyHorse horse : horses) {
-                    horsesChecked++;
                     if (horse.isSick() && horse.getIllDuration() > SICK_LIMIT) { //Check if the horse has been sick for too long.
                         Horse h = getEntityByUniqueId(horse.getUuid());
                         if (h != null) {
@@ -146,6 +145,7 @@ public class HorseCheckerThread extends Thread {
                             h.setBaby();
                         }
                     }
+                    horsesChecked++;
                     if (SHOW_TIME) {
                         if (horsesChecked % 500 == 0) {
                             plugin.getLogger().log(Level.INFO, "Checked " + horsesChecked + " horses");
@@ -158,10 +158,10 @@ public class HorseCheckerThread extends Thread {
             final long end = new Date().getTime();
             final long time = end - start;
             double s = time / 1000D;
-            if (SHOW_TIME) {
-                plugin.getLogger().log(Level.INFO, "Thread run time: " + s + "s");
-                plugin.getLogger().log(Level.INFO, "Horses checked: " + horsesChecked);
-            }
+//            if (SHOW_TIME) {
+            plugin.getLogger().log(Level.INFO, "Thread run time: " + s + "s");
+            plugin.getLogger().log(Level.INFO, "Horses checked: " + horsesChecked);
+//            }
             try {
                 Thread.sleep(MAIN_THREAD_INTERVAL); //Wait
             } catch (InterruptedException ex) {

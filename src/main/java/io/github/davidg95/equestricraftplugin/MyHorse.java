@@ -349,13 +349,14 @@ public class MyHorse implements Serializable {
                 this.illness = Illness.randomIllness();
                 if (gender == MyHorse.MARE) {
                     if (illness != Illness.MareReproductiveLoss) {
+                        this.illSince = getCurrentTime();
                         break;
                     }
                 } else {
+                    this.illSince = getCurrentTime();
                     break;
                 }
             }
-            this.illSince = getCurrentTime();
         } else {
             this.wellSince = getCurrentTime();
         }
@@ -556,8 +557,8 @@ public class MyHorse implements Serializable {
     public void setTrainingLevel(int trainingLevel) {
         this.trainingLevel = trainingLevel;
     }
-    
-    public boolean isIgnored(){
+
+    public boolean isIgnored() {
         return ignored;
     }
 

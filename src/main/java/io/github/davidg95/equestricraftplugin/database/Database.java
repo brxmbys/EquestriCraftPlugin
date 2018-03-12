@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.locks.StampedLock;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
@@ -59,6 +60,34 @@ public abstract class Database {
         } catch (SQLException ex) {
             plugin.getLogger().log(Level.SEVERE, "Unable to retrieve connection", ex);
         }
+    }
+
+    public ResultSet query(String sql) {
+        Connection conn = null;
+        Statement s = null;
+
+        final long stamp = lock.writeLock();
+        try {
+            conn = getSQLConnection();
+            s = conn.createStatement();
+            ResultSet set = s.executeQuery(sql);
+            return set;
+        } catch (SQLException ex) {
+            plugin.getLogger().log(Level.SEVERE, "Error executing query - '" + sql + "'", ex);
+        } finally {
+            lock.unlockWrite(stamp);
+            try {
+                if (s != null) {
+                    s.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+                plugin.getLogger().log(Level.SEVERE, "Error closing connection", ex);
+            }
+        }
+        return null;
     }
 
     public int hungryHorses() {

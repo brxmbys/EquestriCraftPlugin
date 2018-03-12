@@ -38,9 +38,9 @@ import org.bukkit.scheduler.BukkitRunnable;
  */
 public class EquestriCraftPlugin extends JavaPlugin implements Listener {
 
-    private HorseCheckerThread checkerThread;
-    private BuckThread buckThread;
-    private DefecateThread defecateThread;
+    public HorseCheckerThread checkerThread;
+    public BuckThread buckThread;
+    public DefecateThread defecateThread;
 
     public static final String MEDICINE = "Healer";
     public static final String GELDING_TOOL = "Gelding Shears";
@@ -54,9 +54,9 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     public static final String DENTIST_HEALING_TOOL = "Dentist's Healing Tool";
     public static final String NAVIGATOR_TOOL = "Navigator";
 
-    private Permission doctorPerm;
-    private Permission farrierPerm;
-    private Permission dentistPerm;
+    private final Permission doctorPerm = new Permission("equestricraft.role.doctor");
+    private final Permission farrierPerm = new Permission("equestricraft.role.farrier");
+    private final Permission dentistPerm = new Permission("equestricraft.role.dentist");
 
     public static final String BREEDING_APPLE = "Breeding Apple";
     public static int GAPPLE_PRICE = 0;
@@ -81,6 +81,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     public DisciplinesHandler discipinesHander;
     public WarpsHandler warpsHandler;
     public BuildPayHandler buildPayHandler;
+
+    public EQH eqhExecutor;
 
     static {
         ItemStack spawn = new ItemStack(Material.MONSTER_EGG, 1);
@@ -156,9 +158,6 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
 
     @Override
     public void onEnable() {
-        doctorPerm = new Permission("equestricraft.role.doctor");
-        farrierPerm = new Permission("equestricraft.role.farrier");
-        dentistPerm = new Permission("equestricraft.role.dentist");
         if (!this.getDataFolder().exists()) {
             this.getDataFolder().mkdir();
         }
@@ -170,12 +169,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             getLogger().log(Level.SEVERE, "Error loading config.yml. It has been regenerated.", ex);
         }
         loadProperties();
-        checkerThread = new HorseCheckerThread(this, database);
-        checkerThread.start();
-        buckThread = checkerThread.new BuckThread();
-        buckThread.start();
-        defecateThread = checkerThread.new DefecateThread();
-        defecateThread.start();
+        startThreads();
         getServer().getPluginManager().registerEvents(this, this);
         if (!setupEconomy()) {
             getLogger().log(Level.SEVERE, "Vault not detected, Disciplines, Auctions, Races and Food have been disabled");
@@ -193,6 +187,17 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             this.getCommand("pwarp").setExecutor(warpsHandler);
             this.getCommand("buildpay").setExecutor(buildPayHandler);
         }
+        this.eqhExecutor = new EQH(this, database);
+        this.getCommand("eqh").setExecutor(eqhExecutor);
+    }
+
+    private void startThreads() {
+        checkerThread = new HorseCheckerThread(this, database);
+        checkerThread.start();
+        buckThread = checkerThread.new BuckThread();
+        buckThread.start();
+        defecateThread = checkerThread.new DefecateThread();
+        defecateThread.start();
     }
 
     private void setupDatabase() {
@@ -645,219 +650,6 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/showbreeds - " + ChatColor.RESET + "show the list of breeds");
             sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/showtraits - " + ChatColor.RESET + "show the list of personalities");
             sender.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "/eqhelp - " + ChatColor.RESET + "shows this message");
-            return true;
-        } else if (cmd.getName().equalsIgnoreCase("eqh")) {
-            if (args.length >= 1) {
-                if (args[0].equalsIgnoreCase("kill")) {
-                    if (sender instanceof Player) {
-                        final Player player = (Player) sender;
-                        if (player.isOp()) {
-                            UUID uuid = UUID.fromString(player.getMetadata("horse").get(0).asString());
-                            if (uuid == null) {
-                                sender.sendMessage("No horse selected");
-                                return true;
-                            }
-
-                            Horse h = getEntityByUniqueId(uuid);
-                            if (h != null) {
-                                h.setHealth(0);
-                                database.removeHorse(uuid);
-                            }
-                            return true;
-                        }
-                        return true;
-                    }
-                } else if (args[0].equalsIgnoreCase("times")) {
-                    HorseCheckerThread.SHOW_TIME = !HorseCheckerThread.SHOW_TIME;
-                    sender.sendMessage("Horse checker times " + (HorseCheckerThread.SHOW_TIME ? "activated" : "deactivated"));
-                } else if (args[0].equalsIgnoreCase("db")) {
-                    if (args.length >= 2) {
-                        if (args[1].equalsIgnoreCase("show-hungry")) {
-                            int hungry = database.hungryHorses();
-                            sender.sendMessage("There are " + hungry + " hungry horses");
-                        } else if (args[1].equalsIgnoreCase("show-thirsty")) {
-                            int thirsty = database.thirstyHorses();
-                            sender.sendMessage("There are " + thirsty + " thirsty horses");
-                        } else if (args[1].equalsIgnoreCase("show-ill")) {
-                            int ill = database.illHorses();
-                            sender.sendMessage("There are " + ill + " ill horses");
-                        } else if (args[1].equalsIgnoreCase("show-vaccs")) {
-                            int vaccs = database.vaccedHorses();
-                            sender.sendMessage("There are " + vaccs + " vacced horses");
-                        } else if (args[1].equalsIgnoreCase("show-shoed")) {
-                            int shoed = database.shoedHorses();
-                            sender.sendMessage("There are " + shoed + " shoed horses");
-                        } else if (args[1].equalsIgnoreCase("show-age")) {
-                            if (args.length >= 3) {
-                                int old = database.oldHorses(Integer.parseInt(args[2]));
-                                sender.sendMessage("There are " + old + " horses older than " + args[2] + " months");
-                            } else {
-                                sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "Must specify the age");
-                            }
-                        } else if (args[1].equalsIgnoreCase("show-dead")) {
-                            int dead = database.deadHorses();
-                            sender.sendMessage("There are " + dead + " dead horses");
-                        } else if (args[1].equalsIgnoreCase("kill-dead")) {
-                            database.killDead();
-                            sender.sendMessage("Dead horses removed from database");
-                        } else if (args[1].equalsIgnoreCase("comm")) {
-                            if (sender.isOp()) {
-                                if (args.length > 2) {
-                                    String command = "";
-                                    for (int i = 2; i < args.length; i++) {
-                                        command += args[i] + " ";
-                                    }
-                                    Object res = database.submitCommand(command);
-                                    if (res == null) {
-                                        sender.sendMessage("No return");
-                                        return true;
-                                    }
-                                    sender.sendMessage(res.toString());
-                                }
-                            }
-                            return true;
-                        } else if (args[1].equalsIgnoreCase("no-ignore")) {
-                            database.noIgnore();
-                            sender.sendMessage("No horses will be ignored");
-                            return true;
-                        } else {
-                            sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "db command '" + args[1] + "' not recognised");
-                        }
-                    }
-                    return true;
-                } else if (args[0].equalsIgnoreCase("allowbreed")) {
-                    Player player = (Player) sender;
-                    MyHorse horse;
-                    if (player.getVehicle() != null || player.getVehicle() instanceof Horse) {
-                        horse = database.getHorse(player.getVehicle().getUniqueId());
-                    } else {
-                        horse = database.getHorse(UUID.fromString(player.getMetadata("horse").get(0).asString()));
-                    }
-                    if (horse == null) {
-                        player.sendMessage("No horse selected");
-                        return true;
-                    }
-                    horse.allowBreed();
-                    database.saveHorse(horse);
-                    player.sendMessage("This horse can now breed");
-                    return true;
-                } else if (args[0].equalsIgnoreCase("handt")) {
-                    database.removeHungerAndThrist();
-                    sender.sendMessage("Hunger and thirst reset on ALL horses");
-                } else if (args[0].equalsIgnoreCase("cure-all")) {
-                    database.cureAll();
-                    sender.sendMessage("All horses have been cured");
-                } else if (args[0].equalsIgnoreCase("bucking-toggle")) {
-                    String message = "Bucking thread " + (buckThread.toggle() ? ChatColor.GREEN + "Activated" : ChatColor.RED + "Deactivated");
-                    sender.sendMessage(message);
-                    if (sender instanceof Player) {
-                        getLogger().log(Level.INFO, message);
-                    }
-                } else if (args[0].equalsIgnoreCase("rl")) {
-                    if (sender.isOp()) {
-                        loadProperties();
-                        sender.sendMessage("config.yml reloaded");
-                    }
-                } else if (args[0].equalsIgnoreCase("attr")) {
-                    String attr = args[1];
-                    Player player = (Player) sender;
-                    UUID uuid = UUID.fromString(player.getMetadata("horse").get(0).asString());
-                    if (uuid == null) {
-                        sender.sendMessage("No horse selected");
-                        return true;
-                    }
-
-                    Horse h = getEntityByUniqueId(uuid);
-                    Object o = HorseNMS.getAttribute(h, attr);
-                    player.sendMessage("Type: " + o.getClass().toString() + "=" + o);
-                } else if (args[0].equalsIgnoreCase("show-nulls")) {
-                    int count = 0;
-                    for (World w : Bukkit.getWorlds()) {
-                        for (Horse h : w.getEntitiesByClass(Horse.class)) {
-                            MyHorse mh = database.getHorse(h.getUniqueId());
-                            if (mh == null) {
-                                count++;
-                            }
-                        }
-                    }
-                    sender.sendMessage(count + " null horses");
-                } else if (args[0].equalsIgnoreCase("fix-nulls")) {
-                    int count = 0;
-                    for (World w : Bukkit.getWorlds()) {
-                        for (Horse h : w.getEntitiesByClass(Horse.class)) {
-                            MyHorse mh = database.getHorse(h.getUniqueId());
-                            if (mh == null) {
-                                mh = new MyHorse(h);
-                                database.addHorse(mh);
-                                count++;
-                            }
-                        }
-                    }
-                    sender.sendMessage(count + " horses added");
-                } else if (args[0].equalsIgnoreCase("age")) {
-                    if (args.length >= 2) {
-                        final Player player = (Player) sender;
-                        if (player.isOp()) {
-                            UUID uuid = UUID.fromString(player.getMetadata("horse").get(0).asString());
-                            if (uuid == null) {
-                                sender.sendMessage("No horse selected");
-                                return true;
-                            }
-                            final Horse h = getEntityByUniqueId(uuid);
-                            if (args[1].equalsIgnoreCase("foal")) {
-                                h.setBaby();
-                            } else if (args[1].equalsIgnoreCase("adult")) {
-                                h.setAdult();
-                            }
-                            sender.sendMessage("Age set");
-                            return true;
-                        }
-                        return true;
-                    }
-                } else if (args[0].equalsIgnoreCase("ignore")) {
-                    if (!(sender instanceof Player)) {
-                        sender.sendMessage(ChatColor.RED + "Only a player can use this command");
-                        return true;
-                    }
-                    if (args.length < 2) {
-                        sender.sendMessage(ChatColor.RED + "Must specify true or false");
-                        return true;
-                    }
-                    String boolStr = args[1];
-                    boolean ignore;
-                    if (boolStr.equalsIgnoreCase("true")) {
-                        ignore = true;
-                    } else if (boolStr.equalsIgnoreCase("false")) {
-                        ignore = false;
-                    } else {
-                        sender.sendMessage(ChatColor.RED + "Must specify true or false");
-                        return true;
-                    }
-                    final Player player = (Player) sender;
-                    if (player.isOp()) {
-                        UUID uuid = UUID.fromString(player.getMetadata("horse").get(0).asString());
-                        if (uuid == null) {
-                            sender.sendMessage("No horse selected");
-                            return true;
-                        }
-                        database.setIgnore(uuid, ignore);
-                    }
-                    return true;
-                } else if (args[0].equalsIgnoreCase("status")) {
-                    String message = "";
-                    message += ChatColor.GREEN + "Horses in database: " + ChatColor.AQUA + database.horseCount(-1) + "\n";
-                    message += ChatColor.GREEN + "Ignored horses: " + ChatColor.AQUA + database.ignoredHorses() + "\n";
-                    message += ChatColor.AQUA + "Checker thread: " + (checkerThread.isAlive() ? ChatColor.GREEN + "Active" : ChatColor.RED + "Not Active") + "\n";
-                    message += ChatColor.AQUA + "Bucking thread: " + (buckThread.isActive() ? ChatColor.GREEN + "Active" : ChatColor.RED + "Not Active") + "\n";
-                    int count = 0;
-                    for (World world : Bukkit.getWorlds()) {
-                        count += world.getEntitiesByClass(Horse.class).size();
-                    }
-                    message += ChatColor.GREEN + "Horses currently in world: " + ChatColor.AQUA + count;
-                    sender.sendMessage(message);
-                    return true;
-                }
-            }
             return true;
         } else if (cmd.getName().equalsIgnoreCase("farrier")) {
             if (args.length > 0) {
@@ -1727,17 +1519,36 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         player.closeInventory();
     }
 
-    private void loadProperties() {
+    public void loadProperties() {
         MyHorse.EAT_LIMIT = getConfig().getInt("misc.eat_limit") * 60000;
         MyHorse.DRINK_LIMIT = getConfig().getInt("misc.drink_limit") * 60000;
         HorseCheckerThread.SICK_LIMIT = getConfig().getInt("misc.sick_limit") * 60000;
         HorseCheckerThread.DEFECATE_INTERVAL = getConfig().getInt("misc.defecate_interval") * 60000;
-        HorseCheckerThread.ILL_WAIT = getConfig().getLong("misc.ill_wait");
+        HorseCheckerThread.ILL_WAIT = getConfig().getInt("misc.ill_wait") * 60000;
         HorseCheckerThread.SICK_PROBABILITY = getConfig().getInt("misc.sick_probability");
         HorseCheckerThread.VACCINATED_PROBABILITY = getConfig().getInt("misc.vaccinated_sick_probability");
         OP_REQ = getConfig().getBoolean("misc.op_req");
         BLOCK_HUNGER = getConfig().getBoolean("misc.block_hunger");
         ONE_USE_COST = getConfig().getInt("tools.one_use_vaccination_price");
         GAPPLE_PRICE = getConfig().getInt("tools.gapple_price");
+    }
+
+    public class IllThread extends Thread {
+
+        public IllThread() {
+            super("ILL_THREAD");
+            setDaemon(true);
+        }
+
+        @Override
+        public void run() {
+            while (true) {
+                for (World w : Bukkit.getWorlds()) {
+                    for (Horse h : w.getEntitiesByClass(Horse.class)) {
+
+                    }
+                }
+            }
+        }
     }
 }
