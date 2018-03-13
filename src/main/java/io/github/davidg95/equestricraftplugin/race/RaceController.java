@@ -22,11 +22,43 @@ public class RaceController implements CommandExecutor {
     private final EquestriCraftPlugin plugin;
 
     public Race race;
-    
+
     private Economy economy;
 
     public RaceController(EquestriCraftPlugin plugin, Economy economy) {
         this.plugin = plugin;
+    }
+
+    public void open(int laps, double p1, double p2, double p3) {
+        race = new Race(plugin, economy, laps, p1, p2, p3);
+        Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "***" + laps + " lap race is now open for entries" + (p1 > 0 ? ". $" + new DecimalFormat("0").format(p1) + " reward for first place!" : "") + "***");
+    }
+
+    public int countdown() {
+        if (race == null || race.isFinnsihed() || race.isStarted() || race.getPlayers().isEmpty()) {
+            return 0;
+        } else {
+            race.countdown();
+            return 1;
+        }
+    }
+
+    public int start() {
+        if (race == null || race.isFinnsihed() || race.isStarted() || race.getPlayers().isEmpty()) {
+            return 0;
+        } else {
+            race.start();
+            return 1;
+        }
+    }
+
+    public int end() {
+        if (race != null) {
+            race.terminate();
+            race = null;
+            return 1;
+        }
+        return 0;
     }
 
     @Override
@@ -51,8 +83,7 @@ public class RaceController implements CommandExecutor {
                         prize3 = 0;
                         sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "You do not have permission to set a race with a prize");
                     }
-                    race = new Race(plugin, economy, laps, prize1, prize2, prize3);
-                    Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "***" + laps + " lap race is now open for entries" + (prize1 > 0 ? ". $" + new DecimalFormat("0").format(prize1) + " reward for first place!" : "") + "***");
+                    open(laps, prize1, prize2, prize3);
                 } catch (NumberFormatException ex) {
                     sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Must specify a number value");
                 }
@@ -112,7 +143,7 @@ public class RaceController implements CommandExecutor {
                 sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "There are no players in the race yet");
                 return true;
             }
-            race.countdown();
+            countdown();
             return true;
         } else if (args[0].equalsIgnoreCase("start")) {
             if (race == null || race.isFinnsihed()) {
@@ -125,7 +156,7 @@ public class RaceController implements CommandExecutor {
                 sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "There are no players in the race yet");
                 return true;
             }
-            race.start();
+            start();
             Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "Race has started!");
             return true;
         } else if (args[0].equalsIgnoreCase("withdraw")) {
@@ -146,8 +177,7 @@ public class RaceController implements CommandExecutor {
             return true;
         } else if (args[0].equalsIgnoreCase("end")) {
             if (race != null) {
-                race.terminate();
-                race = null;
+                end();
             } else {
                 sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "There is no active race session");
             }

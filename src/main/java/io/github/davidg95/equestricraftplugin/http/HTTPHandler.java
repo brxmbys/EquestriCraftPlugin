@@ -8,10 +8,13 @@ import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import io.github.davidg95.equestricraftplugin.EquestriCraftPlugin;
 import io.github.davidg95.equestricraftplugin.race.Race;
+import io.github.davidg95.equestricraftplugin.race.RaceController;
 import io.github.davidg95.equestricraftplugin.race.RacePlayer;
 import java.io.*;
 import java.net.*;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -47,6 +50,8 @@ public class HTTPHandler {
         server.createContext("/player", new PlayersHandler());
         server.createContext("/race/active", new RaceActiveHandler());
         server.createContext("/race/results", new RaceResultsHandler());
+        server.createContext("/race/control", new RaceControlHandler());
+        server.createContext("/race/entrants", new RaceControlHandler());
         server.createContext("/online", (HttpExchange he) -> {
             String output = "";
             for (Player p : Bukkit.getOnlinePlayers()) {
@@ -103,9 +108,15 @@ public class HTTPHandler {
 
         @Override
         public void handle(HttpExchange he) throws IOException {
-            UUID uuid = UUID.fromString(he.getAttribute("player").toString());
+            Map<String,String> params = queryToMap(he.getRequestURI().getQuery());
+            UUID uuid = UUID.fromString(params.get("player"));
             Player player = Bukkit.getPlayer(uuid);
-            String response = (player == null ? "NO" : "YES");
+            String response;
+            if (player == null) {
+                response = "NO";
+            } else {
+                response = "YES";
+            }
             addHeaders(he);
             he.sendResponseHeaders(200, response.length());
             try (OutputStream os = he.getResponseBody()) {
@@ -167,4 +178,72 @@ public class HTTPHandler {
 
     }
 
+    public class RaceControlHandler implements HttpHandler {
+
+        RaceController controller = plugin.raceController;
+
+        @Override
+        public void handle(HttpExchange he) throws IOException {
+            Map<String, String> params = queryToMap(he.getRequestURI().getQuery());
+            String response = "1";
+            if (params.get("operation").equalsIgnoreCase("open")) {
+                int laps = Integer.parseInt(params.get("laps"));
+                double p1 = Double.parseDouble(params.get("p1"));
+                double p2 = Double.parseDouble(params.get("p2"));
+                double p3 = Double.parseDouble(params.get("p3"));
+                controller.open(laps, p1, p2, p3);
+            } else if (params.get("operation").equalsIgnoreCase("countdown")) {
+                response = "" + controller.countdown();
+            } else if (params.get("operation").equalsIgnoreCase("end")) {
+                response = "" + controller.end();
+            } else {
+                response = "0";
+            }
+            addHeaders(he);
+            he.sendResponseHeaders(200, response.length());
+            try (OutputStream os = he.getResponseBody()) {
+                os.write(response.getBytes());
+            }
+        }
+
+    }
+
+    public class RaceParticipantsHandler implements HttpHandler {
+
+        RaceController controller = plugin.raceController;
+
+        @Override
+        public void handle(HttpExchange he) throws IOException {
+            String response;
+            if (controller.race == null || controller.race.isFinnsihed()) {
+                response = "0";
+            } else {
+                String output = "";
+                List<RacePlayer> entrants = controller.race.getPlayers();
+                for (RacePlayer player : entrants) {
+                    output += player.getPlayer().getName();
+                }
+                response = output;
+            }
+            addHeaders(he);
+            he.sendResponseHeaders(200, response.length());
+            try (OutputStream os = he.getResponseBody()) {
+                os.write(response.getBytes());
+            }
+        }
+
+    }
+
+    private Map<String, String> queryToMap(String query) {
+        Map<String, String> result = new HashMap<>();
+        for (String param : query.split("&")) {
+            String pair[] = param.split("=");
+            if (pair.length > 1) {
+                result.put(pair[0], pair[1]);
+            } else {
+                result.put(pair[0], "");
+            }
+        }
+        return result;
+    }
 }
