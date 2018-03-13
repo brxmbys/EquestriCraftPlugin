@@ -264,11 +264,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         raceController.cancelActiveRace();
         auctionHandler.endActiveAuction();
         getLogger().log(Level.INFO, "All threads stopped");
-        try {
-            http.stop();
-        } catch (IOException ex) {
-            getLogger().log(Level.SEVERE, "Error stopping http server", ex);
-        }
+        http.stop();
     }
 
     @Override

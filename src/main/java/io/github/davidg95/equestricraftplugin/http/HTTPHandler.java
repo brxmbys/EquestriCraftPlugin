@@ -3,12 +3,18 @@
  */
 package io.github.davidg95.equestricraftplugin.http;
 
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
+import com.sun.net.httpserver.HttpServer;
 import io.github.davidg95.equestricraftplugin.EquestriCraftPlugin;
+import io.github.davidg95.equestricraftplugin.race.Race;
 import io.github.davidg95.equestricraftplugin.race.RacePlayer;
 import java.io.*;
 import java.net.*;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.bukkit.Bukkit;
@@ -20,8 +26,12 @@ import org.bukkit.entity.Player;
  */
 public class HTTPHandler {
 
+    public static final int PORT = 10557;
+
     EquestriCraftPlugin plugin;
-    ServerSocket server;
+
+    HttpServer server;
+    Executor executor;
 
     boolean run;
 
@@ -30,136 +40,112 @@ public class HTTPHandler {
     }
 
     public void start() throws IOException {
-        plugin.getLogger().log(Level.INFO, "Starting HTTP server on 10557");
-        server = new ServerSocket(10557);
-        final Runnable runnable = () -> {
-            try {
-                listen();
-            } catch (IOException ex) {
-                plugin.getLogger().log(Level.SEVERE, "Server Error", ex);
-            }
-        };
-        final Thread thread = new Thread(runnable, "HTTP_LISTENER");
-        thread.setDaemon(true);
-        run = true;
-        thread.start();
-    }
-
-    private void listen() throws IOException {
-        while (run) {
-            Socket socket = server.accept();
-            new ConnectionHandler(socket).start();
-        }
-    }
-
-    public void stop() throws IOException {
-        run = false;
-        server.close();
-    }
-
-    public class ConnectionHandler extends Thread {
-
-        Socket socket;
-
-        public ConnectionHandler(Socket socket) throws IOException {
-            this.socket = socket;
-        }
-
-        @Override
-        public void run() {
-            try {
-                BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                PrintWriter pw = new PrintWriter(socket.getOutputStream());
-                pw.print("HTTP/1.1 200 \r\n"); // Version & status code
-                pw.print("Content-Type: text/plain\r\n"); // The type of data
-                pw.print("Connection: close\r\n"); // Will close stream
-                pw.print("Access-Control-Allow-Origin: *\r\n");
-                pw.print("\r\n"); // End of headers
-
-                String request = "";
-                String line;
-                while ((line = br.readLine()) != null) {
-                    if (line.length() == 0) {
-                        break;
-                    }
-                    request += line + "\r\n";
-                }
-
-                String[] requestParam = request.split(" ");
-                String path = requestParam[1];
-                if (path.contains("\\?")) {
-                    path = path.split("\\?")[0];
-                }
-                plugin.getLogger().log(Level.INFO, "Request for path - " + path);
-
-                if (path.toLowerCase().contains("/ping")) {
-                    pw.write(ping());
-                } else if (path.toLowerCase().contains("/player")) {
-                    String[] params = path.split("\\?")[1].split("&");
-                    for (String param : params) {
-                        String p = param.split("=")[1];
-                        pw.write(queryPlayer(p));
-                    }
-                } else if (path.toLowerCase().contains("/online")) {
-                    pw.write(onlinePlayers());
-                } else if (path.toLowerCase().contains("/race/active")) {
-                    pw.write(activeRace());
-                } else if (path.toLowerCase().contains("/race/results")) {
-                    pw.write(raceResults());
-                } else {
-                    pw.write("Error");
-                }
-                pw.close();
-                br.close();
-                socket.close();
-            } catch (IOException ex) {
-                Logger.getLogger(HTTPHandler.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-
-        /**
-         * Path = /ping
-         *
-         * @return
-         */
-        private String ping() {
-            return Bukkit.getOnlinePlayers().size() + "";
-        }
-
-        /**
-         * Path = player
-         *
-         * @param uuid
-         * @return
-         */
-        private String queryPlayer(String uuid) {
-            Player player = Bukkit.getPlayer(UUID.fromString(uuid));
-            return (player == null ? "NO" : "YES");
-        }
-
-        private String onlinePlayers() {
+        plugin.getLogger().log(Level.INFO, "Starting HTTP server on " + PORT);
+        server = HttpServer.create(new InetSocketAddress(PORT), 0);
+        server.createContext("/", new RootHandler());
+        server.createContext("/ping", new PingHandler());
+        server.createContext("/player", new PlayersHandler());
+        server.createContext("/race/active", new RaceActiveHandler());
+        server.createContext("/race/results", new RaceResultsHandler());
+        server.createContext("/online", (HttpExchange he) -> {
             String output = "";
             for (Player p : Bukkit.getOnlinePlayers()) {
                 output += p.getUniqueId().toString() + "," + p.getName() + "\n";
             }
-            return output;
-        }
+            addHeaders(he);
+            he.sendResponseHeaders(200, output.length());
+            try (OutputStream os = he.getResponseBody()) {
+                os.write(output.getBytes());
+            }
+        });
+        executor = Executors.newFixedThreadPool(10);
+        server.setExecutor(executor);
+        server.start();
+        plugin.getLogger().log(Level.INFO, "HTTP Server started");
+    }
 
-        private String activeRace() {
-            if (plugin.raceController.race == null) {
-                return "0";
-            } else if (plugin.raceController.race.isFinnsihed()) {
-                return "0";
-            } else if (plugin.raceController.race.isStarted()) {
-                return "2";
-            } else {
-                return "1";
+    public void stop() {
+        server.stop(1);
+    }
+
+    private void addHeaders(HttpExchange he) {
+        he.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+    }
+
+    public class RootHandler implements HttpHandler {
+
+        @Override
+        public void handle(HttpExchange he) throws IOException {
+            String response = "Server is running";
+            addHeaders(he);
+            he.sendResponseHeaders(200, response.length());
+            try (OutputStream os = he.getResponseBody()) {
+                os.write(response.getBytes());
+            }
+        }
+    }
+
+    public class PingHandler implements HttpHandler {
+
+        @Override
+        public void handle(HttpExchange he) throws IOException {
+            plugin.getLogger().info("Received ping request on HTTP Server");
+            String response = Bukkit.getOnlinePlayers().size() + "";
+            addHeaders(he);
+            he.sendResponseHeaders(200, response.length());
+            try (OutputStream os = he.getResponseBody()) {
+                os.write(response.getBytes());
+            }
+        }
+    }
+
+    public class PlayersHandler implements HttpHandler {
+
+        @Override
+        public void handle(HttpExchange he) throws IOException {
+            UUID uuid = UUID.fromString(he.getAttribute("player").toString());
+            Player player = Bukkit.getPlayer(uuid);
+            String response = (player == null ? "NO" : "YES");
+            addHeaders(he);
+            he.sendResponseHeaders(200, response.length());
+            try (OutputStream os = he.getResponseBody()) {
+                os.write(response.getBytes());
             }
         }
 
-        private String raceResults() {
+    }
+
+    public class RaceActiveHandler implements HttpHandler {
+
+        @Override
+        public void handle(HttpExchange he) throws IOException {
+            String response;
+            Race race = plugin.raceController.race;
+            if (race == null) {
+                response = "0";
+            } else if (race.isFinnsihed()) {
+                response = "0";
+            } else if (race.isStarted()) {
+                response = "2";
+            } else {
+                response = "1";
+            }
+            addHeaders(he);
+            he.sendResponseHeaders(200, response.length());
+            try (OutputStream os = he.getResponseBody()) {
+                os.write(response.getBytes());
+            }
+        }
+
+    }
+
+    public class RaceResultsHandler implements HttpHandler {
+
+        @Override
+        public void handle(HttpExchange he) throws IOException {
+            String response;
             if (plugin.raceController.race == null) {
-                return "-1";
+                response = "-1";
             } else if (plugin.raceController.race.isFinnsihed()) {
                 String output = "";
                 List<RacePlayer> players = plugin.raceController.race.getCompletedPlayers();
@@ -168,11 +154,17 @@ public class HTTPHandler {
                     output += player.getPlayer().getName() + "," + player.getTime() + "," + pos;
                     pos++;
                 }
-                return output;
+                response = output;
             } else {
-                return "-1";
+                response = "-1";
+            }
+            addHeaders(he);
+            he.sendResponseHeaders(200, response.length());
+            try (OutputStream os = he.getResponseBody()) {
+                os.write(response.getBytes());
             }
         }
+
     }
 
 }
