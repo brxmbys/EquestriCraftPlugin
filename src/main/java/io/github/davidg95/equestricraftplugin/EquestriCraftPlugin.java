@@ -8,6 +8,7 @@ import io.github.davidg95.equestricraftplugin.HorseCheckerThread.*;
 import io.github.davidg95.equestricraftplugin.auctions.*;
 import io.github.davidg95.equestricraftplugin.database.*;
 import io.github.davidg95.equestricraftplugin.disciplines.*;
+import io.github.davidg95.equestricraftplugin.http.HTTPHandler;
 import io.github.davidg95.equestricraftplugin.race.*;
 import io.github.davidg95.equestricraftplugin.warps.*;
 import java.io.*;
@@ -81,8 +82,9 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     public DisciplinesHandler discipinesHander;
     public WarpsHandler warpsHandler;
     public BuildPayHandler buildPayHandler;
-
     public EQH eqhExecutor;
+
+    public HTTPHandler http;
 
     static {
         ItemStack spawn = new ItemStack(Material.MONSTER_EGG, 1);
@@ -189,6 +191,12 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         }
         this.eqhExecutor = new EQH(this, database);
         this.getCommand("eqh").setExecutor(eqhExecutor);
+        http = new HTTPHandler(this);
+        try {
+            http.start();
+        } catch (IOException ex) {
+            getLogger().log(Level.SEVERE, null, ex);
+        }
     }
 
     private void startThreads() {
@@ -256,6 +264,11 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         raceController.cancelActiveRace();
         auctionHandler.endActiveAuction();
         getLogger().log(Level.INFO, "All threads stopped");
+        try {
+            http.stop();
+        } catch (IOException ex) {
+            getLogger().log(Level.SEVERE, "Error stopping http server", ex);
+        }
     }
 
     @Override

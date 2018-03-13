@@ -6,6 +6,7 @@ package io.github.davidg95.equestricraftplugin;
 import io.github.davidg95.equestricraftplugin.database.Database;
 import java.util.UUID;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.World;

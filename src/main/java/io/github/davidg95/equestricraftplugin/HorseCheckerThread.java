@@ -67,100 +67,131 @@ public class HorseCheckerThread extends Thread {
     @Override
     public void run() {
         plugin.getLogger().log(Level.INFO, "Starting checker thread");
-        int iter = 1;
+//        int iter = 1;
         while (run) {
-            final long start = new Date().getTime();
-            int horsesChecked = 0;
-            try {
-                List<MyHorse> horses = database.getHorses(iter);
-                if (iter == 3) {
-                    iter = 1;
-                } else {
-                    iter++;
-                }
-                plugin.getLogger().log(Level.INFO, "Checking " + horses.size() + " horses...");
-                for (MyHorse horse : horses) {
-                    if (horse.isSick() && horse.getIllDuration() > SICK_LIMIT) { //Check if the horse has been sick for too long.
-                        Horse h = getEntityByUniqueId(horse.getUuid());
-                        if (h != null) {
-                            h.setHealth(0);
-                            database.removeHorse(horse.getUuid());
-                            plugin.getLogger().log(Level.INFO, "A horse died of illness");
-                        }
-                    }
-                    if (horse.isHungry() && horse.getHungerDuration() > SICK_LIMIT) { //Kill the horse if it has been hungry longer than the limit.
-                        Horse h = getEntityByUniqueId(horse.getUuid());
-                        if (h != null) {
-                            h.setHealth(0);
-                            database.removeHorse(horse.getUuid());
-                            plugin.getLogger().log(Level.INFO, "A horse died of hunger");
-                        }
-                    }
-                    if (horse.isThirsty() && horse.getThristDuration() > SICK_LIMIT) { //Kill the horse if it has been thirsty longer than the limit.
-                        Horse h = getEntityByUniqueId(horse.getUuid());
-                        if (h != null) {
-                            h.setHealth(0);
-                            database.removeHorse(horse.getUuid());
-                            plugin.getLogger().log(Level.INFO, "A horse died of thirst");
-                        }
-                    }
+//            final long start = new Date().getTime();
+//            int horsesChecked = 0;
 
-                    if (horse.getWellDuration() > ILL_WAIT) { //Check the horse as not been ill too recently.
+            for (World world : Bukkit.getWorlds()) {
+                for (Horse horse : world.getEntitiesByClass(Horse.class)) {
+                    MyHorse mh = database.getHorse(horse.getUniqueId());
+                    if (mh == null) {
+                        continue;
+                    }
+                    if (mh.isHungry()) {
+                        mh.setSick(true);
+                    }
+                    if (mh.isThirsty()) {
+                        mh.setSick(true);
+                    }
+                    if (mh.isSick()) {
+                        if (mh.getIllDuration() >= SICK_LIMIT) {
+                            horse.setHealth(0);
+                        }
+                    }
+                    if (mh.getWellDuration() > ILL_WAIT) {
                         final double r = Math.random();
-                        if (horse.isVaccinated()) {
+                        if (mh.isVaccinated()) {
                             if (r <= VACCINATED_PROBABILITY) {
-                                horse.setSick(true);
-                                database.saveHorse(horse);
+                                mh.setSick(true);
                             }
                         } else {
                             if (r <= SICK_PROBABILITY) {
-                                horse.setSick(true);
-                                database.saveHorse(horse);
+                                mh.setSick(true);
                             }
-                        }
-                    }
-
-                    if (horse.getAgeInMonths() > horse.getDieAt() && horse.getDieAt() > 300) { //Check if the horse is too old.
-                        if (horse.getAgeInMonths() > 300) {
-                            Horse h = getEntityByUniqueId(horse.getUuid());
-                            if (h != null) {
-                                database.removeHorse(h.getUniqueId());
-                                h.setHealth(0);
-                                plugin.getLogger().log(Level.INFO, "A horse died at the age of " + horse.getAgeInMonths() + " months old");
-                            } else {
-                                plugin.getLogger().log(Level.WARNING, "There is a horse that is too old, however it is not currently spawned in");
-                            }
-                        }
-                    }
-
-                    int months = (int) horse.getAgeInMonths();
-                    if (months >= 12 && months <= 24) {//Check if the horse can become an adult
-                        Horse h = getEntityByUniqueId(horse.getUuid());
-                        if (h != null) {
-                            h.setAdult();
-                        }
-                    } else if (months < 12) {
-                        Horse h = getEntityByUniqueId(horse.getUuid());
-                        if (h != null) {
-                            h.setBaby();
-                        }
-                    }
-                    horsesChecked++;
-                    if (SHOW_TIME) {
-                        if (horsesChecked % 500 == 0) {
-                            plugin.getLogger().log(Level.INFO, "Checked " + horsesChecked + " horses");
                         }
                     }
                 }
-            } catch (Exception e) {
-                plugin.getLogger().log(Level.WARNING, "Error", e);
             }
-            final long end = new Date().getTime();
-            final long time = end - start;
-            double s = time / 1000D;
+
+//            try {
+//                List<MyHorse> horses = database.getHorses(iter);
+//                if (iter == 3) {
+//                    iter = 1;
+//                } else {
+//                    iter++;
+//                }
+//                plugin.getLogger().log(Level.INFO, "Checking " + horses.size() + " horses...");
+//                for (MyHorse horse : horses) {
+//                    if (horse.isSick() && horse.getIllDuration() > SICK_LIMIT) { //Check if the horse has been sick for too long.
+//                        Horse h = getEntityByUniqueId(horse.getUuid());
+//                        if (h != null) {
+//                            h.setHealth(0);
+//                            database.removeHorse(horse.getUuid());
+//                            plugin.getLogger().log(Level.INFO, "A horse died of illness");
+//                        }
+//                    }
+//                    if (horse.isHungry() && horse.getHungerDuration() > SICK_LIMIT) { //Kill the horse if it has been hungry longer than the limit.
+//                        Horse h = getEntityByUniqueId(horse.getUuid());
+//                        if (h != null) {
+//                            h.setHealth(0);
+//                            database.removeHorse(horse.getUuid());
+//                            plugin.getLogger().log(Level.INFO, "A horse died of hunger");
+//                        }
+//                    }
+//                    if (horse.isThirsty() && horse.getThristDuration() > SICK_LIMIT) { //Kill the horse if it has been thirsty longer than the limit.
+//                        Horse h = getEntityByUniqueId(horse.getUuid());
+//                        if (h != null) {
+//                            h.setHealth(0);
+//                            database.removeHorse(horse.getUuid());
+//                            plugin.getLogger().log(Level.INFO, "A horse died of thirst");
+//                        }
+//                    }
+//
+//                    if (horse.getWellDuration() > ILL_WAIT) { //Check the horse as not been ill too recently.
+//                        final double r = Math.random();
+//                        if (horse.isVaccinated()) {
+//                            if (r <= VACCINATED_PROBABILITY) {
+//                                horse.setSick(true);
+//                                database.saveHorse(horse);
+//                            }
+//                        } else {
+//                            if (r <= SICK_PROBABILITY) {
+//                                horse.setSick(true);
+//                                database.saveHorse(horse);
+//                            }
+//                        }
+//                    }
+//
+//                    if (horse.getAgeInMonths() > horse.getDieAt() && horse.getDieAt() > 300) { //Check if the horse is too old.
+//                        if (horse.getAgeInMonths() > 300) {
+//                            Horse h = getEntityByUniqueId(horse.getUuid());
+//                            if (h != null) {
+//                                database.removeHorse(h.getUniqueId());
+//                                h.setHealth(0);
+//                                plugin.getLogger().log(Level.INFO, "A horse died at the age of " + horse.getAgeInMonths() + " months old");
+//                            }
+//                        }
+//                    }
+//
+//                    int months = (int) horse.getAgeInMonths();
+//                    if (months >= 12 && months <= 24) {//Check if the horse can become an adult
+//                        Horse h = getEntityByUniqueId(horse.getUuid());
+//                        if (h != null) {
+//                            h.setAdult();
+//                        }
+//                    } else if (months < 12) {
+//                        Horse h = getEntityByUniqueId(horse.getUuid());
+//                        if (h != null) {
+//                            h.setBaby();
+//                        }
+//                    }
+//                    horsesChecked++;
+//                    if (SHOW_TIME) {
+//                        if (horsesChecked % 500 == 0) {
+//                            plugin.getLogger().log(Level.INFO, "Checked " + horsesChecked + " horses");
+//                        }
+//                    }
+//                }
+//            } catch (Exception e) {
+//                plugin.getLogger().log(Level.WARNING, "Error", e);
+//            }
+//            final long end = new Date().getTime();
+//            final long time = end - start;
+//            double s = time / 1000D;
 //            if (SHOW_TIME) {
-            plugin.getLogger().log(Level.INFO, "Thread run time: " + s + "s");
-            plugin.getLogger().log(Level.INFO, "Horses checked: " + horsesChecked);
+//            plugin.getLogger().log(Level.INFO, "Thread run time: " + s + "s");
+//            plugin.getLogger().log(Level.INFO, "Horses checked: " + horsesChecked);
 //            }
             try {
                 Thread.sleep(MAIN_THREAD_INTERVAL); //Wait
