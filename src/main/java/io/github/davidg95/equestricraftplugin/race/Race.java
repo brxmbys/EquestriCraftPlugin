@@ -41,8 +41,12 @@ public class Race implements Listener {
 
     private CheckThread thread; //CheckerThread.
 
-    private boolean started; //Boolean indicating whether race has been started.
-    private boolean finnished; //Boolean indicating whether race has been complete.
+    private int state;
+
+    public static final int OPEN = 1;
+    public static final int STARTING = 2;
+    public static final int STARTED = 3;
+    public static final int FINISHED = 4;
 
     private long startTime; //Time the race started at.
 
@@ -95,8 +99,7 @@ public class Race implements Listener {
         players = new LinkedList<>();
         complete = new LinkedList<>();
         spectators = new LinkedList<>();
-        started = false;
-        finnished = false;
+        state = OPEN;
         Bukkit.getServer().getPluginManager().registerEvents(this, plugin);
         this.economy = economy;
         this.prize1 = prize1;
@@ -131,7 +134,7 @@ public class Race implements Listener {
      * Starts the race.
      */
     public void start() {
-        started = true;
+        state = STARTED;
         startTime = new Date().getTime();
         thread = new CheckThread(plugin, this, players);
         setGatesOpen(true);
@@ -171,6 +174,7 @@ public class Race implements Listener {
     }
 
     public void countdown() {
+        state = STARTING;
         final Runnable run = () -> {
             try {
                 Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "5");
@@ -207,7 +211,7 @@ public class Race implements Listener {
      * Finishes the race and displays the listings.
      */
     public void finish() {
-        finnished = true;
+        state = FINISHED;
         if (complete.isEmpty()) {
             return;
         }
@@ -243,7 +247,7 @@ public class Race implements Listener {
         for (Player p : spectators) {
             p.setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
         }
-        finnished = true;
+        state = FINISHED;
         if (thread != null) {
             thread.stopRun();
         }
@@ -268,7 +272,7 @@ public class Race implements Listener {
      * player is not added. 4 if the player is already in the race.
      */
     public synchronized int addPlayer(Player p) {
-        if (started) {
+        if (state == STARTED) {
             return 2;
         }
         if (players.size() >= 20) {
@@ -426,7 +430,7 @@ public class Race implements Listener {
      * @return boolean indicating state.
      */
     public boolean isFinnsihed() {
-        return finnished;
+        return state == FINISHED;
     }
 
     /**
@@ -435,7 +439,15 @@ public class Race implements Listener {
      * @return boolean indicating state.
      */
     public boolean isStarted() {
-        return started;
+        return state == STARTED;
+    }
+    
+    public boolean isStarting(){
+        return state == STARTING;
+    }
+    
+    public int getState(){
+        return state;
     }
 
     /**
@@ -447,13 +459,26 @@ public class Race implements Listener {
         return laps;
     }
 
+    public double prize1() {
+        return prize1;
+    }
+
+    public double prize2() {
+        return prize2;
+    }
+
+    public double prize3() {
+        return prize3;
+    }
+
     /**
      * When a player leaves, withdraw them from the race.
      *
      * @param evt PlayerQuitEvent.
      */
     @EventHandler
-    public void onPlayerLeave(PlayerQuitEvent evt) {
+    public void onPlayerLeave(PlayerQuitEvent evt
+    ) {
         for (int i = 0; i < players.size(); i++) {
             if (players.get(i).getPlayer().getName().equals(evt.getPlayer().getName())) {
                 withdraw(evt.getPlayer());

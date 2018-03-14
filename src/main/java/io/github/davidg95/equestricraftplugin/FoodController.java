@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import net.milkbowl.vault.economy.Economy;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
@@ -28,12 +29,13 @@ import org.bukkit.inventory.meta.ItemMeta;
  */
 public class FoodController implements CommandExecutor, Listener {
 
+    private final EquestriCraftPlugin plugin;
     private final Economy econ;
     private final Database database;
 
-    private final int seeds_cost;
-    private final int wheat_cost;
-    private final int water_cost;
+    public int seeds_cost;
+    public int wheat_cost;
+    public int water_cost;
 
     public FoodController(EquestriCraftPlugin plugin, Economy econ, Database database) {
         this.econ = econ;
@@ -44,6 +46,7 @@ public class FoodController implements CommandExecutor, Listener {
         water_cost = plugin.getConfig().getInt("food.water");
 
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        this.plugin = plugin;
     }
 
     @Override
@@ -55,14 +58,14 @@ public class FoodController implements CommandExecutor, Listener {
                     + ChatColor.RESET + "/food buy-water - " + ChatColor.AQUA + "$" + water_cost + "\n");
             return true;
         }
-        Player player;
-        if (sender instanceof Player) {
-            player = (Player) sender;
-        } else {
-            sender.sendMessage("Only a player can use this command");
-            return false;
-        }
         if (args[0].equalsIgnoreCase("buy-seeds")) {
+            Player player;
+            if (sender instanceof Player) {
+                player = (Player) sender;
+            } else {
+                sender.sendMessage("Only a player can use this command");
+                return false;
+            }
             int quantity = 1;
             if (args.length == 2) {
                 quantity = Integer.parseInt(args[1]);
@@ -81,6 +84,13 @@ public class FoodController implements CommandExecutor, Listener {
             econ.withdrawPlayer(player, cost);
             player.sendMessage(ChatColor.GREEN + "You have been charged " + ChatColor.AQUA + "$" + cost);
         } else if (args[0].equalsIgnoreCase("buy-wheat")) {
+            Player player;
+            if (sender instanceof Player) {
+                player = (Player) sender;
+            } else {
+                sender.sendMessage("Only a player can use this command");
+                return false;
+            }
             int quantity = 1;
             if (args.length == 2) {
                 quantity = Integer.parseInt(args[1]);
@@ -99,6 +109,13 @@ public class FoodController implements CommandExecutor, Listener {
             econ.withdrawPlayer(player, cost);
             player.sendMessage(ChatColor.GREEN + "You have been charged " + ChatColor.AQUA + "$" + cost);
         } else if (args[0].equalsIgnoreCase("buy-water")) {
+            Player player;
+            if (sender instanceof Player) {
+                player = (Player) sender;
+            } else {
+                sender.sendMessage("Only a player can use this command");
+                return false;
+            }
             int quantity = 1;
             if (args.length == 2) {
                 quantity = Integer.parseInt(args[1]);
@@ -116,6 +133,24 @@ public class FoodController implements CommandExecutor, Listener {
             player.getInventory().addItem(seeds);
             econ.withdrawPlayer(player, cost);
             player.sendMessage(ChatColor.GREEN + "You have been charged " + ChatColor.AQUA + "$" + cost);
+        } else if (args[0].equalsIgnoreCase("set-prices")) {
+            if (sender.isOp()) {
+                if (args.length >= 3) {
+                    int price = Integer.parseInt(args[2]);
+                    if (args[1].equalsIgnoreCase("wheat")) {
+                        plugin.getConfig().set("food.wheat", price);
+                        wheat_cost = price;
+                    } else if (args[1].equalsIgnoreCase("seeds")) {
+                        plugin.getConfig().set("food.seeds", price);
+                        seeds_cost = price;
+                    } else if (args[1].equalsIgnoreCase("water")) {
+                        plugin.getConfig().set("food.water", price);
+                        water_cost = price;
+                    }
+                    sender.sendMessage("Set the price of " + ChatColor.GREEN + args[1] + ChatColor.RESET + " to " + ChatColor.GREEN + "$" + price);
+                    Bukkit.broadcastMessage(ChatColor.GREEN + args[1] + ChatColor.RESET + " is now " + ChatColor.GREEN + "$" + price);
+                }
+            }
         } else {
             sender.sendMessage("Incorrect command\n"
                     + ChatColor.RESET + "/food buy-seeds - " + ChatColor.AQUA + "$" + seeds_cost + "\n"

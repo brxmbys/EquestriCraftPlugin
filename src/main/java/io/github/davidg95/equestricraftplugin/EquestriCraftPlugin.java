@@ -48,16 +48,16 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     public static final String HORSE_WAND = "Horse checking wand";
     public static final String VACCINATION_TOOL = "Vaccination";
     public static final String ONE_USE_VACCINATION = "One use vaccination";
-    public static int ONE_USE_COST = 150;
+    public int SINGLE_VACCINATION_COST = 150;
     public static final String DOCTOR_TOOL = "Doctor's Tool";
     public static final String FARRIER_TOOL = "Farrier's Tool";
     public static final String DENTIST_TOOL = "Dentist's Tool";
     public static final String DENTIST_HEALING_TOOL = "Dentist's Healing Tool";
     public static final String NAVIGATOR_TOOL = "Navigator";
 
-    private final Permission doctorPerm = new Permission("equestricraft.role.doctor");
-    private final Permission farrierPerm = new Permission("equestricraft.role.farrier");
-    private final Permission dentistPerm = new Permission("equestricraft.role.dentist");
+    public final Permission doctorPerm = new Permission("equestricraft.role.doctor");
+    public final Permission farrierPerm = new Permission("equestricraft.role.farrier");
+    public final Permission dentistPerm = new Permission("equestricraft.role.dentist");
 
     public static final String BREEDING_APPLE = "Breeding Apple";
     public static int GAPPLE_PRICE = 0;
@@ -195,7 +195,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         try {
             http.start();
         } catch (IOException ex) {
-            getLogger().log(Level.SEVERE, null, ex);
+            getLogger().log(Level.SEVERE, "Error starting HTTP Server", ex);
         }
     }
 
@@ -258,13 +258,13 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
 
     @Override
     public void onDisable() {
+        http.stop();
         checkerThread.setRun(false);
         checkerThread = null;
         HandlerList.unregisterAll((Plugin) this);
         raceController.cancelActiveRace();
         auctionHandler.endActiveAuction();
         getLogger().log(Level.INFO, "All threads stopped");
-        http.stop();
     }
 
     @Override
@@ -344,9 +344,9 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                 final Player player = (Player) sender;
                 if (args.length == 1) {
                     if (args[0].equalsIgnoreCase("buy")) {
-                        if (economy.getBalance(player) >= ONE_USE_COST) {
-                            economy.withdrawPlayer(player, ONE_USE_COST);
-                            player.sendMessage(ChatColor.GREEN + "You have been charged $" + ONE_USE_COST);
+                        if (economy.getBalance(player) >= SINGLE_VACCINATION_COST) {
+                            economy.withdrawPlayer(player, SINGLE_VACCINATION_COST);
+                            player.sendMessage(ChatColor.GREEN + "You have been charged $" + SINGLE_VACCINATION_COST);
                             final PlayerInventory inventory = player.getInventory();
                             final ItemStack vaccine = new ItemStack(Material.BLAZE_ROD, 1);
                             final ItemMeta im = vaccine.getItemMeta();
@@ -1538,7 +1538,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         HorseCheckerThread.VACCINATED_PROBABILITY = getConfig().getInt("misc.vaccinated_sick_probability");
         OP_REQ = getConfig().getBoolean("misc.op_req");
         BLOCK_HUNGER = getConfig().getBoolean("misc.block_hunger");
-        ONE_USE_COST = getConfig().getInt("tools.one_use_vaccination_price");
+        SINGLE_VACCINATION_COST = getConfig().getInt("tools.one_use_vaccination_price");
         GAPPLE_PRICE = getConfig().getInt("tools.gapple_price");
     }
 

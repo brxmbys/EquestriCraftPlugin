@@ -7,7 +7,6 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import io.github.davidg95.equestricraftplugin.EquestriCraftPlugin;
-import io.github.davidg95.equestricraftplugin.race.Race;
 import io.github.davidg95.equestricraftplugin.race.RaceController;
 import io.github.davidg95.equestricraftplugin.race.RacePlayer;
 import java.io.*;
@@ -16,25 +15,26 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.bukkit.Bukkit;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 
 /**
  *
  * @author david
  */
-public class HTTPHandler {
+public class HTTPHandler implements CommandExecutor {
 
     public static final int PORT = 10557;
 
     EquestriCraftPlugin plugin;
 
     HttpServer server;
-    Executor executor;
 
     boolean run;
 
@@ -48,41 +48,136 @@ public class HTTPHandler {
         server.createContext("/", new RootHandler());
         server.createContext("/ping", new PingHandler());
         server.createContext("/player", new PlayersHandler());
-        server.createContext("/race/active", new RaceActiveHandler());
-        server.createContext("/race/results", new RaceResultsHandler());
         server.createContext("/race/control", new RaceControlHandler());
-        server.createContext("/race/entrants", new RaceControlHandler());
+        server.createContext("/race/main", new MainRaceHandler());
         server.createContext("/online", (HttpExchange he) -> {
-            String output = "";
+            JSONArray players = new JSONArray();
             for (Player p : Bukkit.getOnlinePlayers()) {
-                output += p.getUniqueId().toString() + "," + p.getName() + "\n";
+                JSONObject player = new JSONObject();
+                player.put("uuid", p.getUniqueId().toString());
+                player.put("name", p.getName());
+                players.add(player);
             }
+            String output = players.toString();
             addHeaders(he);
+            he.getResponseHeaders().add("Content-Type", "application/json");
             he.sendResponseHeaders(200, output.length());
             try (OutputStream os = he.getResponseBody()) {
                 os.write(output.getBytes());
             }
         });
-        executor = Executors.newFixedThreadPool(10);
-        server.setExecutor(executor);
         server.start();
         plugin.getLogger().log(Level.INFO, "HTTP Server started");
     }
 
     public void stop() {
+        plugin.getLogger().log(Level.INFO, "Stopping HTTP Server");
         server.stop(1);
+        plugin.getLogger().log(Level.INFO, "HTTP server stopped");
+    }
+
+    public void restart() throws IOException {
+        stop();
+        start();
     }
 
     private void addHeaders(HttpExchange he) {
         he.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
     }
 
+    @Override
+    public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+        return true;
+    }
+
+    public class MainRaceHandler implements HttpHandler {
+
+        @Override
+        public void handle(HttpExchange he) throws IOException {
+            int state;
+            RaceController cont = plugin.raceController;
+            if (cont.race == null) {
+                state = 0;
+            } else {
+                state = cont.race.getState();
+            }
+            JSONObject main = new JSONObject();
+            JSONObject info = new JSONObject();
+            info.put("state", state);
+            switch (state) {
+                case 0: { //No session
+                    main.put("info", info);
+                    break;
+                }
+                case 1: { //Open
+                    List<RacePlayer> entrants = cont.race.getPlayers();
+                    info.put("laps", cont.race.laps());
+                    info.put("p1", cont.race.prize1());
+                    info.put("p2", cont.race.prize2());
+                    info.put("p3", cont.race.prize3());
+                    JSONArray players = new JSONArray();
+                    for (RacePlayer player : entrants) {
+                        JSONObject p = new JSONObject();
+                        p.put("uuid", player.getPlayer().getUniqueId().toString());
+                        p.put("name", player.getPlayer().getName());
+                        players.add(p);
+                    }
+                    main.put("info", info);
+                    main.put("entrants", players);
+                    break;
+                }
+                case 2:
+                case 3: { //Started
+                    List<RacePlayer> entrants = cont.race.getPlayers();
+                    info.put("laps", cont.race.laps());
+                    info.put("p1", cont.race.prize1());
+                    info.put("p2", cont.race.prize2());
+                    info.put("p3", cont.race.prize3());
+                    JSONArray players = new JSONArray();
+                    for (RacePlayer player : entrants) {
+                        JSONObject p = new JSONObject();
+                        p.put("uuid", player.getPlayer().getUniqueId().toString());
+                        p.put("name", player.getPlayer().getName());
+                        p.put("lap", player.getLap());
+                        p.put("lastCross", player.getLastCrossTime());
+                        players.add(p);
+                    }
+                    main.put("info", info);
+                    main.put("entrants", players);
+                    break;
+                }
+                case 4: { //Finished
+                    main.put("info", info);
+                    break;
+                }
+                default: {
+                    main.put("info", info);
+                }
+            }
+            String response = main.toString();
+            addHeaders(he);
+            he.getResponseHeaders().add("Content-Type", "application/json");
+            he.sendResponseHeaders(200, response.length());
+            try (OutputStream os = he.getResponseBody()) {
+                os.write(response.getBytes());
+            }
+        }
+
+    }
+
     public class RootHandler implements HttpHandler {
 
         @Override
         public void handle(HttpExchange he) throws IOException {
-            String response = "Server is running";
+            JSONObject info = new JSONObject();
+            info.put("version", Bukkit.getBukkitVersion());
+            info.put("wheatCost", plugin.foodController.wheat_cost);
+            info.put("seedsCost", plugin.foodController.seeds_cost);
+            info.put("waterCost", plugin.foodController.water_cost);
+            info.put("vaccCost", plugin.SINGLE_VACCINATION_COST);
+            String response = info.toString();
             addHeaders(he);
+            he.getResponseHeaders().add("Content-Type", "application/json");
             he.sendResponseHeaders(200, response.length());
             try (OutputStream os = he.getResponseBody()) {
                 os.write(response.getBytes());
@@ -94,7 +189,6 @@ public class HTTPHandler {
 
         @Override
         public void handle(HttpExchange he) throws IOException {
-            plugin.getLogger().info("Received ping request on HTTP Server");
             String response = Bukkit.getOnlinePlayers().size() + "";
             addHeaders(he);
             he.sendResponseHeaders(200, response.length());
@@ -108,7 +202,7 @@ public class HTTPHandler {
 
         @Override
         public void handle(HttpExchange he) throws IOException {
-            Map<String,String> params = queryToMap(he.getRequestURI().getQuery());
+            Map<String, String> params = queryToMap(he.getRequestURI().getQuery());
             UUID uuid = UUID.fromString(params.get("player"));
             Player player = Bukkit.getPlayer(uuid);
             String response;
@@ -117,58 +211,21 @@ public class HTTPHandler {
             } else {
                 response = "YES";
             }
-            addHeaders(he);
-            he.sendResponseHeaders(200, response.length());
-            try (OutputStream os = he.getResponseBody()) {
-                os.write(response.getBytes());
-            }
-        }
-
-    }
-
-    public class RaceActiveHandler implements HttpHandler {
-
-        @Override
-        public void handle(HttpExchange he) throws IOException {
-            String response;
-            Race race = plugin.raceController.race;
-            if (race == null) {
-                response = "0";
-            } else if (race.isFinnsihed()) {
-                response = "0";
-            } else if (race.isStarted()) {
-                response = "2";
-            } else {
-                response = "1";
-            }
-            addHeaders(he);
-            he.sendResponseHeaders(200, response.length());
-            try (OutputStream os = he.getResponseBody()) {
-                os.write(response.getBytes());
-            }
-        }
-
-    }
-
-    public class RaceResultsHandler implements HttpHandler {
-
-        @Override
-        public void handle(HttpExchange he) throws IOException {
-            String response;
-            if (plugin.raceController.race == null) {
-                response = "-1";
-            } else if (plugin.raceController.race.isFinnsihed()) {
-                String output = "";
-                List<RacePlayer> players = plugin.raceController.race.getCompletedPlayers();
-                int pos = 1;
-                for (RacePlayer player : players) {
-                    output += player.getPlayer().getName() + "," + player.getTime() + "," + pos;
-                    pos++;
-                }
-                response = output;
-            } else {
-                response = "-1";
-            }
+//            if (player.hasPermission(plugin.doctorPerm)) {
+//                response += ",Y";
+//            } else {
+//                response += ",N";
+//            }
+//            if (player.hasPermission(plugin.farrierPerm)) {
+//                response += ",Y";
+//            } else {
+//                response += ",N";
+//            }
+//            if (player.hasPermission(plugin.dentistPerm)) {
+//                response += ",Y";
+//            } else {
+//                response += ",N";
+//            }
             addHeaders(he);
             he.sendResponseHeaders(200, response.length());
             try (OutputStream os = he.getResponseBody()) {
@@ -198,32 +255,6 @@ public class HTTPHandler {
                 response = "" + controller.end();
             } else {
                 response = "0";
-            }
-            addHeaders(he);
-            he.sendResponseHeaders(200, response.length());
-            try (OutputStream os = he.getResponseBody()) {
-                os.write(response.getBytes());
-            }
-        }
-
-    }
-
-    public class RaceParticipantsHandler implements HttpHandler {
-
-        RaceController controller = plugin.raceController;
-
-        @Override
-        public void handle(HttpExchange he) throws IOException {
-            String response;
-            if (controller.race == null || controller.race.isFinnsihed()) {
-                response = "0";
-            } else {
-                String output = "";
-                List<RacePlayer> entrants = controller.race.getPlayers();
-                for (RacePlayer player : entrants) {
-                    output += player.getPlayer().getName();
-                }
-                response = output;
             }
             addHeaders(he);
             he.sendResponseHeaders(200, response.length());
