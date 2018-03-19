@@ -49,7 +49,34 @@ public class HTTPHandler implements CommandExecutor {
         server.createContext("/ping", new PingHandler());
         server.createContext("/player", new PlayersHandler());
         server.createContext("/race/control", new RaceControlHandler());
-        server.createContext("/race/main", new MainRaceHandler());
+        server.createContext("/race/main", new RaceHandler(plugin));
+        server.createContext("/race/add", (HttpExchange he) -> {
+            Map<String, String> params = queryToMap(he.getRequestURI().getQuery());
+            String player = params.get("player");
+            boolean result = plugin.raceController.addPlayer(player);
+            String response;
+            if (result) {
+                response = "1";
+            } else {
+                response = "2";
+            }
+            addHeaders(he);
+            he.sendResponseHeaders(200, response.length());
+            try (OutputStream os = he.getResponseBody()) {
+                os.write(response.getBytes());
+            }
+        });
+        server.createContext("/race/remove", (HttpExchange he) -> {
+            Map<String, String> params = queryToMap(he.getRequestURI().getQuery());
+            String player = params.get("player");
+            plugin.raceController.withdrawPlayer(player);
+            String response = "1";
+            addHeaders(he);
+            he.sendResponseHeaders(200, response.length());
+            try (OutputStream os = he.getResponseBody()) {
+                os.write(response.getBytes());
+            }
+        });
         server.createContext("/online", (HttpExchange he) -> {
             JSONArray players = new JSONArray();
             for (Player p : Bukkit.getOnlinePlayers()) {
@@ -88,81 +115,6 @@ public class HTTPHandler implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         return true;
-    }
-
-    public class MainRaceHandler implements HttpHandler {
-
-        @Override
-        public void handle(HttpExchange he) throws IOException {
-            int state;
-            RaceController cont = plugin.raceController;
-            if (cont.race == null) {
-                state = 0;
-            } else {
-                state = cont.race.getState();
-            }
-            JSONObject main = new JSONObject();
-            JSONObject info = new JSONObject();
-            info.put("state", state);
-            switch (state) {
-                case 0: { //No session
-                    main.put("info", info);
-                    break;
-                }
-                case 1: { //Open
-                    List<RacePlayer> entrants = cont.race.getPlayers();
-                    info.put("laps", cont.race.laps());
-                    info.put("p1", cont.race.prize1());
-                    info.put("p2", cont.race.prize2());
-                    info.put("p3", cont.race.prize3());
-                    JSONArray players = new JSONArray();
-                    for (RacePlayer player : entrants) {
-                        JSONObject p = new JSONObject();
-                        p.put("uuid", player.getPlayer().getUniqueId().toString());
-                        p.put("name", player.getPlayer().getName());
-                        players.add(p);
-                    }
-                    main.put("info", info);
-                    main.put("entrants", players);
-                    break;
-                }
-                case 2:
-                case 3: { //Started
-                    List<RacePlayer> entrants = cont.race.getPlayers();
-                    info.put("laps", cont.race.laps());
-                    info.put("p1", cont.race.prize1());
-                    info.put("p2", cont.race.prize2());
-                    info.put("p3", cont.race.prize3());
-                    JSONArray players = new JSONArray();
-                    for (RacePlayer player : entrants) {
-                        JSONObject p = new JSONObject();
-                        p.put("uuid", player.getPlayer().getUniqueId().toString());
-                        p.put("name", player.getPlayer().getName());
-                        p.put("lap", player.getLap());
-                        p.put("lastCross", player.getLastCrossTime());
-                        players.add(p);
-                    }
-                    main.put("info", info);
-                    main.put("entrants", players);
-                    break;
-                }
-                case 4: { //Finished
-                    main.put("info", info);
-                    break;
-                }
-                default: {
-                    main.put("info", info);
-                }
-            }
-            String response = main.toString();
-            addHeaders(he);
-            he.getResponseHeaders().add("Content-Type", "application/json");
-            he.sendResponseHeaders(200, response.length());
-            try (OutputStream os = he.getResponseBody()) {
-                os.write(response.getBytes());
-            }
-        }
-
     }
 
     public class RootHandler implements HttpHandler {
@@ -211,21 +163,6 @@ public class HTTPHandler implements CommandExecutor {
             } else {
                 response = "YES";
             }
-//            if (player.hasPermission(plugin.doctorPerm)) {
-//                response += ",Y";
-//            } else {
-//                response += ",N";
-//            }
-//            if (player.hasPermission(plugin.farrierPerm)) {
-//                response += ",Y";
-//            } else {
-//                response += ",N";
-//            }
-//            if (player.hasPermission(plugin.dentistPerm)) {
-//                response += ",Y";
-//            } else {
-//                response += ",N";
-//            }
             addHeaders(he);
             he.sendResponseHeaders(200, response.length());
             try (OutputStream os = he.getResponseBody()) {
@@ -250,9 +187,9 @@ public class HTTPHandler implements CommandExecutor {
                 double p3 = Double.parseDouble(params.get("p3"));
                 controller.open(laps, p1, p2, p3);
             } else if (params.get("operation").equalsIgnoreCase("countdown")) {
-                response = "" + controller.countdown();
+                controller.countdown();
             } else if (params.get("operation").equalsIgnoreCase("end")) {
-                response = "" + controller.end();
+                controller.end();
             } else {
                 response = "0";
             }

@@ -267,20 +267,15 @@ public class Race implements Listener {
      * Add a player to the race.
      *
      * @param p the player to add.
-     * @return 1 if the player was added, 2 if the race has started and the
-     * player is not added, 3 if the max player count has been reached and the
-     * player is not added. 4 if the player is already in the race.
+     * @return true or false.
      */
-    public synchronized int addPlayer(Player p) {
-        if (state == STARTED) {
-            return 2;
-        }
-        if (players.size() >= 20) {
-            return 3;
+    public synchronized boolean addPlayer(Player p) {
+        if (state == STARTED || state == STARTING || state == FINISHED || players.size() >= 20) {
+            return false;
         }
         for (int i = 0; i < players.size(); i++) {
             if (players.get(i).getPlayer().getName().equals(p.getName())) {
-                return 4;
+                return false;
             }
         }
         team.addPlayer(p);
@@ -289,7 +284,7 @@ public class Race implements Listener {
 //        RACE_MONITOR.setLine(2, "Entrants: " + players.size() + "/20");
 //        RACE_MONITOR.update();
         setPlayerSigns();
-        return 1;
+        return true;
     }
 
     private void setPlayerSigns() {
@@ -352,27 +347,30 @@ public class Race implements Listener {
         final int position = complete.size() + 1; //Their position
         String name = stripName(p.getPlayer());
         double prize = 0;
+        p.setPosition(position);
         switch (position) {
             case 1: //1st place
                 prize = prize1;
-                PODIUM_SIGN.setLine(1, "1st: " + ChatColor.stripColor(name));
+//                PODIUM_SIGN.setLine(1, "1st: " + ChatColor.stripColor(name));
                 break;
             case 2: //2nd place
                 prize = prize2;
-                PODIUM_SIGN.setLine(2, "2nd: " + ChatColor.stripColor(name));
+//                PODIUM_SIGN.setLine(2, "2nd: " + ChatColor.stripColor(name));
                 break;
             case 3: //3rd place
                 prize = prize3;
-                PODIUM_SIGN.setLine(3, "3rd: " + ChatColor.stripColor(name));
+//                PODIUM_SIGN.setLine(3, "3rd: " + ChatColor.stripColor(name));
                 break;
             default:
                 break;
         }
         if (prize > 0) { //Check if they have won a prize
-            economy.depositPlayer(p.getPlayer(), prize); //Deposit prize money
-            p.getPlayer().sendMessage("You have won " + ChatColor.AQUA + "$" + new DecimalFormat("0").format(prize) + "!");
+            if (economy != null) {
+                economy.depositPlayer(p.getPlayer(), prize); //Deposit prize money
+                p.getPlayer().sendMessage("You have won " + ChatColor.AQUA + "$" + new DecimalFormat("0").format(prize) + "!");
+            }
         }
-        PODIUM_SIGN.update(); //Update podium sign
+//        PODIUM_SIGN.update(); //Update podium sign
         p.setTime(seconds);
         for (RacePlayer rp : complete) {
             if (rp.getPlayer().getName().equals(p.getPlayer().getName())) {
@@ -424,29 +422,7 @@ public class Race implements Listener {
         players.clear();
     }
 
-    /**
-     * Check if the race has finished.
-     *
-     * @return boolean indicating state.
-     */
-    public boolean isFinnsihed() {
-        return state == FINISHED;
-    }
-
-    /**
-     * Check if the race has started.
-     *
-     * @return boolean indicating state.
-     */
-    public boolean isStarted() {
-        return state == STARTED;
-    }
-    
-    public boolean isStarting(){
-        return state == STARTING;
-    }
-    
-    public int getState(){
+    public int getState() {
         return state;
     }
 
@@ -469,6 +445,10 @@ public class Race implements Listener {
 
     public double prize3() {
         return prize3;
+    }
+
+    public long getStartTime() {
+        return startTime;
     }
 
     /**

@@ -18,6 +18,7 @@ public class RacePlayer {
     private long lastCrossTime;
     private final Score score;
     private int section;
+    private int position;
 
     public RacePlayer(Player player, Score score) {
         this.player = player;
@@ -27,6 +28,7 @@ public class RacePlayer {
         this.score = score;
         score.setScore(1);
         section = 1;
+        position = 0;
     }
 
     public void nextLap() {
@@ -65,6 +67,14 @@ public class RacePlayer {
 
     public void setLastCrossTime(long lastCrossTime) {
         this.lastCrossTime = lastCrossTime;
+    }
+
+    public int getPosition() {
+        return position;
+    }
+
+    public void setPosition(int position) {
+        this.position = position;
     }
 
     @Override

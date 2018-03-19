@@ -983,7 +983,7 @@ public abstract class Database {
                 horse = new MyHorse(vacc_time, gender, uuid, lastEat, lastDrink, illSince, wellSince, lastBreed, defacateSinceEat, breed, birth, person, dieat, ill_type, shoed, trainingLevel, ignored);
                 return horse;
             }
-            plugin.getLogger().log(Level.WARNING, "Horse not found");
+//            plugin.getLogger().log(Level.WARNING, "Horse not found");
         } catch (SQLException ex) {
             plugin.getLogger().log(Level.SEVERE, "Error getting horse", ex);
         } finally {
@@ -1187,7 +1187,7 @@ public abstract class Database {
             while (rs.next()) {
                 return rs.getInt("training_level");
             }
-            plugin.getLogger().log(Level.WARNING, "Horse not found");
+//            plugin.getLogger().log(Level.WARNING, "Horse not found");
         } catch (SQLException ex) {
             plugin.getLogger().log(Level.SEVERE, "Error getting horse", ex);
         } finally {

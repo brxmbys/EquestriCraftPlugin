@@ -9,6 +9,7 @@ import io.github.davidg95.equestricraftplugin.auctions.*;
 import io.github.davidg95.equestricraftplugin.database.*;
 import io.github.davidg95.equestricraftplugin.disciplines.*;
 import io.github.davidg95.equestricraftplugin.http.HTTPHandler;
+import io.github.davidg95.equestricraftplugin.http.WebSocketHandler;
 import io.github.davidg95.equestricraftplugin.race.*;
 import io.github.davidg95.equestricraftplugin.warps.*;
 import java.io.*;
@@ -85,6 +86,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     public EQH eqhExecutor;
 
     public HTTPHandler http;
+    public WebSocketHandler web;
 
     static {
         ItemStack spawn = new ItemStack(Material.MONSTER_EGG, 1);
@@ -191,9 +193,11 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         }
         this.eqhExecutor = new EQH(this, database);
         this.getCommand("eqh").setExecutor(eqhExecutor);
+        web = new WebSocketHandler(this);
         http = new HTTPHandler(this);
         try {
             http.start();
+//            web.start();
         } catch (IOException ex) {
             getLogger().log(Level.SEVERE, "Error starting HTTP Server", ex);
         }
@@ -259,6 +263,11 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     @Override
     public void onDisable() {
         http.stop();
+//        try {
+//            web.stop();
+//        } catch (IOException ex) {
+//            Logger.getLogger(EquestriCraftPlugin.class.getName()).log(Level.SEVERE, null, ex);
+//        }
         checkerThread.setRun(false);
         checkerThread = null;
         HandlerList.unregisterAll((Plugin) this);
