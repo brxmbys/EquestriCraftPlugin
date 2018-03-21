@@ -23,10 +23,11 @@ public class RaceController implements CommandExecutor {
 
     public Race race;
 
-    private Economy economy;
+    private final Economy economy;
 
     public RaceController(EquestriCraftPlugin plugin, Economy economy) {
         this.plugin = plugin;
+        this.economy = economy;
     }
 
     public void open(int laps, double p1, double p2, double p3) {
@@ -147,13 +148,7 @@ public class RaceController implements CommandExecutor {
                 sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "Race already underway");
                 return true;
             }
-            boolean result = race.addPlayer(player);
-            if (result) {
-                player.sendMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "You are in the race!");
-                Bukkit.broadcastMessage(player.getDisplayName() + " is in the race!");
-            } else {
-                player.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "Error joining race");
-            }
+            race.addPlayer(player);
             return true;
         } else if (args[0].equalsIgnoreCase("countdown")) {
             if (race == null || race.getState() == Race.FINISHED) {
@@ -191,12 +186,7 @@ public class RaceController implements CommandExecutor {
                 sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "There is not an active race");
             }
             final Player player = (Player) sender;
-            if (race.withdraw(player)) {
-                player.sendMessage("You have withdrawn from the race");
-                Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.RED + player.getName() + " has withdrawn from the race!");
-            } else {
-                player.sendMessage("You are not in the race");
-            }
+            race.withdraw(player);
             return true;
         } else if (args[0].equalsIgnoreCase("end")) {
             if (race != null) {

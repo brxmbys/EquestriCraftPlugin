@@ -13,6 +13,11 @@ import io.github.davidg95.equestricraftplugin.http.WebSocketHandler;
 import io.github.davidg95.equestricraftplugin.race.*;
 import io.github.davidg95.equestricraftplugin.warps.*;
 import java.io.*;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.util.*;
 import java.util.logging.*;
 import net.milkbowl.vault.economy.Economy;
@@ -198,7 +203,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         try {
             http.start();
 //            web.start();
-        } catch (IOException ex) {
+        } catch (IOException | NoSuchAlgorithmException | KeyStoreException | CertificateException | UnrecoverableKeyException | KeyManagementException ex) {
             getLogger().log(Level.SEVERE, "Error starting HTTP Server", ex);
         }
     }
@@ -272,6 +277,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         checkerThread = null;
         HandlerList.unregisterAll((Plugin) this);
         raceController.cancelActiveRace();
+        raceController = null;
         auctionHandler.endActiveAuction();
         getLogger().log(Level.INFO, "All threads stopped");
     }

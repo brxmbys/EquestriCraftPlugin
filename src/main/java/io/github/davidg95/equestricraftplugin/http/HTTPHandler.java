@@ -6,16 +6,30 @@ package io.github.davidg95.equestricraftplugin.http;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
+import com.sun.net.httpserver.HttpsConfigurator;
+import com.sun.net.httpserver.HttpsParameters;
+import com.sun.net.httpserver.HttpsServer;
 import io.github.davidg95.equestricraftplugin.EquestriCraftPlugin;
 import io.github.davidg95.equestricraftplugin.race.RaceController;
 import io.github.davidg95.equestricraftplugin.race.RacePlayer;
 import java.io.*;
 import java.net.*;
+import java.security.KeyManagementException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLParameters;
+import javax.net.ssl.TrustManagerFactory;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -42,7 +56,46 @@ public class HTTPHandler implements CommandExecutor {
         this.plugin = plugin;
     }
 
-    public void start() throws IOException {
+    public void start() throws IOException, NoSuchAlgorithmException, KeyStoreException, CertificateException, UnrecoverableKeyException, KeyManagementException {
+
+//        SSLContext sslContext = SSLContext.getInstance("TLS");
+//
+//        // initialise the keystore
+//        char[] password = "Quarterback19".toCharArray();
+//        KeyStore ks = KeyStore.getInstance("JKS");
+//        FileInputStream fis = new FileInputStream("lig.keystore");
+//        ks.load(fis, password);
+//
+//        // setup the key manager factory
+//        KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
+//        kmf.init(ks, password);
+//
+//        // setup the trust manager factory
+//        TrustManagerFactory tmf = TrustManagerFactory.getInstance("SunX509");
+//        tmf.init(ks);
+//
+//        // setup the HTTPS context and parameters
+//        sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
+//        server.setHttpsConfigurator(new HttpsConfigurator(sslContext) {
+//            @Override
+//            public void configure(HttpsParameters params) {
+//                try {
+//                    // initialise the SSL context
+//                    SSLContext c = SSLContext.getDefault();
+//                    SSLEngine engine = c.createSSLEngine();
+//                    params.setNeedClientAuth(false);
+//                    params.setCipherSuites(engine.getEnabledCipherSuites());
+//                    params.setProtocols(engine.getEnabledProtocols());
+//
+//                    // get the default parameters
+//                    SSLParameters defaultSSLParameters = c.getDefaultSSLParameters();
+//                    params.setSSLParameters(defaultSSLParameters);
+//                } catch (Exception ex) {
+//                    plugin.getLogger().log(Level.SEVERE, "Failed to create HTTPS port");
+//                }
+//            }
+//        });
+
         plugin.getLogger().log(Level.INFO, "Starting HTTP server on " + PORT);
         server = HttpServer.create(new InetSocketAddress(PORT), 0);
         server.createContext("/", new RootHandler());
@@ -103,7 +156,7 @@ public class HTTPHandler implements CommandExecutor {
         plugin.getLogger().log(Level.INFO, "HTTP server stopped");
     }
 
-    public void restart() throws IOException {
+    public void restart() throws IOException, NoSuchAlgorithmException, KeyStoreException, CertificateException, UnrecoverableKeyException, KeyManagementException {
         stop();
         start();
     }

@@ -102,6 +102,9 @@ public class Race implements Listener {
         state = OPEN;
         Bukkit.getServer().getPluginManager().registerEvents(this, plugin);
         this.economy = economy;
+        if (economy == null) {
+            Bukkit.broadcastMessage("Economy not detected, prizes disabled");
+        }
         this.prize1 = prize1;
         this.prize2 = prize2;
         this.prize3 = prize3;
@@ -271,10 +274,12 @@ public class Race implements Listener {
      */
     public synchronized boolean addPlayer(Player p) {
         if (state == STARTED || state == STARTING || state == FINISHED || players.size() >= 20) {
+            p.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "Error joining race");
             return false;
         }
         for (int i = 0; i < players.size(); i++) {
             if (players.get(i).getPlayer().getName().equals(p.getName())) {
+                p.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "Error joining race");
                 return false;
             }
         }
@@ -284,6 +289,8 @@ public class Race implements Listener {
 //        RACE_MONITOR.setLine(2, "Entrants: " + players.size() + "/20");
 //        RACE_MONITOR.update();
         setPlayerSigns();
+        p.sendMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "You are in the race!");
+        Bukkit.broadcastMessage(p.getDisplayName() + " is in the race!");
         return true;
     }
 
@@ -407,9 +414,12 @@ public class Race implements Listener {
 //                RACE_MONITOR.setLine(2, "Entrants: " + players.size() + "/20");
 //                RACE_MONITOR.update();
                 setPlayerSigns();
+                player.sendMessage("You have withdrawn from the race");
+                Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.RED + player.getName() + " has withdrawn from the race!");
                 return true;
             }
         }
+        player.sendMessage("You are not in the race");
         return false;
     }
 
