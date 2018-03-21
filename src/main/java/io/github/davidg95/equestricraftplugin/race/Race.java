@@ -467,8 +467,7 @@ public class Race implements Listener {
      * @param evt PlayerQuitEvent.
      */
     @EventHandler
-    public void onPlayerLeave(PlayerQuitEvent evt
-    ) {
+    public void onPlayerLeave(PlayerQuitEvent evt) {
         for (int i = 0; i < players.size(); i++) {
             if (players.get(i).getPlayer().getName().equals(evt.getPlayer().getName())) {
                 withdraw(evt.getPlayer());

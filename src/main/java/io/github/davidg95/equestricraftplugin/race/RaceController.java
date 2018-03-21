@@ -42,6 +42,9 @@ public class RaceController implements CommandExecutor {
      */
     public boolean countdown() {
         if (race == null || race.getState() == Race.OPEN) {
+            if(race.getPlayers().isEmpty()){
+                return false;
+            }
             race.countdown();
             return true;
         }

@@ -240,7 +240,9 @@ public class HTTPHandler implements CommandExecutor {
                 double p3 = Double.parseDouble(params.get("p3"));
                 controller.open(laps, p1, p2, p3);
             } else if (params.get("operation").equalsIgnoreCase("countdown")) {
-                controller.countdown();
+                if(!controller.countdown()){
+                    response = "2";
+                }
             } else if (params.get("operation").equalsIgnoreCase("end")) {
                 controller.end();
             } else {
