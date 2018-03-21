@@ -6,31 +6,21 @@ package io.github.davidg95.equestricraftplugin.http;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
-import com.sun.net.httpserver.HttpsConfigurator;
-import com.sun.net.httpserver.HttpsParameters;
-import com.sun.net.httpserver.HttpsServer;
 import io.github.davidg95.equestricraftplugin.EquestriCraftPlugin;
 import io.github.davidg95.equestricraftplugin.race.RaceController;
-import io.github.davidg95.equestricraftplugin.race.RacePlayer;
 import java.io.*;
 import java.net.*;
 import java.security.KeyManagementException;
-import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLEngine;
-import javax.net.ssl.SSLParameters;
-import javax.net.ssl.TrustManagerFactory;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -245,6 +235,9 @@ public class HTTPHandler implements CommandExecutor {
                 }
             } else if (params.get("operation").equalsIgnoreCase("end")) {
                 controller.end();
+            } else if(params.get("operation").equalsIgnoreCase("broadcast")){
+                String message = params.get("message");
+                Bukkit.broadcastMessage(ChatColor.GREEN + "[RACE BROADCAST] " + ChatColor.RESET + message);
             } else {
                 response = "0";
             }
