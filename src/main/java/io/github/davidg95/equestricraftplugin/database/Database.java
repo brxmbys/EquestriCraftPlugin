@@ -90,7 +90,7 @@ public abstract class Database {
         return null;
     }
 
-    public int hungryHorses() {
+    public int hungryHorses(int days) {
         Connection conn = null;
         Statement s = null;
 
@@ -99,7 +99,7 @@ public abstract class Database {
             conn = getSQLConnection();
             s = conn.createStatement();
 
-            ResultSet rs = s.executeQuery("SELECT COUNT(*) FROM " + table + " WHERE " + new Date().getTime() + " - last_eat > 604800000");
+            ResultSet rs = s.executeQuery("SELECT COUNT(*) FROM " + table + " WHERE " + new Date().getTime() + " - last_eat - 604800000 > + " + days * 86400000);
             while (rs.next()) {
                 return rs.getInt(1);
             }
@@ -121,7 +121,7 @@ public abstract class Database {
         return 0;
     }
 
-    public int thirstyHorses() {
+    public int thirstyHorses(int days) {
         Connection conn = null;
         Statement s = null;
 
@@ -130,7 +130,7 @@ public abstract class Database {
             conn = getSQLConnection();
             s = conn.createStatement();
 
-            ResultSet rs = s.executeQuery("SELECT COUNT(*) FROM " + table + " WHERE " + new Date().getTime() + " - last_drink > 604800000");
+            ResultSet rs = s.executeQuery("SELECT COUNT(*) FROM " + table + " WHERE " + new Date().getTime() + " - last_drink - 604800000 > + " + days * 86400000);
             while (rs.next()) {
                 return rs.getInt(1);
             }

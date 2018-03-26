@@ -71,15 +71,14 @@ public class HorseCheckerThread extends Thread {
                             mh = new MyHorse(horse);
                             database.addHorse(mh);
                         }
-                        if (mh.isHungry()) {
-                            mh.setSick(true);
-                        }
-                        if (mh.isThirsty()) {
-                            mh.setSick(true);
+                        if (mh.isTooHungry() || mh.isTooThirsty()) {
+                            horse.setHealth(0);
+                            continue;
                         }
                         if (mh.isSick()) {
                             if (mh.getIllDuration() >= SICK_LIMIT) {
                                 horse.setHealth(0);
+                                continue;
                             }
                         }
                         if (mh.getWellDuration() > ILL_WAIT) {

@@ -301,6 +301,14 @@ public class MyHorse implements Serializable {
     public boolean isHungry() {
         return this.getDurationSinceLastEat() > EAT_LIMIT; //Check if the horse is thirsty.
     }
+    
+    public boolean isTooHungry(){
+        return getHungerDuration() - EAT_LIMIT > 0;
+    }
+    
+    public boolean isTooThirsty(){
+        return getThristDuration() - DRINK_LIMIT > 0;
+    }
 
     /**
      * Get the time the horse has been hungry for in ms.

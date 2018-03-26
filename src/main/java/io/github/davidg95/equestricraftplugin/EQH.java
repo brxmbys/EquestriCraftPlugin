@@ -56,11 +56,19 @@ public class EQH implements CommandExecutor {
             } else if (args[0].equalsIgnoreCase("db")) {
                 if (args.length >= 2) {
                     if (args[1].equalsIgnoreCase("show-hungry")) {
-                        int hungry = database.hungryHorses();
-                        sender.sendMessage("There are " + hungry + " hungry horses");
+                        int days = 0;
+                        if(args.length >= 3){
+                            days = Integer.parseInt(args[2]);
+                        }
+                        int hungry = database.hungryHorses(days);
+                        sender.sendMessage("There are " + hungry + " hungry horses for more than " + days + " days");
                     } else if (args[1].equalsIgnoreCase("show-thirsty")) {
-                        int thirsty = database.thirstyHorses();
-                        sender.sendMessage("There are " + thirsty + " thirsty horses");
+                        int days = 0;
+                        if(args.length >= 3){
+                            days = Integer.parseInt(args[2]);
+                        }
+                        int thirsty = database.thirstyHorses(days);
+                        sender.sendMessage("There are " + thirsty + " thirsty horses for more than " + days + " days");
                     } else if (args[1].equalsIgnoreCase("show-ill")) {
                         int ill = database.illHorses();
                         sender.sendMessage("There are " + ill + " ill horses");
