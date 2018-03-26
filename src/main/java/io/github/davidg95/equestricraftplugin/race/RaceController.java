@@ -70,7 +70,6 @@ public class RaceController implements CommandExecutor {
     public void end() {
         if (race != null) {
             race.terminate();
-            race = null;
         }
     }
 

@@ -4,17 +4,12 @@
 package io.github.davidg95.equestricraftplugin;
 
 import io.github.davidg95.equestricraftplugin.database.Database;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.bukkit.Bukkit;
-import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Horse;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -67,42 +62,47 @@ public class HorseCheckerThread extends Thread {
     @Override
     public void run() {
         plugin.getLogger().log(Level.INFO, "Starting checker thread");
-//        int iter = 1;
         while (run) {
-//            final long start = new Date().getTime();
-//            int horsesChecked = 0;
-
-            for (World world : Bukkit.getWorlds()) {
-                for (Horse horse : world.getEntitiesByClass(Horse.class)) {
-                    MyHorse mh = database.getHorse(horse.getUniqueId());
-                    if (mh == null) {
-                        continue;
-                    }
-                    if (mh.isHungry()) {
-                        mh.setSick(true);
-                    }
-                    if (mh.isThirsty()) {
-                        mh.setSick(true);
-                    }
-                    if (mh.isSick()) {
-                        if (mh.getIllDuration() >= SICK_LIMIT) {
-                            horse.setHealth(0);
+            try {
+                for (World world : Bukkit.getWorlds()) {
+                    for (Horse horse : world.getEntitiesByClass(Horse.class)) {
+                        MyHorse mh = database.getHorse(horse.getUniqueId());
+                        if (mh == null) {
+                            mh = new MyHorse(horse);
+                            database.addHorse(mh);
                         }
-                    }
-                    if (mh.getWellDuration() > ILL_WAIT) {
-                        final double r = Math.random();
-                        if (mh.isVaccinated()) {
-                            if (r <= VACCINATED_PROBABILITY) {
-                                mh.setSick(true);
+                        if (mh.isHungry()) {
+                            mh.setSick(true);
+                        }
+                        if (mh.isThirsty()) {
+                            mh.setSick(true);
+                        }
+                        if (mh.isSick()) {
+                            if (mh.getIllDuration() >= SICK_LIMIT) {
+                                horse.setHealth(0);
                             }
-                        } else {
-                            if (r <= SICK_PROBABILITY) {
-                                mh.setSick(true);
+                        }
+                        if (mh.getWellDuration() > ILL_WAIT) {
+                            final double r = Math.random();
+                            if (mh.isVaccinated()) {
+                                if (r <= VACCINATED_PROBABILITY) {
+                                    mh.setSick(true);
+                                }
+                            } else {
+                                if (r <= SICK_PROBABILITY) {
+                                    mh.setSick(true);
+                                }
+                            }
+                        }
+                        if (mh.getAgeInMonths() > mh.getDieAt() && mh.getDieAt() > 300) {
+                            if (mh.getAgeInMonths() > 300) {
+                                database.removeHorse(horse.getUniqueId());
+                                horse.setHealth(0);
+                                plugin.getLogger().log(Level.INFO, "A horse died at the age of " + mh.getAgeInMonths() + " months old");
                             }
                         }
                     }
                 }
-            }
 
 //            try {
 //                List<MyHorse> horses = database.getHorses(iter);
@@ -193,50 +193,51 @@ public class HorseCheckerThread extends Thread {
 //            plugin.getLogger().log(Level.INFO, "Thread run time: " + s + "s");
 //            plugin.getLogger().log(Level.INFO, "Horses checked: " + horsesChecked);
 //            }
+            } catch (Exception ex) {
+                plugin.getLogger().log(Level.SEVERE, null, ex);
+            }
             try {
                 Thread.sleep(MAIN_THREAD_INTERVAL); //Wait
             } catch (InterruptedException ex) {
-                Logger.getLogger(HorseCheckerThread.class.getName()).log(Level.SEVERE, null, ex);
+                plugin.getLogger().log(Level.SEVERE, null, ex);
             }
         }
         plugin.getLogger().log(Level.INFO, "Stopping checker thread");
     }
 
-    private class HorseCont {
-
-        private Horse horse = null;
-        private boolean found = false;
-    }
-
-    public Horse getEntityByUniqueId(UUID uniqueId) {
-        final HorseCont cont = new HorseCont();
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                for (World world : Bukkit.getWorlds()) {
-                    for (Chunk chunk : world.getLoadedChunks()) {
-                        for (Entity entity : chunk.getEntities()) {
-                            if (entity.getUniqueId().equals(uniqueId)) {
-                                cont.horse = (Horse) entity;
-                                cont.found = true;
-                                return;
-                            }
-                        }
-                    }
-                }
-                cont.found = true;
-            }
-        }.runTask(plugin);
-        while (!cont.found) {
-            try {
-                Thread.sleep(50);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(HorseCheckerThread.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-        return cont.horse;
-    }
-
+//    private class HorseCont {
+//
+//        private Horse horse = null;
+//        private boolean found = false;
+//    }
+//    public Horse getEntityByUniqueId(UUID uniqueId) {
+//        final HorseCont cont = new HorseCont();
+//        new BukkitRunnable() {
+//            @Override
+//            public void run() {
+//                for (World world : Bukkit.getWorlds()) {
+//                    for (Chunk chunk : world.getLoadedChunks()) {
+//                        for (Entity entity : chunk.getEntities()) {
+//                            if (entity.getUniqueId().equals(uniqueId)) {
+//                                cont.horse = (Horse) entity;
+//                                cont.found = true;
+//                                return;
+//                            }
+//                        }
+//                    }
+//                }
+//                cont.found = true;
+//            }
+//        }.runTask(plugin);
+//        while (!cont.found) {
+//            try {
+//                Thread.sleep(50);
+//            } catch (InterruptedException ex) {
+//                Logger.getLogger(HorseCheckerThread.class.getName()).log(Level.SEVERE, null, ex);
+//            }
+//        }
+//        return cont.horse;
+//    }
     public void setRun(boolean run) {
         this.run = run;
     }

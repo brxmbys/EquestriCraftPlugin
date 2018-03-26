@@ -5,8 +5,6 @@ package io.github.davidg95.equestricraftplugin;
 
 import io.github.davidg95.equestricraftplugin.database.Database;
 import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.World;
@@ -226,13 +224,13 @@ public class EQH implements CommandExecutor {
                 String message = "";
                 message += ChatColor.GREEN + "Horses in database: " + ChatColor.AQUA + database.horseCount(-1) + "\n";
                 message += ChatColor.GREEN + "Ignored horses: " + ChatColor.AQUA + database.ignoredHorses() + "\n";
-                message += ChatColor.AQUA + "Checker thread: " + (plugin.checkerThread.isAlive() ? ChatColor.GREEN + "Active" : ChatColor.RED + "Not Active") + "\n";
-                message += ChatColor.AQUA + "Bucking thread: " + (plugin.buckThread.isActive() ? ChatColor.GREEN + "Active" : ChatColor.RED + "Not Active") + "\n";
                 int count = 0;
                 for (World world : Bukkit.getWorlds()) {
                     count += world.getEntitiesByClass(Horse.class).size();
                 }
-                message += ChatColor.GREEN + "Horses currently in world: " + ChatColor.AQUA + count;
+                message += ChatColor.GREEN + "Horses currently in world: " + ChatColor.AQUA + count + "\n";
+                message += ChatColor.AQUA + "Checker thread: " + (plugin.checkerThread.isAlive() ? ChatColor.GREEN + "Active" : ChatColor.RED + "Not Active") + "\n";
+                message += ChatColor.AQUA + "Bucking thread: " + (plugin.buckThread.isActive() ? ChatColor.GREEN + "Active" : ChatColor.RED + "Not Active");
                 sender.sendMessage(message);
                 return true;
             }
