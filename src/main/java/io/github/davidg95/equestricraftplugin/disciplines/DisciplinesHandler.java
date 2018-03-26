@@ -101,10 +101,10 @@ public class DisciplinesHandler implements CommandExecutor, Listener {
         MENU.setItem(8, i9);
     }
 
-    public DisciplinesHandler(EquestriCraftPlugin plugin, Economy economy) {
+    public DisciplinesHandler(EquestriCraftPlugin plugin) {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         cont = new DisciplinesController(plugin);
-        this.economy = economy;
+        this.economy = plugin.getEconomy();
     }
 
     @Override

@@ -26,10 +26,10 @@ public class BuildPayHandler implements CommandExecutor {
     private final Database database;
     private final Economy economy;
 
-    public BuildPayHandler(EquestriCraftPlugin plugin, Database database, Economy economy) {
+    public BuildPayHandler(EquestriCraftPlugin plugin) {
         this.plugin = plugin;
-        this.database = database;
-        this.economy = economy;
+        this.database = plugin.getEqDatabase();
+        this.economy = plugin.getEconomy();
     }
 
     @Override

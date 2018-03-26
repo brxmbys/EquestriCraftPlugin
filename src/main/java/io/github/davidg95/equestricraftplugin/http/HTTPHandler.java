@@ -8,6 +8,7 @@ import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import io.github.davidg95.equestricraftplugin.EquestriCraftPlugin;
 import io.github.davidg95.equestricraftplugin.race.RaceController;
+import io.github.davidg95.equestricraftplugin.race.RaceTrack;
 import java.io.*;
 import java.net.*;
 import java.security.KeyManagementException;
@@ -85,7 +86,6 @@ public class HTTPHandler implements CommandExecutor {
 //                }
 //            }
 //        });
-
         plugin.getLogger().log(Level.INFO, "Starting HTTP server on " + PORT);
         server = HttpServer.create(new InetSocketAddress(PORT), 0);
         server.createContext("/", new RootHandler());
@@ -224,18 +224,29 @@ public class HTTPHandler implements CommandExecutor {
             Map<String, String> params = queryToMap(he.getRequestURI().getQuery());
             String response = "1";
             if (params.get("operation").equalsIgnoreCase("open")) {
+                String trackName = params.get("track");
                 int laps = Integer.parseInt(params.get("laps"));
                 double p1 = Double.parseDouble(params.get("p1"));
                 double p2 = Double.parseDouble(params.get("p2"));
                 double p3 = Double.parseDouble(params.get("p3"));
-                controller.open(laps, p1, p2, p3);
+                RaceTrack track = null;
+                for (RaceTrack t : controller.getTracks()) {
+                    if (t.getName().equalsIgnoreCase(trackName)) {
+                        track = t;
+                    }
+                }
+                if (track == null) {
+                    response = "0";
+                } else {
+                    controller.open(track, laps, p1, p2, p3);
+                }
             } else if (params.get("operation").equalsIgnoreCase("countdown")) {
-                if(!controller.countdown()){
+                if (!controller.countdown()) {
                     response = "2";
                 }
             } else if (params.get("operation").equalsIgnoreCase("end")) {
                 controller.end();
-            } else if(params.get("operation").equalsIgnoreCase("broadcast")){
+            } else if (params.get("operation").equalsIgnoreCase("broadcast")) {
                 String message = params.get("message");
                 Bukkit.broadcastMessage(ChatColor.GREEN + "[RACE BROADCAST] " + ChatColor.RESET + message);
             } else {

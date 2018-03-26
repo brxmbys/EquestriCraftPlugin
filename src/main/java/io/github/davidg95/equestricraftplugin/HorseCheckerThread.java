@@ -52,9 +52,9 @@ public class HorseCheckerThread extends Thread {
 
     private final EquestriCraftPlugin plugin;
 
-    public HorseCheckerThread(EquestriCraftPlugin plugin, Database database) {
+    public HorseCheckerThread(EquestriCraftPlugin plugin) {
         super("Horse_Checker_Thread");
-        this.database = database;
+        this.database = plugin.getEqDatabase();
         run = true;
         this.plugin = plugin;
     }

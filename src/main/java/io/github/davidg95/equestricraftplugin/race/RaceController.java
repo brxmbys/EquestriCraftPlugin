@@ -5,9 +5,11 @@ package io.github.davidg95.equestricraftplugin.race;
 
 import io.github.davidg95.equestricraftplugin.EquestriCraftPlugin;
 import java.text.DecimalFormat;
-import net.milkbowl.vault.economy.Economy;
+import java.util.LinkedList;
+import java.util.List;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -23,16 +25,43 @@ public class RaceController implements CommandExecutor {
 
     public Race race;
 
-    private final Economy economy;
+    private final List<RaceTrack> tracks;
 
-    public RaceController(EquestriCraftPlugin plugin, Economy economy) {
+    public RaceController(EquestriCraftPlugin plugin) {
         this.plugin = plugin;
-        this.economy = economy;
+        this.tracks = new LinkedList<>();
+        setTracks();
     }
 
-    public void open(int laps, double p1, double p2, double p3) {
-        race = new Race(plugin, economy, laps, p1, p2, p3);
-        Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "***" + laps + " lap race is now open for entries" + (p1 > 0 ? ". $" + new DecimalFormat("0").format(p1) + " reward for first place!" : "") + "***");
+    private void setTracks() {
+        List<String> st = (List<String>) plugin.getConfig().getList("race.tracks");
+        for (String s : st) {
+            int x1 = plugin.getConfig().getInt("race." + s + ".finish.x1");
+            int x2 = plugin.getConfig().getInt("race." + s + ".finish.x2");
+            int z1 = plugin.getConfig().getInt("race." + s + ".finish.z1");
+            int z2 = plugin.getConfig().getInt("race." + s + ".finish.z2");
+            int cx1 = plugin.getConfig().getInt("race." + s + ".check.x1");
+            int cx2 = plugin.getConfig().getInt("race." + s + ".check.x2");
+            int cz1 = plugin.getConfig().getInt("race." + s + ".check.z1");
+            int cz2 = plugin.getConfig().getInt("race." + s + ".check.z2");
+
+            int gx = plugin.getConfig().getInt("race." + s + ".gate.x");
+            int gy = plugin.getConfig().getInt("race." + s + ".gate.y");
+            int gz = plugin.getConfig().getInt("race." + s + ".gate.z");
+
+            Location l = new Location(Bukkit.getWorld("Equestricraft"), gx, gy, gz);
+            RaceTrack track = new RaceTrack(s, x1, x2, z1, z2, cx1, cx2, cz1, cz2, l);
+            tracks.add(track);
+        }
+    }
+    
+    public List<RaceTrack> getTracks(){
+        return tracks;
+    }
+
+    public void open(RaceTrack track, int laps, double p1, double p2, double p3) {
+        race = new Race(plugin, track, laps, p1, p2, p3);
+        Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "***" + laps + " lap race is now open for entries at " + track.getName() + (p1 > 0 ? ". $" + new DecimalFormat("0").format(p1) + " reward for first place!" : "") + "***");
     }
 
     /**
@@ -42,7 +71,7 @@ public class RaceController implements CommandExecutor {
      */
     public boolean countdown() {
         if (race == null || race.getState() == Race.OPEN) {
-            if(race.getPlayers().isEmpty()){
+            if (race.getPlayers().isEmpty()) {
                 return false;
             }
             race.countdown();
@@ -102,23 +131,34 @@ public class RaceController implements CommandExecutor {
             return false;
         }
         if (args[0].equalsIgnoreCase("open")) { //Opens a new race, with the lap count and prize money.
-            if (args.length >= 5) {
+            if (args.length >= 6) {
                 try {
-                    int laps = Integer.parseInt(args[1]);
+                    String trackName = args[1];
+                    RaceTrack track = null;
+                    for (RaceTrack t : tracks) {
+                        if (t.getName().equalsIgnoreCase(trackName)) {
+                            track = t;
+                        }
+                    }
+                    if (track == null) {
+                        sender.sendMessage("Track not found");
+                        return true;
+                    }
+                    int laps = Integer.parseInt(args[2]);
                     if (laps < 1) {
                         sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Must be 1 or greater");
                         return true;
                     }
-                    double prize1 = Double.parseDouble(args[2]);
-                    double prize2 = Double.parseDouble(args[3]);
-                    double prize3 = Double.parseDouble(args[4]);
+                    double prize1 = Double.parseDouble(args[3]);
+                    double prize2 = Double.parseDouble(args[4]);
+                    double prize3 = Double.parseDouble(args[5]);
                     if (!sender.hasPermission("equestricraft.race.prize")) {
                         prize1 = 0;
                         prize2 = 0;
                         prize3 = 0;
                         sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "You do not have permission to set a race with a prize");
                     }
-                    open(laps, prize1, prize2, prize3);
+                    open(track, laps, prize1, prize2, prize3);
                 } catch (NumberFormatException ex) {
                     sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Must specify a number value");
                 }
@@ -225,6 +265,13 @@ public class RaceController implements CommandExecutor {
                 return true;
             }
             race.addSpectator((Player) sender);
+            return true;
+        } else if(args[0].equalsIgnoreCase("track-list")){
+            String output = "Tracks-";
+            for(RaceTrack track: tracks){
+                output += "\n" + track.getName();
+            }
+            sender.sendMessage(output);
             return true;
         } else {
             sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "Unknown command");

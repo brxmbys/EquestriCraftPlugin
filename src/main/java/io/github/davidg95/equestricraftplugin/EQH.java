@@ -23,9 +23,9 @@ public class EQH implements CommandExecutor {
     private final Database database;
     private final EquestriCraftPlugin plugin;
 
-    public EQH(EquestriCraftPlugin plugin, Database database) {
+    public EQH(EquestriCraftPlugin plugin) {
         this.plugin = plugin;
-        this.database = database;
+        this.database = plugin.getEqDatabase();
     }
 
     @Override
@@ -57,14 +57,14 @@ public class EQH implements CommandExecutor {
                 if (args.length >= 2) {
                     if (args[1].equalsIgnoreCase("show-hungry")) {
                         int days = 0;
-                        if(args.length >= 3){
+                        if (args.length >= 3) {
                             days = Integer.parseInt(args[2]);
                         }
                         int hungry = database.hungryHorses(days);
                         sender.sendMessage("There are " + hungry + " hungry horses for more than " + days + " days");
                     } else if (args[1].equalsIgnoreCase("show-thirsty")) {
                         int days = 0;
-                        if(args.length >= 3){
+                        if (args.length >= 3) {
                             days = Integer.parseInt(args[2]);
                         }
                         int thirsty = database.thirstyHorses(days);

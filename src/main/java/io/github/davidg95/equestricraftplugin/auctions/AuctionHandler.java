@@ -24,9 +24,9 @@ public class AuctionHandler implements CommandExecutor {
     
     private final Economy economy;
 
-    public AuctionHandler(EquestriCraftPlugin plugin, Economy economy) {
+    public AuctionHandler(EquestriCraftPlugin plugin) {
         this.plugin = plugin;
-        this.economy = economy;
+        this.economy = plugin.getEconomy();
     }
 
     @Override

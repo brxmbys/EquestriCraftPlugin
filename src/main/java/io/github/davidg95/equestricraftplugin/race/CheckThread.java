@@ -36,29 +36,12 @@ public class CheckThread extends Thread {
 
     @Override
     public void run() {
-        FileConfiguration fc = plugin.getConfig();
-        //Get the finishing line coords
-        int fz1 = fc.getInt("finish.z1");
-        int fz2 = fc.getInt("finish.z2");
-        int fx1 = fc.getInt("finish.x1");
-        int fx2 = fc.getInt("finish.x2");
-        int fy1 = fc.getInt("finish.yl");
-
-        //Get the checkpoint coords
-        int cz1 = fc.getInt("check.z1");
-        int cz2 = fc.getInt("check.z2");
-        int cx1 = fc.getInt("check.x1");
-        int cx2 = fc.getInt("check.x2");
-        int cy1 = fc.getInt("check.yl");
         while (run) {
             for (int i = 0; i < players.size(); i++) {
                 final Player player = players.get(i).getPlayer();
-                //Get the players location
-                int z = player.getLocation().getBlockZ();
-                int x = player.getLocation().getBlockX();
-                int y = player.getLocation().getBlockY();
+
                 //Check if they are at the checkpoint
-                if (z < cz1 && z > cz2 && x >= cx1 && x <= cx2 && y <= cy1) {
+                if (race.getTrack().checkpoint(player)) {
                     final RacePlayer rp = players.get(i);
                     if (rp.getSection() == 1) {
                         rp.setSection(2);
@@ -66,7 +49,7 @@ public class CheckThread extends Thread {
                 }
 
                 //Check if they are at the finish line
-                if (z < fz1 && z > fz2 && x >= fx1 && x <= fx2 && y <= fy1) {
+                if (race.getTrack().finish(player)) {
                     final RacePlayer rp = players.get(i);
                     //Check if they have first passed the checkpoint.
                     if (rp.getSection() == 1) {

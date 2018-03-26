@@ -165,6 +165,18 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         return list;
     }
 
+    public void saveConfigFile() throws IOException {
+        getConfig().save(getDataFolder() + File.separator + "config.yml");
+    }
+
+    public Economy getEconomy() {
+        return economy;
+    }
+
+    public Database getEqDatabase() {
+        return database;
+    }
+
     @Override
     public void onEnable() {
         if (!this.getDataFolder().exists()) {
@@ -183,12 +195,12 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         if (!setupEconomy()) {
             getLogger().log(Level.SEVERE, "Vault not detected, Disciplines, Auctions, Races and Food have been disabled");
         } else {
-            this.raceController = new RaceController(this, economy);
-            this.auctionHandler = new AuctionHandler(this, economy);
-            this.foodController = new FoodController(this, economy, database);
-            this.discipinesHander = new DisciplinesHandler(this, economy);
-            this.warpsHandler = new WarpsHandler(this, database);
-            this.buildPayHandler = new BuildPayHandler(this, database, economy);
+            this.raceController = new RaceController(this);
+            this.auctionHandler = new AuctionHandler(this);
+            this.foodController = new FoodController(this);
+            this.discipinesHander = new DisciplinesHandler(this);
+            this.warpsHandler = new WarpsHandler(this);
+            this.buildPayHandler = new BuildPayHandler(this);
             this.getCommand("disciplines").setExecutor(discipinesHander);
             this.getCommand("food").setExecutor(foodController);
             this.getCommand("auction").setExecutor(auctionHandler);
@@ -196,7 +208,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             this.getCommand("pwarp").setExecutor(warpsHandler);
             this.getCommand("buildpay").setExecutor(buildPayHandler);
         }
-        this.eqhExecutor = new EQH(this, database);
+        this.eqhExecutor = new EQH(this);
         this.getCommand("eqh").setExecutor(eqhExecutor);
         web = new WebSocketHandler(this);
         http = new HTTPHandler(this);
@@ -209,7 +221,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     }
 
     private void startThreads() {
-        checkerThread = new HorseCheckerThread(this, database);
+        checkerThread = new HorseCheckerThread(this);
         checkerThread.start();
         buckThread = checkerThread.new BuckThread();
         buckThread.start();

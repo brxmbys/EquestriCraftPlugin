@@ -28,9 +28,9 @@ public class WarpsHandler implements CommandExecutor {
     private final Permission gotoPerm = new Permission("equestricraft.pwarp.goto");
     private final Permission showPerm = new Permission("equestricraft.pwarp.show");
 
-    public WarpsHandler(EquestriCraftPlugin plugin, Database database) {
+    public WarpsHandler(EquestriCraftPlugin plugin) {
         this.plugin = plugin;
-        this.database = database;
+        this.database = plugin.getEqDatabase();
     }
 
     @Override

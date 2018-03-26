@@ -62,12 +62,11 @@ public class Race implements Listener {
     private Team team;
     private Objective objective;
 
-    private static Sign RACE_MONITOR;
-    private static Sign[] PLAYER_SIGNS;
-    private static Sign PODIUM_SIGN;
     private int lap;
 
     private final EquestriCraftPlugin plugin;
+
+    private final RaceTrack track;
 
     static {
         try {
@@ -75,33 +74,30 @@ public class Race implements Listener {
             if (b.getType() != Material.SIGN) {
                 b.setType(Material.SIGN);
             }
-            RACE_MONITOR = (Sign) b.getState();
-            PLAYER_SIGNS = new Sign[5];
             for (int i = -2032; i <= -2028; i++) {
                 Block bl = Bukkit.getWorld("EquestriCraft").getBlockAt(i, 7, 11125);
                 if (bl.getType() != Material.SIGN) {
                     bl.setType(Material.SIGN);
                 }
-                PLAYER_SIGNS[i + 2032] = (Sign) bl.getState();
             }
             Block blo = Bukkit.getWorld("EquestriCraft").getBlockAt(-2034, 7, 11125);
             if (blo.getType() != Material.SIGN) {
                 blo.setType(Material.SIGN);
             }
-            PODIUM_SIGN = (Sign) blo.getState();
         } catch (Exception e) {
         }
     }
 
-    public Race(EquestriCraftPlugin plugin, Economy economy, int laps, double prize1, double prize2, double prize3) {
+    public Race(EquestriCraftPlugin plugin, RaceTrack track, int laps, double prize1, double prize2, double prize3) {
         this.laps = laps;
         this.plugin = plugin;
+        this.track = track;
         players = new LinkedList<>();
         complete = new LinkedList<>();
         spectators = new LinkedList<>();
         state = OPEN;
         Bukkit.getServer().getPluginManager().registerEvents(this, plugin);
-        this.economy = economy;
+        this.economy = plugin.getEconomy();
         if (economy == null) {
             Bukkit.broadcastMessage("Economy not detected, prizes disabled");
         }
@@ -109,18 +105,6 @@ public class Race implements Listener {
         this.prize2 = prize2;
         this.prize3 = prize3;
         initScoreboard();
-        if (RACE_MONITOR != null) {
-            RACE_MONITOR.setLine(1, "Laps: " + laps);
-            RACE_MONITOR.setLine(2, "Entrants: " + players.size() + "/20");
-            RACE_MONITOR.setLine(3, "Open for entries");
-            RACE_MONITOR.update();
-        }
-        if (PODIUM_SIGN != null) {
-            PODIUM_SIGN.setLine(1, "1st: --------");
-            PODIUM_SIGN.setLine(2, "2nd: --------");
-            PODIUM_SIGN.setLine(3, "3rd: --------");
-            PODIUM_SIGN.update();
-        }
 
     }
 
@@ -142,33 +126,22 @@ public class Race implements Listener {
         thread = new CheckThread(plugin, this, players);
         setGatesOpen(true);
         thread.start();
-//        RACE_MONITOR.setLine(1, "Laps: 1/" + laps);
-//        RACE_MONITOR.setLine(3, "Underway");
-//        RACE_MONITOR.update();
+    }
+
+    public RaceTrack getTrack() {
+        return track;
     }
 
     private void setGatesOpen(boolean state) {
         new BukkitRunnable() {
             @Override
             public void run() {
-                for (int i = 11090; i <= 11120; i += 6) {
-                    final Block b = Bukkit.getWorld("Equestricraft").getBlockAt(-2026, 1, i);
-                    if (state) {
-                        b.setType(Material.AIR);
-                    } else {
-                        b.setType(Material.REDSTONE_BLOCK);
-                    }
-                }
+                track.setGateOpen(state);
             }
         }.runTask(plugin);
     }
 
     protected void setLap(int lap) {
-        if (lap > laps) {
-//            RACE_MONITOR.setLine(3, "Race complete");
-        }
-//        RACE_MONITOR.setLine(1, "Laps: " + lap + "/" + laps);
-//        RACE_MONITOR.update();
         this.lap = lap;
     }
 
@@ -181,24 +154,14 @@ public class Race implements Listener {
         final Runnable run = () -> {
             try {
                 Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "5");
-//                RACE_MONITOR.setLine(3, "5");
-//                RACE_MONITOR.update();
                 Thread.sleep(1000);
                 Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "4");
-//                RACE_MONITOR.setLine(3, "4");
-//                RACE_MONITOR.update();
                 Thread.sleep(1000);
                 Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "3");
-//                RACE_MONITOR.setLine(3, "3");
-//                RACE_MONITOR.update();
                 Thread.sleep(1000);
                 Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "2");
-//                RACE_MONITOR.setLine(3, "2");
-//                RACE_MONITOR.update();
                 Thread.sleep(1000);
                 Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "1");
-//                RACE_MONITOR.setLine(3, "1");
-//                RACE_MONITOR.update();
                 Thread.sleep(1000);
                 start();
                 Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "Race has started!");
@@ -254,13 +217,6 @@ public class Race implements Listener {
         if (thread != null) {
             thread.stopRun();
         }
-        if (RACE_MONITOR != null) {
-            RACE_MONITOR.setLine(1, "Laps: ---");
-            RACE_MONITOR.setLine(2, "Entrants: -/20");
-            RACE_MONITOR.setLine(3, "No active session");
-            RACE_MONITOR.update();
-        }
-        clearPlayerSigns();
         setGatesOpen(false);
         HandlerList.unregisterAll(this);
         Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.RED + "RACE HAS BEEN TERMINATED!");
@@ -286,37 +242,9 @@ public class Race implements Listener {
         team.addPlayer(p);
         players.add(new RacePlayer(p, objective.getScore(p)));
         p.setScoreboard(board);
-//        RACE_MONITOR.setLine(2, "Entrants: " + players.size() + "/20");
-//        RACE_MONITOR.update();
-        setPlayerSigns();
         p.sendMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "You are in the race!");
         Bukkit.broadcastMessage(p.getDisplayName() + " is in the race!");
         return true;
-    }
-
-    private void setPlayerSigns() {
-        if (PLAYER_SIGNS != null) {
-            for (int i = 0; i < players.size(); i++) {
-                int sign = (int) Math.floor(i / 5);
-                int line = (i % 4);
-                PLAYER_SIGNS[sign].setLine(line, ChatColor.stripColor(stripName(players.get(i).getPlayer())));
-            }
-            for (Sign s : PLAYER_SIGNS) {
-                s.update();
-            }
-        }
-    }
-
-    private void clearPlayerSigns() {
-        if (PLAYER_SIGNS != null) {
-            for (Sign s : PLAYER_SIGNS) {
-                s.setLine(0, "");
-                s.setLine(1, "");
-                s.setLine(2, "");
-                s.setLine(3, "");
-                s.update();
-            }
-        }
     }
 
     /**
@@ -352,21 +280,17 @@ public class Race implements Listener {
         final long raceTime = time - startTime; //Total race time
         final double seconds = raceTime / 1000D; //Race time in seconds
         final int position = complete.size() + 1; //Their position
-        String name = stripName(p.getPlayer());
         double prize = 0;
         p.setPosition(position);
         switch (position) {
             case 1: //1st place
                 prize = prize1;
-//                PODIUM_SIGN.setLine(1, "1st: " + ChatColor.stripColor(name));
                 break;
             case 2: //2nd place
                 prize = prize2;
-//                PODIUM_SIGN.setLine(2, "2nd: " + ChatColor.stripColor(name));
                 break;
             case 3: //3rd place
                 prize = prize3;
-//                PODIUM_SIGN.setLine(3, "3rd: " + ChatColor.stripColor(name));
                 break;
             default:
                 break;
@@ -377,7 +301,6 @@ public class Race implements Listener {
                 p.getPlayer().sendMessage("You have won " + ChatColor.AQUA + "$" + new DecimalFormat("0").format(prize) + "!");
             }
         }
-//        PODIUM_SIGN.update(); //Update podium sign
         p.setTime(seconds);
         for (RacePlayer rp : complete) {
             if (rp.getPlayer().getName().equals(p.getPlayer().getName())) {
@@ -411,9 +334,6 @@ public class Race implements Listener {
                 players.remove(i);
                 team.removePlayer(player);
                 player.setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
-//                RACE_MONITOR.setLine(2, "Entrants: " + players.size() + "/20");
-//                RACE_MONITOR.update();
-                setPlayerSigns();
                 player.sendMessage("You have withdrawn from the race");
                 Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.RED + player.getName() + " has withdrawn from the race!");
                 return true;

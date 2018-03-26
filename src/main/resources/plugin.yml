@@ -46,7 +46,7 @@ commands:
         usage: /setage <age>
     race:
         description: Race commands.
-        usage: /race [open [laps] <[p1] [p2] [p3]> | join <ign> | end | spectate | start | countdown | withdraw | list | clearall]
+        usage: /race [open [track] [laps] <[p1] [p2] [p3]> | join <ign> | end | spectate | start | countdown | withdraw | list | clearall | track-list]
     eqh:
         decription: admin command.
         usage: /eqh

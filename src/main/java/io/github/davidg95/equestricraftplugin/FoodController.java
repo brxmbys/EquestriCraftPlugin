@@ -37,9 +37,9 @@ public class FoodController implements CommandExecutor, Listener {
     public int wheat_cost;
     public int water_cost;
 
-    public FoodController(EquestriCraftPlugin plugin, Economy econ, Database database) {
-        this.econ = econ;
-        this.database = database;
+    public FoodController(EquestriCraftPlugin plugin) {
+        this.econ = plugin.getEconomy();
+        this.database = plugin.getEqDatabase();
 
         seeds_cost = plugin.getConfig().getInt("food.seeds");
         wheat_cost = plugin.getConfig().getInt("food.wheat");
