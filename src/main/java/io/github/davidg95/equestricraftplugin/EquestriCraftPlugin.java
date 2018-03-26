@@ -288,7 +288,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         checkerThread.setRun(false);
         checkerThread = null;
         HandlerList.unregisterAll((Plugin) this);
-        raceController.cancelActiveRace();
+        raceController.cancelActiveRaces();
         raceController = null;
         auctionHandler.endActiveAuction();
         getLogger().log(Level.INFO, "All threads stopped");
@@ -1567,6 +1567,22 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         BLOCK_HUNGER = getConfig().getBoolean("misc.block_hunger");
         SINGLE_VACCINATION_COST = getConfig().getInt("tools.one_use_vaccination_price");
         GAPPLE_PRICE = getConfig().getInt("tools.gapple_price");
+    }
+
+    @EventHandler
+    public void onChat(AsyncPlayerChatEvent evt) {
+        Player player = evt.getPlayer();
+        String text = evt.getMessage();
+        String[] swearWords = new String[]{"demid", "arse", "bugger", "crap", "damn", "Jesus Christ", "bitch", "bollocks", "shit", "tits", "bastard", "cock", "dick", "fanny", "knob", "prick", "cunt", "fuck"};
+        for (String word : swearWords) {
+            if (text.toLowerCase().contains(word.toLowerCase())) {
+                player.setGameMode(GameMode.SURVIVAL);
+                if (player.getVehicle() == null) {
+                    player.getWorld().strikeLightning(player.getLocation());
+                }
+                player.sendMessage("Thou shalt not swear!");
+            }
+        }
     }
 
     public class IllThread extends Thread {

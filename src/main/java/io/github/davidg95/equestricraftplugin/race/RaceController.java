@@ -23,8 +23,6 @@ public class RaceController implements CommandExecutor {
 
     private final EquestriCraftPlugin plugin;
 
-    public Race race;
-
     private final List<RaceTrack> tracks;
 
     public RaceController(EquestriCraftPlugin plugin) {
@@ -50,31 +48,33 @@ public class RaceController implements CommandExecutor {
             int gz = plugin.getConfig().getInt("race." + s + ".gate.z");
 
             Location l = new Location(Bukkit.getWorld("Equestricraft"), gx, gy, gz);
-            RaceTrack track = new RaceTrack(s, x1, x2, z1, z2, cx1, cx2, cz1, cz2, l);
+            RaceTrack track = new RaceTrack(plugin, s, x1, x2, z1, z2, cx1, cx2, cz1, cz2, l);
             tracks.add(track);
         }
     }
-    
-    public List<RaceTrack> getTracks(){
+
+    public List<RaceTrack> getTracks() {
         return tracks;
     }
 
     public void open(RaceTrack track, int laps, double p1, double p2, double p3) {
-        race = new Race(plugin, track, laps, p1, p2, p3);
+        track.openRace(laps, p1, p2, p3);
         Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "***" + laps + " lap race is now open for entries at " + track.getName() + (p1 > 0 ? ". $" + new DecimalFormat("0").format(p1) + " reward for first place!" : "") + "***");
     }
 
     /**
      * Begin the countdown to start a race.
      *
+     * @param track the track.
      * @return if the race will start or not.
      */
-    public boolean countdown() {
-        if (race == null || race.getState() == Race.OPEN) {
+    public boolean countdown(RaceTrack track) {
+        Race race = track.getRace();
+        if (race != null && race.getState() == Race.OPEN) {
             if (race.getPlayers().isEmpty()) {
                 return false;
             }
-            race.countdown();
+            track.countdown();
             return true;
         }
         return false;
@@ -83,11 +83,13 @@ public class RaceController implements CommandExecutor {
     /**
      * Start a race.
      *
+     * @param track the track.
      * @return if the race will start or not.
      */
-    public boolean start() {
-        if (race == null || race.getState() == Race.OPEN) {
-            race.start();
+    public boolean start(RaceTrack track) {
+        Race race = track.getRace();
+        if (race != null && race.getState() == Race.OPEN) {
+            track.start();
             return true;
         }
         return false;
@@ -95,8 +97,11 @@ public class RaceController implements CommandExecutor {
 
     /**
      * End the race
+     *
+     * @param track the track.
      */
-    public void end() {
+    public void end(RaceTrack track) {
+        Race race = track.getRace();
         if (race != null) {
             race.terminate();
         }
@@ -106,9 +111,11 @@ public class RaceController implements CommandExecutor {
      * Add a player to the race.
      *
      * @param name the name of the player to add.
+     * @param track the track.
      * @return if they were added or not.
      */
-    public boolean addPlayer(String name) {
+    public boolean addPlayer(String name, RaceTrack track) {
+        Race race = track.getRace();
         Player player = Bukkit.getPlayer(name);
         if (race == null || player == null) {
             return false;
@@ -116,7 +123,8 @@ public class RaceController implements CommandExecutor {
         return race.addPlayer(player);
     }
 
-    public void withdrawPlayer(String name) {
+    public void withdrawPlayer(String name, RaceTrack track) {
+        Race race = track.getRace();
         Player player = Bukkit.getPlayer(name);
         if (race == null || player == null) {
 
@@ -168,107 +176,177 @@ public class RaceController implements CommandExecutor {
             return true;
         } else if (args[0].equalsIgnoreCase("join")) {
             Player player;
-            if (args.length == 2) {
-                player = Bukkit.getPlayer(args[1]);
-            } else {
-                if (sender instanceof Player) {
-                    player = (Player) sender;
-                } else {
-                    sender.sendMessage("Must enter player name");
+            if (args.length >= 2) {
+                RaceTrack track = getTrackyName(args[1]);
+                if (track == null) {
+                    sender.sendMessage("Track not found");
                     return true;
                 }
+                Race race = track.getRace();
+                if (args.length == 3) {
+                    player = Bukkit.getPlayer(args[1]);
+                } else {
+                    if (sender instanceof Player) {
+                        player = (Player) sender;
+                    } else {
+                        sender.sendMessage("Must enter player name");
+                        return true;
+                    }
+                }
+                if (player == null) {
+                    sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "Player not found");
+                    return true;
+                }
+                if (race == null || race.getState() == Race.FINISHED) {
+                    sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "No active race session");
+                    return true;
+                }
+                if (race.getState() == Race.STARTED || race.getState() == Race.STARTING) {
+                    sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "Race already underway");
+                    return true;
+                }
+                race.addPlayer(player);
             }
-            if (player == null) {
-                sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "Player not found");
-                return true;
-            }
-            if (race == null || race.getState() == Race.FINISHED) {
-                sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "No active race session");
-                return true;
-            }
-            if (race.getState() == Race.STARTED || race.getState() == Race.STARTING) {
-                sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "Race already underway");
-                return true;
-            }
-            race.addPlayer(player);
             return true;
         } else if (args[0].equalsIgnoreCase("countdown")) {
-            if (race == null || race.getState() == Race.FINISHED) {
-                sender.sendMessage("You must open a new race first. Use /race open <laps> <prize1> <prize2> <prize3>");
-                return true;
-            } else if (race.getState() == Race.STARTED || race.getState() == Race.STARTING) {
-                sender.sendMessage("There is already an active race session");
-                return true;
-            } else if (race.getPlayers().isEmpty()) {
-                sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "There are no players in the race yet");
-                return true;
+            if (args.length >= 1) {
+                RaceTrack track = getTrackyName(args[1]);
+                if (track == null) {
+                    sender.sendMessage("Track not found");
+                    return true;
+                }
+                Race race = track.getRace();
+                if (race == null || race.getState() == Race.FINISHED) {
+                    sender.sendMessage("You must open a new race first. Use /race open <laps> <prize1> <prize2> <prize3>");
+                    return true;
+                } else if (race.getState() == Race.STARTED || race.getState() == Race.STARTING) {
+                    sender.sendMessage("There is already an active race session");
+                    return true;
+                } else if (race.getPlayers().isEmpty()) {
+                    sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "There are no players in the race yet");
+                    return true;
+                }
+                if (!countdown(track)) {
+                    sender.sendMessage("No active session");
+                }
             }
-            countdown();
             return true;
         } else if (args[0].equalsIgnoreCase("start")) {
-            if (race == null || race.getState() == Race.FINISHED) {
-                sender.sendMessage("You must open a new race first. Use /race open <laps> <prize1> <prize2> <prize3>");
-                return true;
-            } else if (race.getState() == Race.STARTED || race.getState() == Race.STARTING) {
-                sender.sendMessage("The current race must finish first");
-                return true;
-            } else if (race.getPlayers().isEmpty()) {
-                sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "There are no players in the race yet");
-                return true;
+            if (args.length >= 1) {
+                RaceTrack track = getTrackyName(args[1]);
+                if (track == null) {
+                    sender.sendMessage("Track not found");
+                    return true;
+                }
+                Race race = track.getRace();
+                if (race == null || race.getState() == Race.FINISHED) {
+                    sender.sendMessage("You must open a new race first. Use /race open <laps> <prize1> <prize2> <prize3>");
+                    return true;
+                } else if (race.getState() == Race.STARTED || race.getState() == Race.STARTING) {
+                    sender.sendMessage("The current race must finish first");
+                    return true;
+                } else if (race.getPlayers().isEmpty()) {
+                    sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "There are no players in the race yet");
+                    return true;
+                }
+                if (start(track)) {
+                    Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "Race has started!");
+                } else {
+                    sender.sendMessage("No active session");
+                }
             }
-            start();
-            Bukkit.broadcastMessage(ChatColor.BOLD + "" + ChatColor.GREEN + "Race has started!");
             return true;
         } else if (args[0].equalsIgnoreCase("withdraw")) {
             if (!(sender instanceof Player)) {
                 sender.sendMessage("Only players can use this command");
                 return true;
             }
-            if (race == null || race.getState() == Race.FINISHED) {
-                sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "There is not an active race");
+            if (args.length >= 1) {
+                RaceTrack track = getTrackyName(args[1]);
+                if (track == null) {
+                    sender.sendMessage("Track not found");
+                    return true;
+                }
+                Race race = track.getRace();
+                if (race == null || race.getState() == Race.FINISHED) {
+                    sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "There is not an active race");
+                    return true;
+                }
+                final Player player = (Player) sender;
+                race.withdraw(player);
             }
-            final Player player = (Player) sender;
-            race.withdraw(player);
             return true;
         } else if (args[0].equalsIgnoreCase("end")) {
-            if (race != null) {
-                end();
-            } else {
-                sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "There is no active race session");
+            if (args.length >= 1) {
+                RaceTrack track = getTrackyName(args[1]);
+                if (track == null) {
+                    sender.sendMessage("Track not found");
+                    return true;
+                }
+                Race race = track.getRace();
+                if (race != null) {
+                    end(track);
+                } else {
+                    sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "There is no active race session");
+                }
             }
             return true;
         } else if (args[0].equalsIgnoreCase("list")) {
-            if (race == null || race.getState() == Race.FINISHED) {
-                sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "There is not an active race");
-                return true;
+            if (args.length >= 1) {
+                RaceTrack track = getTrackyName(args[1]);
+                if (track == null) {
+                    sender.sendMessage("Track not found");
+                    return true;
+                }
+                Race race = track.getRace();
+                if (race == null || race.getState() == Race.FINISHED) {
+                    sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "There is not an active race");
+                    return true;
+                }
+                sender.sendMessage("Race entrants:");
+                for (RacePlayer p : race.getPlayers()) {
+                    sender.sendMessage("- " + p.getPlayer().getName());
+                }
+                sender.sendMessage("Total entrants: " + race.getPlayers().size());
             }
-            sender.sendMessage("Race entrants:");
-            for (RacePlayer p : race.getPlayers()) {
-                sender.sendMessage("- " + p.getPlayer().getName());
-            }
-            sender.sendMessage("Total entrants: " + race.getPlayers().size());
             return true;
         } else if (args[0].equalsIgnoreCase("clearall")) {
-            if (race == null) {
-                sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "You must open a race first");
-                return true;
-            } else if (race.getState() == Race.STARTED || race.getState() == Race.STARTING) {
-                sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "This race is already underway");
-                return true;
+            if (args.length >= 1) {
+                RaceTrack track = getTrackyName(args[1]);
+                if (track == null) {
+                    sender.sendMessage("Track not found");
+                    return true;
+                }
+                Race race = track.getRace();
+                if (race == null) {
+                    sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "You must open a race first");
+                    return true;
+                } else if (race.getState() == Race.STARTED || race.getState() == Race.STARTING) {
+                    sender.sendMessage(ChatColor.BOLD + "" + ChatColor.RED + "This race is already underway");
+                    return true;
+                }
+                race.clearAll();
+                Bukkit.broadcastMessage(ChatColor.BOLD + "All race entrants have been cleared!");
             }
-            race.clearAll();
-            Bukkit.broadcastMessage(ChatColor.BOLD + "All race entrants have been cleared!");
             return true;
         } else if (args[0].equalsIgnoreCase("spectate")) {
-            if (!(sender instanceof Player)) {
-                sender.sendMessage("Must be a player");
-                return true;
+            if (args.length >= 1) {
+                RaceTrack track = getTrackyName(args[1]);
+                if (track == null) {
+                    sender.sendMessage("Track not found");
+                    return true;
+                }
+                Race race = track.getRace();
+                if (!(sender instanceof Player)) {
+                    sender.sendMessage("Must be a player");
+                    return true;
+                }
+                race.addSpectator((Player) sender);
             }
-            race.addSpectator((Player) sender);
             return true;
-        } else if(args[0].equalsIgnoreCase("track-list")){
+        } else if (args[0].equalsIgnoreCase("track-list")) {
             String output = "Tracks-";
-            for(RaceTrack track: tracks){
+            for (RaceTrack track : tracks) {
                 output += "\n" + track.getName();
             }
             sender.sendMessage(output);
@@ -282,11 +360,23 @@ public class RaceController implements CommandExecutor {
     /**
      * Ends any active race.
      */
-    public void cancelActiveRace() {
-        if (race == null) {
-            return;
+    public void cancelActiveRaces() {
+        for (RaceTrack track : tracks) {
+            Race race = track.getRace();
+            if (race == null) {
+                return;
+            }
+            race.terminate();
         }
-        race.terminate();
+    }
+
+    public RaceTrack getTrackyName(String name) {
+        for (RaceTrack t : tracks) {
+            if (t.getName().equalsIgnoreCase(name)) {
+                return t;
+            }
+        }
+        return null;
     }
 
 }

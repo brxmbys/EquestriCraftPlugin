@@ -3,10 +3,10 @@
  */
 package io.github.davidg95.equestricraftplugin.race;
 
+import io.github.davidg95.equestricraftplugin.EquestriCraftPlugin;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 
 /**
  *
@@ -27,8 +27,13 @@ public class RaceTrack {
     private final int cz2;
 
     private final Location gateControl;
+    
+    private Race race;
+    
+    private final EquestriCraftPlugin plugin;
 
-    public RaceTrack(String name, int x1, int x2, int z1, int z2, int cx1, int cx2, int cz1, int cz2, Location gate) {
+    public RaceTrack(EquestriCraftPlugin plugin, String name, int x1, int x2, int z1, int z2, int cx1, int cx2, int cz1, int cz2, Location gate) {
+        this.plugin = plugin;
         this.name = name;
         this.x1 = x1;
         this.x2 = x2;
@@ -39,6 +44,29 @@ public class RaceTrack {
         this.cz1 = cz1;
         this.cz2 = cz2;
         this.gateControl = gate;
+    }
+    
+    public void openRace(int laps, double p1, double p2, double p3){
+        race = new Race(plugin, this, laps, p1, p2, p3);
+    }
+    
+    public void countdown(){
+        race.countdown();
+    }
+    
+    public void start(){
+        race.start();
+    }
+    
+    public Race getRace(){
+        return race;
+    }
+    
+    public int getState(){
+        if(race == null){
+            return 0;
+        }
+        return race.getState();
     }
 
     public String getName() {

@@ -292,46 +292,46 @@ public class HorseCheckerThread extends Thread {
 
         @Override
         public void run() {
-            plugin.getLogger().log(Level.INFO, "Running Buck Thread every 3 minutes");
-            int loop = 1;
-            while (run) {
-                try {
-                    if (active) {
-                        final int currentLoop = loop;
-                        new BukkitRunnable() {
-                            @Override
-                            public void run() {
-                                int count = 0;
-                                for (World world : Bukkit.getWorlds()) {
-                                    for (Horse h : world.getEntitiesByClass(Horse.class)) {
-                                        int level = database.getHorseLevel(h.getUniqueId());
-                                        if (level == -1) {
-                                            continue;
-                                        }
-                                        if (level <= currentLoop) {
-                                            if (h.getPassenger() != null) {
-                                                Player p = (Player) h.getPassenger();
-                                                if (plugin.raceController.race != null && !plugin.raceController.race.isPlayerInRace(p)) {
-                                                    h.eject();
-                                                }
-                                            }
-                                            count++;
-                                        }
-                                    }
-                                }
-                                plugin.getLogger().log(Level.INFO, "Bucked " + count + " Level " + currentLoop + " horses");
-                            }
-                        }.runTask(plugin);
-                    }
-                    Thread.sleep(180000);
-                } catch (InterruptedException ex) {
-                    Logger.getLogger(HorseCheckerThread.class.getName()).log(Level.SEVERE, null, ex);
-                }
-                loop++;
-                if (loop == 11) {
-                    loop = 1;
-                }
-            }
+//            plugin.getLogger().log(Level.INFO, "Running Buck Thread every 3 minutes");
+//            int loop = 1;
+//            while (run) {
+//                try {
+//                    if (active) {
+//                        final int currentLoop = loop;
+//                        new BukkitRunnable() {
+//                            @Override
+//                            public void run() {
+//                                int count = 0;
+//                                for (World world : Bukkit.getWorlds()) {
+//                                    for (Horse h : world.getEntitiesByClass(Horse.class)) {
+//                                        int level = database.getHorseLevel(h.getUniqueId());
+//                                        if (level == -1) {
+//                                            continue;
+//                                        }
+//                                        if (level <= currentLoop) {
+//                                            if (h.getPassenger() != null) {
+//                                                Player p = (Player) h.getPassenger();
+//                                                if (plugin.raceController.race != null && !plugin.raceController.race.isPlayerInRace(p)) {
+//                                                    h.eject();
+//                                                }
+//                                            }
+//                                            count++;
+//                                        }
+//                                    }
+//                                }
+//                                plugin.getLogger().log(Level.INFO, "Bucked " + count + " Level " + currentLoop + " horses");
+//                            }
+//                        }.runTask(plugin);
+//                    }
+//                    Thread.sleep(180000);
+//                } catch (InterruptedException ex) {
+//                    Logger.getLogger(HorseCheckerThread.class.getName()).log(Level.SEVERE, null, ex);
+//                }
+//                loop++;
+//                if (loop == 11) {
+//                    loop = 1;
+//                }
+//            }
         }
 
         public boolean toggle() {

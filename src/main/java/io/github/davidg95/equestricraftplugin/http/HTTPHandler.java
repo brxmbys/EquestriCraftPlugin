@@ -96,12 +96,17 @@ public class HTTPHandler implements CommandExecutor {
         server.createContext("/race/add", (HttpExchange he) -> {
             Map<String, String> params = queryToMap(he.getRequestURI().getQuery());
             String player = params.get("player");
-            boolean result = plugin.raceController.addPlayer(player);
+            RaceTrack track = plugin.raceController.getTrackyName(params.get("track"));
             String response;
-            if (result) {
-                response = "1";
-            } else {
+            if (track == null) {
                 response = "2";
+            } else {
+                boolean result = plugin.raceController.addPlayer(player, track);
+                if (result) {
+                    response = "1";
+                } else {
+                    response = "2";
+                }
             }
             addHeaders(he);
             he.sendResponseHeaders(200, response.length());
@@ -112,8 +117,13 @@ public class HTTPHandler implements CommandExecutor {
         server.createContext("/race/remove", (HttpExchange he) -> {
             Map<String, String> params = queryToMap(he.getRequestURI().getQuery());
             String player = params.get("player");
-            plugin.raceController.withdrawPlayer(player);
             String response = "1";
+            RaceTrack track = plugin.raceController.getTrackyName(params.get("track"));
+            if (track == null) {
+                response = "2";
+            } else {
+                plugin.raceController.withdrawPlayer(player, track);
+            }
             addHeaders(he);
             he.sendResponseHeaders(200, response.length());
             try (OutputStream os = he.getResponseBody()) {
@@ -236,16 +246,27 @@ public class HTTPHandler implements CommandExecutor {
                     }
                 }
                 if (track == null) {
+                    plugin.getLogger().log(Level.INFO, "Could not find track" + trackName);
                     response = "0";
                 } else {
                     controller.open(track, laps, p1, p2, p3);
                 }
             } else if (params.get("operation").equalsIgnoreCase("countdown")) {
-                if (!controller.countdown()) {
+                RaceTrack track = controller.getTrackyName(params.get("track"));
+                if (track == null) {
                     response = "2";
+                } else {
+                    if (!controller.countdown(track)) {
+                        response = "2";
+                    }
                 }
             } else if (params.get("operation").equalsIgnoreCase("end")) {
-                controller.end();
+                RaceTrack track = controller.getTrackyName(params.get("track"));
+                if (track == null) {
+                    response = "2";
+                } else {
+                    controller.end(track);
+                }
             } else if (params.get("operation").equalsIgnoreCase("broadcast")) {
                 String message = params.get("message");
                 Bukkit.broadcastMessage(ChatColor.GREEN + "[RACE BROADCAST] " + ChatColor.RESET + message);
