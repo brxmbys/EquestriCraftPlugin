@@ -209,7 +209,7 @@ public class RaceController implements CommandExecutor {
             }
             return true;
         } else if (args[0].equalsIgnoreCase("countdown")) {
-            if (args.length >= 1) {
+            if (args.length > 1) {
                 RaceTrack track = getTrackyName(args[1]);
                 if (track == null) {
                     sender.sendMessage("Track not found");
@@ -232,7 +232,7 @@ public class RaceController implements CommandExecutor {
             }
             return true;
         } else if (args[0].equalsIgnoreCase("start")) {
-            if (args.length >= 1) {
+            if (args.length > 1) {
                 RaceTrack track = getTrackyName(args[1]);
                 if (track == null) {
                     sender.sendMessage("Track not found");
@@ -261,7 +261,7 @@ public class RaceController implements CommandExecutor {
                 sender.sendMessage("Only players can use this command");
                 return true;
             }
-            if (args.length >= 1) {
+            if (args.length > 1) {
                 RaceTrack track = getTrackyName(args[1]);
                 if (track == null) {
                     sender.sendMessage("Track not found");
@@ -277,7 +277,7 @@ public class RaceController implements CommandExecutor {
             }
             return true;
         } else if (args[0].equalsIgnoreCase("end")) {
-            if (args.length >= 1) {
+            if (args.length > 1) {
                 RaceTrack track = getTrackyName(args[1]);
                 if (track == null) {
                     sender.sendMessage("Track not found");
@@ -292,7 +292,7 @@ public class RaceController implements CommandExecutor {
             }
             return true;
         } else if (args[0].equalsIgnoreCase("list")) {
-            if (args.length >= 1) {
+            if (args.length > 1) {
                 RaceTrack track = getTrackyName(args[1]);
                 if (track == null) {
                     sender.sendMessage("Track not found");
@@ -311,7 +311,7 @@ public class RaceController implements CommandExecutor {
             }
             return true;
         } else if (args[0].equalsIgnoreCase("clearall")) {
-            if (args.length >= 1) {
+            if (args.length > 1) {
                 RaceTrack track = getTrackyName(args[1]);
                 if (track == null) {
                     sender.sendMessage("Track not found");
@@ -330,7 +330,7 @@ public class RaceController implements CommandExecutor {
             }
             return true;
         } else if (args[0].equalsIgnoreCase("spectate")) {
-            if (args.length >= 1) {
+            if (args.length > 1) {
                 RaceTrack track = getTrackyName(args[1]);
                 if (track == null) {
                     sender.sendMessage("Track not found");
