@@ -10,6 +10,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.DyeColor;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
@@ -40,9 +41,9 @@ public class CustomHandler implements CommandExecutor, Listener {
     private static final Inventory variantScreen = Bukkit.createInventory(null, 9, "Select Variant");
 
     static {
-        genderScreen.setItem(3, createItem(Material.STONE, "Stallion", "Male horse"));
-        genderScreen.setItem(4, createItem(Material.STONE, "Mare", "Female horse"));
-        genderScreen.setItem(5, createItem(Material.STONE, "Gelding", "Gelded male horse"));
+        genderScreen.setItem(3, createItem(new ItemStack(Material.STAINED_GLASS_PANE, 1, DyeColor.RED.getData()), "Stallion", "Male horse"));
+        genderScreen.setItem(4, createItem(new ItemStack(Material.STAINED_GLASS_PANE, 1, DyeColor.PURPLE.getData()), "Mare", "Female horse"));
+        genderScreen.setItem(5, createItem(new ItemStack(Material.STAINED_GLASS_PANE, 1, DyeColor.LIGHT_BLUE.getData()), "Gelding", "Gelded male horse"));
 
         double breedCount = HorseBreed.values().length;
 
@@ -53,30 +54,29 @@ public class CustomHandler implements CommandExecutor, Listener {
         breedScreens[screen] = Bukkit.createInventory(null, 54, "Select Breed (1/" + screenCount + ")");
         for (int i = 0; i < breedCount; i++) {
             if (i % 53 == 0 && i != 0) {
-                breedScreens[screen].addItem(createItem(Material.WOOD, "Next page", "Go to page " + (screen + 2)));
+                breedScreens[screen].addItem(createItem(new ItemStack(Material.WOOD, 1), "Next page", "Go to page " + (screen + 2)));
                 screen++;
                 breedScreens[screen] = Bukkit.createInventory(null, 54, "Select Breed (" + (screen + 1) + "/" + screenCount + ")");
             }
             HorseBreed br = HorseBreed.values()[i];
-            breedScreens[screen].addItem(createItem(Material.STONE, br.toString(), "Use this breed"));
+            breedScreens[screen].addItem(createItem(new ItemStack(Material.STAINED_GLASS_PANE, 1), br.toString(), "Use this breed"));
         }
 
         double personCount = Personality.values().length;
         for (int i = 0; i < personCount; i++) {
             Personality per = Personality.values()[i];
-            personalityScreen1.addItem(createItem(Material.STONE, per.toString(), "Use this personality"));
-            personalityScreen2.addItem(createItem(Material.STONE, per.toString(), "Use this personality"));
+            personalityScreen1.addItem(createItem(new ItemStack(Material.STAINED_GLASS_PANE, 1), per.toString(), "Use this personality"));
+            personalityScreen2.addItem(createItem(new ItemStack(Material.STAINED_GLASS_PANE, 1), per.toString(), "Use this personality"));
         }
 
-        variantScreen.addItem(createItem(Material.STONE, "Blaze", "Select this variant"));
-        variantScreen.addItem(createItem(Material.STONE, "Appaloosa", "Select this variant"));
-        variantScreen.addItem(createItem(Material.STONE, "Pinto", "Select this variant"));
-        variantScreen.addItem(createItem(Material.STONE, "Bald Face", "Select this variant"));
-        variantScreen.addItem(createItem(Material.STONE, "Solid", "Select this variant"));
+        variantScreen.addItem(createItem(new ItemStack(Material.STONE, 1), "Blaze", "Select this variant"));
+        variantScreen.addItem(createItem(new ItemStack(Material.STONE, 1), "Appaloosa", "Select this variant"));
+        variantScreen.addItem(createItem(new ItemStack(Material.STONE, 1), "Pinto", "Select this variant"));
+        variantScreen.addItem(createItem(new ItemStack(Material.STONE, 1), "Bald Face", "Select this variant"));
+        variantScreen.addItem(createItem(new ItemStack(Material.STONE, 1), "Solid", "Select this variant"));
     }
 
-    private static ItemStack createItem(Material m, String name, String lore) {
-        ItemStack item = new ItemStack(m, 1);
+    private static ItemStack createItem(ItemStack item, String name, String lore) {
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(name);
         meta.setLore(createLore(lore));
@@ -125,7 +125,7 @@ public class CustomHandler implements CommandExecutor, Listener {
                             plugin.getEqDatabase().addTokens(player, amount);
                             int total = plugin.getEqDatabase().getTokens(player);
                             sender.sendMessage(ChatColor.GREEN + "This player now has " + total + " tokens");
-                            if(player.isOnline()){
+                            if (player.isOnline()) {
                                 Player onlinePlayer = (Player) player;
                                 onlinePlayer.sendMessage(ChatColor.GREEN + "You have been given " + amount + " custom horse tokens\nCurrent tokens: " + total);
                             }
@@ -183,30 +183,6 @@ public class CustomHandler implements CommandExecutor, Listener {
     }
 
     @EventHandler
-    public void onBreedScreenClick(InventoryClickEvent event) {
-        Player player = (Player) event.getWhoClicked();
-        ItemStack clicked = event.getCurrentItem();
-        Inventory inventory = event.getInventory();
-        if (!inventory.getName().contains("Select Breed")) {
-            return;
-        }
-        event.setCancelled(true);
-        player.closeInventory();
-        if (null == clicked.getType()) {
-            return;
-        } else {
-            if (clicked.getType() == Material.STONE) {
-                String breed = clicked.getItemMeta().getDisplayName();
-                player.setMetadata("ch_breed", new FixedMetadataValue(plugin, breed.replace(" ", "")));
-                player.sendMessage("You have chosen " + breed);
-                player.openInventory(personalityScreen1);
-            } else if (clicked.getType() == Material.WOOD) {
-                player.openInventory(breedScreens[1]);
-            }
-        }
-    }
-
-    @EventHandler
     public void onGenderScreenClick(InventoryClickEvent event) {
         Player player = (Player) event.getWhoClicked();
         ItemStack clicked = event.getCurrentItem();
@@ -215,15 +191,37 @@ public class CustomHandler implements CommandExecutor, Listener {
             return;
         }
         event.setCancelled(true);
-        player.closeInventory();
         if (null == clicked.getType()) {
             return;
         } else {
-            if (clicked.getType() == Material.STONE) {
-                String gender = clicked.getItemMeta().getDisplayName();
-                player.setMetadata("ch_gender", new FixedMetadataValue(plugin, gender.replace(" ", "")));
-                player.sendMessage("You have chosen " + gender);
-                player.openInventory(breedScreens[0]);
+            String gender = clicked.getItemMeta().getDisplayName();
+            player.setMetadata("ch_gender", new FixedMetadataValue(plugin, gender.replace(" ", "")));
+            player.sendMessage("You have chosen " + gender);
+            player.closeInventory();
+            player.openInventory(breedScreens[0]);
+        }
+    }
+
+    @EventHandler
+    public void onBreedScreenClick(InventoryClickEvent event) {
+        Player player = (Player) event.getWhoClicked();
+        ItemStack clicked = event.getCurrentItem();
+        Inventory inventory = event.getInventory();
+        if (!inventory.getName().contains("Select Breed")) {
+            return;
+        }
+        event.setCancelled(true);
+        if (null == clicked.getType()) {
+            return;
+        } else {
+            player.closeInventory();
+            if (clicked.getType() == Material.WOOD) {
+                player.openInventory(breedScreens[1]);
+            } else {
+                String breed = clicked.getItemMeta().getDisplayName();
+                player.setMetadata("ch_breed", new FixedMetadataValue(plugin, breed.replace(" ", "")));
+                player.sendMessage("You have chosen " + breed);
+                player.openInventory(personalityScreen1);
             }
         }
     }
@@ -237,16 +235,14 @@ public class CustomHandler implements CommandExecutor, Listener {
             return;
         }
         event.setCancelled(true);
-        player.closeInventory();
         if (null == clicked.getType()) {
             return;
         } else {
-            if (clicked.getType() == Material.STONE) {
-                String personality = clicked.getItemMeta().getDisplayName();
-                player.setMetadata("ch_personality1", new FixedMetadataValue(plugin, personality.replace(" ", "")));
-                player.sendMessage("You have chosen " + personality);
-                player.openInventory(personalityScreen2);
-            }
+            player.closeInventory();
+            String personality = clicked.getItemMeta().getDisplayName();
+            player.setMetadata("ch_personality1", new FixedMetadataValue(plugin, personality.replace(" ", "")));
+            player.sendMessage("You have chosen " + personality);
+            player.openInventory(personalityScreen2);
         }
     }
 
@@ -259,16 +255,14 @@ public class CustomHandler implements CommandExecutor, Listener {
             return;
         }
         event.setCancelled(true);
-        player.closeInventory();
         if (null == clicked.getType()) {
             return;
         } else {
-            if (clicked.getType() == Material.STONE) {
-                String personality = clicked.getItemMeta().getDisplayName();
-                player.setMetadata("ch_personality2", new FixedMetadataValue(plugin, personality.replace(" ", "")));
-                player.sendMessage("You have chosen " + personality);
-                player.openInventory(variantScreen);
-            }
+            player.closeInventory();
+            String personality = clicked.getItemMeta().getDisplayName();
+            player.setMetadata("ch_personality2", new FixedMetadataValue(plugin, personality.replace(" ", "")));
+            player.sendMessage("You have chosen " + personality);
+            player.openInventory(variantScreen);
         }
     }
 
@@ -281,16 +275,14 @@ public class CustomHandler implements CommandExecutor, Listener {
             return;
         }
         event.setCancelled(true);
-        player.closeInventory();
         if (null == clicked.getType()) {
             return;
         } else {
-            if (clicked.getType() == Material.STONE) {
-                String variant = clicked.getItemMeta().getDisplayName();
-                player.setMetadata("ch_variant", new FixedMetadataValue(plugin, variant.replace(" ", "")));
-                player.sendMessage("You have chosen " + variant);
-                createHorse(player);
-            }
+            player.closeInventory();
+            String variant = clicked.getItemMeta().getDisplayName();
+            player.setMetadata("ch_variant", new FixedMetadataValue(plugin, variant.replace(" ", "")));
+            player.sendMessage("You have chosen " + variant);
+            createHorse(player);
         }
     }
 
