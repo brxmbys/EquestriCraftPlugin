@@ -4,7 +4,7 @@ version: 1.0
 commands:
     createhorse:
         description: Creates a new horse.
-        usage: /createhorse <stallion|mare|gelding>
+        usage: /createhorse [check]
     geldingtool:
         description: Place a gelding tool in your hand.
         usage: /geldingtool

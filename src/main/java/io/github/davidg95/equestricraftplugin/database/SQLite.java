@@ -72,6 +72,12 @@ public class SQLite extends Database {
             + "reason varchar(60) not null,"
             + "primary key(id)"
             + ")";
+    
+    public String createCustomTokensTable = "create table if not exists customTokens("
+            + "uuid varchar(60) not null,"
+            + "tokens integer not null,"
+            + "primary key(uuid)"
+            + ")"; 
 
     @Override
     public Connection getSQLConnection() {
@@ -107,10 +113,11 @@ public class SQLite extends Database {
         try {
             Statement s = connection.createStatement();
             s.executeUpdate(createHorsesTable);
-            s.executeUpdate("DROP TABLE " + breedTable);
-            s.executeUpdate(createBreedLogTable);
+//            s.executeUpdate("DROP TABLE " + breedTable);
+//            s.executeUpdate(createBreedLogTable);
             s.executeUpdate(createWarpsTable);
             s.executeUpdate(createPayLogsTable);
+            s.executeUpdate(createCustomTokensTable);
             s.close();
         } catch (SQLException ex) {
             plugin.getLogger().log(Level.SEVERE, "Error opening database", ex);

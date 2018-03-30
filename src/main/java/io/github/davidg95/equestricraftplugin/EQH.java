@@ -98,12 +98,8 @@ public class EQH implements CommandExecutor {
                                 for (int i = 2; i < args.length; i++) {
                                     command += args[i] + " ";
                                 }
-                                Object res = database.submitCommand(command);
-                                if (res == null) {
-                                    sender.sendMessage("No return");
-                                    return true;
-                                }
-                                sender.sendMessage(res.toString());
+                                database.submitCommand(command);
+                                sender.sendMessage("Query executed");
                             }
                         }
                         return true;

@@ -89,6 +89,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     public WarpsHandler warpsHandler;
     public BuildPayHandler buildPayHandler;
     public EQH eqhExecutor;
+    public CustomHandler customHandler;
 
     public HTTPHandler http;
     public WebSocketHandler web;
@@ -209,7 +210,9 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
             this.getCommand("buildpay").setExecutor(buildPayHandler);
         }
         this.eqhExecutor = new EQH(this);
+        this.customHandler = new CustomHandler(this);
         this.getCommand("eqh").setExecutor(eqhExecutor);
+        this.getCommand("createhorse").setExecutor(customHandler);
         web = new WebSocketHandler(this);
         http = new HTTPHandler(this);
         try {
@@ -296,23 +299,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-        if (cmd.getName().equalsIgnoreCase("createhorse")) {   //createhorse command
-            if (!sender.hasPermission("equestricraft.spawnhorse")) {
-                return true;
-            }
-            if (sender instanceof Player) {
-                final Player player = (Player) sender;
-                final Horse h = player.getWorld().spawn(player.getLocation(), Horse.class);
-                HorseNMS.setSpeed(h, 0.4);
-                h.setJumpStrength(0.68);
-                final MyHorse mh = new MyHorse(h);
-                h.setBaby();
-                database.addHorse(mh);
-            } else {
-                sender.sendMessage("This command can only be run by a player");
-            }
-            return true;
-        } else if (cmd.getName().equalsIgnoreCase("geldingtool")) {   //geldingtool command
+        if (cmd.getName().equalsIgnoreCase("geldingtool")) {   //geldingtool command
             if (sender instanceof Player) {
                 final Player player = (Player) sender;
                 if (!player.hasPermission("equestricraft.role.doctor")) {

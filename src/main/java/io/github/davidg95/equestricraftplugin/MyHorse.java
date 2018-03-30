@@ -117,6 +117,34 @@ public class MyHorse implements Serializable {
         this.ignored = ignored;
     }
 
+    public MyHorse(Horse h, int gender, HorseBreed br, Personality p1, Personality p2) {
+        this.gender = gender;
+        this.vaccinationTime = 0;
+        this.lastEat = getCurrentTime();
+        this.lastDrink = getCurrentTime();
+        this.illSince = 0;
+        this.wellSince = getCurrentTime();
+        this.lastBreed = getCurrentTime();
+        this.defecateSinceEat = true;
+        this.uuid = h.getUniqueId();
+        this.breedArr = new HorseBreed[1];
+        this.breedArr[0] = br;
+        if (br == HorseBreed.Donkey) {
+            h.setVariant(Variant.DONKEY);
+        } else if (br == HorseBreed.Mule) {
+            h.setVariant(Variant.MULE);
+        }
+        this.birthTime = getCurrentTime();
+        this.personality = new Personality[]{p1, p2};
+        this.dieat = randomDieAt();
+        this.illness = null;
+        h.setBaby();
+        h.setAgeLock(true);
+        shoed = false;
+        trainingLevel = 1;
+        ignored = false;
+    }
+
     public static long getCurrentTime() {
         return new Date().getTime();
     }
@@ -301,12 +329,12 @@ public class MyHorse implements Serializable {
     public boolean isHungry() {
         return this.getDurationSinceLastEat() > EAT_LIMIT; //Check if the horse is thirsty.
     }
-    
-    public boolean isTooHungry(){
+
+    public boolean isTooHungry() {
         return getHungerDuration() - EAT_LIMIT > 0;
     }
-    
-    public boolean isTooThirsty(){
+
+    public boolean isTooThirsty() {
         return getThristDuration() - DRINK_LIMIT > 0;
     }
 
