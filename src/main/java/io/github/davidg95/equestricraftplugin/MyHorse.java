@@ -7,6 +7,7 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.UUID;
 import org.bukkit.entity.Horse;
+import org.bukkit.entity.Horse.Color;
 import org.bukkit.entity.Horse.Variant;
 
 /**
@@ -117,7 +118,8 @@ public class MyHorse implements Serializable {
         this.ignored = ignored;
     }
 
-    public MyHorse(Horse h, int gender, HorseBreed br, Personality p1, Personality p2) {
+    public MyHorse(Horse h, int gender, HorseBreed br, Personality p1, Personality p2, Color c) {
+        h.setColor(c);
         this.gender = gender;
         this.vaccinationTime = 0;
         this.lastEat = getCurrentTime();
