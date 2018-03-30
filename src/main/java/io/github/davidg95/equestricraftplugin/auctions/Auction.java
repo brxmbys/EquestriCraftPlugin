@@ -4,6 +4,8 @@
 package io.github.davidg95.equestricraftplugin.auctions;
 
 import io.github.davidg95.equestricraftplugin.EquestriCraftPlugin;
+import java.util.LinkedList;
+import java.util.List;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -50,11 +52,13 @@ public class Auction implements Listener {
     private Team team;
     private Objective objective;
     private Score score;
+    private final List<Player> bidders; //The players entering the race.
 
     public Auction(EquestriCraftPlugin plugin, Economy economy, Player seller, int startingBid, int incrementValue) {
         this.seller = seller;
         this.currentBid = startingBid;
         this.incrementValue = incrementValue;
+        bidders = new LinkedList<>();
         bidValue = -1;
         this.econ = economy;
         complete = false;
@@ -101,6 +105,7 @@ public class Auction implements Listener {
             p.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "You do not have enough money");
             return NOT_ENOUGH_MONEY;
         }
+        addBidder(p);
         currentBidder = p;
         if (amount == -1) {
             bidValue = currentBid;
@@ -115,7 +120,7 @@ public class Auction implements Listener {
         incrementBid(incrementValue);
         score.setScore(currentBid);
         p.setScoreboard(board);
-        Bukkit.broadcastMessage(p.getDisplayName() + ChatColor.GREEN + " has placed a bid of " + ChatColor.AQUA + "$" + bidValue + ChatColor.GREEN + ". Next value is " + ChatColor.AQUA + "$" + currentBid);
+        sendToAll(p.getDisplayName() + ChatColor.GREEN + " has placed a bid of " + ChatColor.AQUA + "$" + bidValue + ChatColor.GREEN + ". Next value is " + ChatColor.AQUA + "$" + currentBid);
         return BID_PLACED;
     }
 
@@ -156,15 +161,27 @@ public class Auction implements Listener {
         }
     }
 
+    private void sendToAll(String message) {
+        for (Player p : bidders) {
+            p.sendMessage(message);
+        }
+    }
+    
+    private void addBidder(Player p){
+        if(!bidders.contains(p)){
+            bidders.add(p);
+        }
+    }
+
     @EventHandler
     public void onPlayerLeave(PlayerQuitEvent event) {
         if (currentBidder != null && event.getPlayer().getUniqueId() == currentBidder.getUniqueId()) {
             currentBidder = null;
             currentBid = -1;
-            Bukkit.broadcastMessage(event.getPlayer().getDisplayName() + ChatColor.GREEN + " has left, their bid has been retracted");
+            sendToAll(event.getPlayer().getDisplayName() + ChatColor.GREEN + " has left, their bid has been retracted");
         } else if (event.getPlayer().getUniqueId() == seller.getUniqueId()) {
             complete = true;
-            Bukkit.broadcastMessage(ChatColor.RED + "" + ChatColor.BOLD + "The seller has left. Auction cancelled");
+            sendToAll(ChatColor.RED + "" + ChatColor.BOLD + "The seller has left. Auction cancelled");
             end();
         }
     }
