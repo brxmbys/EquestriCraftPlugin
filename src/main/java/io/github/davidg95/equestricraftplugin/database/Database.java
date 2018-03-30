@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.locks.StampedLock;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
@@ -90,18 +89,22 @@ public abstract class Database {
         return null;
     }
 
-    public void setTokens(OfflinePlayer player, int amount) throws SQLException {
+    public void addTokens(OfflinePlayer player, int amount) throws SQLException {
         Connection conn = null;
         Statement s = null;
 
+        final long stamp = lock.writeLock();
         try {
             conn = getSQLConnection();
             s = conn.createStatement();
-
-            s.executeUpdate("update customTokens set tokens=" + amount + " where uuid='" + player.getUniqueId() + "'");
-        } catch (SQLException ex) {
-            addPlayerToken(player, amount);
+            if (s.executeQuery("select * from customTokens where uuid='" + player.getUniqueId().toString() + "'").next()) {
+                s.executeUpdate("update customTokens set tokens = (tokens + " + amount + ") where uuid = '" + player.getUniqueId().toString() + "'");
+            } else {
+                s.executeUpdate("insert into customTokens (uuid, tokens) values('" + player.getUniqueId().toString() + "'," + amount + ")");
+            }
+            plugin.getLogger().info(player.getName() + " has had " + amount + " tokens added");
         } finally {
+            lock.unlockWrite(stamp);
             try {
                 if (s != null) {
                     s.close();
@@ -119,11 +122,13 @@ public abstract class Database {
         Connection conn = null;
         Statement s = null;
 
+        final long stamp = lock.writeLock();
         try {
             conn = getSQLConnection();
             s = conn.createStatement();
             s.executeUpdate("update customTokens set tokens = (tokens - 1) where uuid='" + player.getUniqueId() + "'");
         } finally {
+            lock.unlockWrite(stamp);
             try {
                 if (s != null) {
                     s.close();
@@ -136,63 +141,12 @@ public abstract class Database {
             }
         }
     }
-
-    public void addTokens(OfflinePlayer player, int amount) throws SQLException {
-        Connection conn = null;
-        Statement s = null;
-
-        try {
-            conn = getSQLConnection();
-            s = conn.createStatement();
-            if (s.executeQuery("select * from customTokens where uuid='" + player.getUniqueId().toString() + "'").next()) {
-                s.executeUpdate("update customTokens set tokens = (tokens + " + amount + ") where uuid = '" + player.getUniqueId().toString() + "'");
-            } else {
-                s.executeUpdate("insert into customTokens (uuid, tokens) values('" + player.getUniqueId().toString() + "'," + amount + ")");
-            }
-            plugin.getLogger().info(player.getName() + " has had " + amount + " tokens added");
-        } finally {
-            try {
-                if (s != null) {
-                    s.close();
-                }
-                if (conn != null) {
-                    conn.close();
-                }
-            } catch (SQLException ex) {
-                plugin.getLogger().log(Level.SEVERE, "Error closing connection", ex);
-            }
-        }
-    }
-
-    public void addPlayerToken(OfflinePlayer player, int amount) throws SQLException {
-        Connection conn = null;
-        Statement s = null;
-
-        try {
-            conn = getSQLConnection();
-            s = conn.createStatement();
-            s.executeUpdate("insert into customTokens (uuid, tokens) values('" + player.getUniqueId().toString() + "'," + amount + ")");
-        } catch (SQLException ex) {
-            plugin.getLogger().log(Level.SEVERE, null, ex);
-            throw ex;
-        } finally {
-            try {
-                if (s != null) {
-                    s.close();
-                }
-                if (conn != null) {
-                    conn.close();
-                }
-            } catch (SQLException ex) {
-                plugin.getLogger().log(Level.SEVERE, "Error closing connection", ex);
-            }
-        }
-    }
-
+    
     public int getTokens(OfflinePlayer player) throws SQLException {
         Connection conn = null;
         Statement s = null;
 
+        final long stamp = lock.writeLock();
         try {
             conn = getSQLConnection();
             s = conn.createStatement();
@@ -203,6 +157,7 @@ public abstract class Database {
             }
             return 0;
         } finally {
+            lock.unlockWrite(stamp);
             try {
                 if (s != null) {
                     s.close();
@@ -220,6 +175,8 @@ public abstract class Database {
         Connection conn = null;
         Statement s = null;
         List<String> results = new LinkedList<>();
+
+        final long stamp = lock.writeLock();
         try {
             conn = getSQLConnection();
             s = conn.createStatement();
@@ -230,6 +187,7 @@ public abstract class Database {
             }
             return results;
         } finally {
+            lock.unlockWrite(stamp);
             try {
                 if (s != null) {
                     s.close();

@@ -37,8 +37,8 @@ public class CustomHandler implements CommandExecutor, Listener {
     private final EquestriCraftPlugin plugin;
     private static final Inventory genderScreen = Bukkit.createInventory(null, 9, "Select Gender");
     private static final Inventory[] breedScreens;
-    private static final Inventory personalityScreen1 = Bukkit.createInventory(null, 54, "Select Personality 1");
-    private static final Inventory personalityScreen2 = Bukkit.createInventory(null, 54, "Select Personality 2");
+    private static final Inventory personalityScreen1 = Bukkit.createInventory(null, 18, "Select Personality 1");
+    private static final Inventory personalityScreen2 = Bukkit.createInventory(null, 18, "Select Personality 2");
     private static final Inventory variantScreen = Bukkit.createInventory(null, 9, "Select Variant");
     private static final Inventory colorScreen = Bukkit.createInventory(null, 9, "Select Color");
 
@@ -56,7 +56,7 @@ public class CustomHandler implements CommandExecutor, Listener {
         breedScreens[screen] = Bukkit.createInventory(null, 54, "Select Breed (1/" + screenCount + ")");
         for (int i = 0; i < breedCount; i++) {
             if (i % 53 == 0 && i != 0) {
-                breedScreens[screen].addItem(createItem(new ItemStack(Material.WOOD, 1), "Next page", "Go to page " + (screen + 2)));
+                breedScreens[screen].addItem(createItem(new ItemStack(Material.PAPER, 1), "Next page", "Go to page " + (screen + 2)));
                 screen++;
                 breedScreens[screen] = Bukkit.createInventory(null, 54, "Select Breed (" + (screen + 1) + "/" + screenCount + ")");
             }
@@ -170,7 +170,7 @@ public class CustomHandler implements CommandExecutor, Listener {
                     Player player = (Player) sender;
                     try {
                         int amount = plugin.getEqDatabase().getTokens(player);
-                        player.sendMessage("You have got " + amount + " custom tokens");
+                        player.sendMessage(ChatColor.GREEN + "You have got " + ChatColor.AQUA + amount + ChatColor.GREEN + " custom tokens");
                     } catch (SQLException ex) {
                         plugin.getLogger().log(Level.SEVERE, null, ex);
                     }
@@ -186,7 +186,7 @@ public class CustomHandler implements CommandExecutor, Listener {
     public void onPlayerJoin(PlayerJoinEvent evt) {
         try {
             int total = plugin.getEqDatabase().getTokens(evt.getPlayer());
-            evt.getPlayer().sendMessage(ChatColor.GREEN + "You have " + total + " custom tokens");
+            evt.getPlayer().sendMessage(ChatColor.GREEN + "You have " + ChatColor.AQUA + total + ChatColor.GREEN + " custom tokens");
         } catch (SQLException ex) {
             evt.getPlayer().sendMessage("Error getting custom tokens");
         }
@@ -225,7 +225,7 @@ public class CustomHandler implements CommandExecutor, Listener {
             return;
         } else {
             player.closeInventory();
-            if (clicked.getType() == Material.WOOD) {
+            if (clicked.getType() == Material.PAPER) {
                 player.openInventory(breedScreens[1]);
             } else {
                 String breed = clicked.getItemMeta().getDisplayName();
