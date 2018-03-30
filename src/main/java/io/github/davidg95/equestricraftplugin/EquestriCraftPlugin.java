@@ -1573,7 +1573,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     public void onChat(AsyncPlayerChatEvent evt) {
         Player player = evt.getPlayer();
         String text = evt.getMessage();
-        String[] swearWords = new String[]{"demid", "arse", "bugger", "crap", "damn", "Jesus Christ", "bitch", "bollocks", "shit", "tits", "bastard", "cock", "dick", "fanny", "knob", "prick", "cunt", "fuck"};
+        String[] swearWords = new String[]{"demid" , "arse", "bugger", "Jesus Christ", "bitch", "bollocks", "shit", "tits", "bastard", "cock", "dick", "fanny", "knob", "prick", "cunt", "fuck"};
         for (String word : swearWords) {
             if (text.toLowerCase().contains(word.toLowerCase())) {
                 player.setGameMode(GameMode.SURVIVAL);
