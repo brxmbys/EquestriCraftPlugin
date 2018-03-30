@@ -122,7 +122,7 @@ public class Race implements Listener {
     public void start() {
         state = STARTED;
         startTime = new Date().getTime();
-        thread = new CheckThread(plugin, this, players);
+        thread = new CheckThread(this, players);
         setGatesOpen(true);
         thread.start();
     }
