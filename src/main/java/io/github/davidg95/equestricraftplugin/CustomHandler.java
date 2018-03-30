@@ -17,6 +17,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Horse;
+import org.bukkit.entity.Horse.Color;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -39,6 +40,7 @@ public class CustomHandler implements CommandExecutor, Listener {
     private static final Inventory personalityScreen1 = Bukkit.createInventory(null, 54, "Select Personality 1");
     private static final Inventory personalityScreen2 = Bukkit.createInventory(null, 54, "Select Personality 2");
     private static final Inventory variantScreen = Bukkit.createInventory(null, 9, "Select Variant");
+    private static final Inventory colorScreen = Bukkit.createInventory(null, 9, "Select Color");
 
     static {
         genderScreen.setItem(3, createItem(new ItemStack(Material.STAINED_GLASS_PANE, 1, DyeColor.RED.getData()), "Stallion", "Male horse"));
@@ -74,6 +76,14 @@ public class CustomHandler implements CommandExecutor, Listener {
         variantScreen.addItem(createItem(new ItemStack(Material.STONE, 1), "Pinto", "Select this variant"));
         variantScreen.addItem(createItem(new ItemStack(Material.STONE, 1), "Bald Face", "Select this variant"));
         variantScreen.addItem(createItem(new ItemStack(Material.STONE, 1), "Solid", "Select this variant"));
+
+        colorScreen.addItem(createItem(new ItemStack(Material.STAINED_GLASS_PANE, 1, DyeColor.BROWN.getData()), "Buckskin", "Select this color"));
+        colorScreen.addItem(createItem(new ItemStack(Material.STAINED_GLASS_PANE, 1, DyeColor.GRAY.getData()), "Bay", "Select this color"));
+        colorScreen.addItem(createItem(new ItemStack(Material.STAINED_GLASS_PANE, 1, DyeColor.BLUE.getData()), "Palomino", "Select this color"));
+        colorScreen.addItem(createItem(new ItemStack(Material.STAINED_GLASS_PANE, 1, DyeColor.SILVER.getData()), "Dappled Gray", "Select this color"));
+        colorScreen.addItem(createItem(new ItemStack(Material.STAINED_GLASS_PANE, 1, DyeColor.WHITE.getData()), "White", "Select this color"));
+        colorScreen.addItem(createItem(new ItemStack(Material.STAINED_GLASS_PANE, 1, DyeColor.BLACK.getData()), "Black", "Select this color"));
+        colorScreen.addItem(createItem(new ItemStack(Material.STAINED_GLASS_PANE, 1, DyeColor.YELLOW.getData()), "Chestnut", "Select this color"));
     }
 
     private static ItemStack createItem(ItemStack item, String name, String lore) {
@@ -267,7 +277,7 @@ public class CustomHandler implements CommandExecutor, Listener {
     }
 
     @EventHandler
-    public void onVriantScreenClick(InventoryClickEvent event) {
+    public void onVariantScreenClick(InventoryClickEvent event) {
         Player player = (Player) event.getWhoClicked();
         ItemStack clicked = event.getCurrentItem();
         Inventory inventory = event.getInventory();
@@ -282,6 +292,26 @@ public class CustomHandler implements CommandExecutor, Listener {
             String variant = clicked.getItemMeta().getDisplayName();
             player.setMetadata("ch_variant", new FixedMetadataValue(plugin, variant.replace(" ", "")));
             player.sendMessage("You have chosen " + variant);
+            player.openInventory(colorScreen);
+        }
+    }
+
+    @EventHandler
+    public void onColorScreenClick(InventoryClickEvent event) {
+        Player player = (Player) event.getWhoClicked();
+        ItemStack clicked = event.getCurrentItem();
+        Inventory inventory = event.getInventory();
+        if (!inventory.getName().contains("Select Color")) {
+            return;
+        }
+        event.setCancelled(true);
+        if (null == clicked.getType()) {
+            return;
+        } else {
+            player.closeInventory();
+            String color = clicked.getItemMeta().getDisplayName();
+            player.setMetadata("ch_color", new FixedMetadataValue(plugin, color.replace(" ", "")));
+            player.sendMessage("You have chosen " + color);
             createHorse(player);
         }
     }
@@ -292,6 +322,7 @@ public class CustomHandler implements CommandExecutor, Listener {
         String personalityStr1 = player.getMetadata("ch_personality1").get(0).asString();
         String personalityStr2 = player.getMetadata("ch_personality2").get(0).asString();
         String variantStr = player.getMetadata("ch_variant").get(0).asString();
+        String colorStr = player.getMetadata("ch_color").get(0).asString();
 
         int gender;
         if (genderStr.equalsIgnoreCase("stallion")) {
@@ -305,9 +336,22 @@ public class CustomHandler implements CommandExecutor, Listener {
         HorseBreed breed = HorseBreed.valueOf(breedStr);
         Personality personality1 = Personality.valueOf(personalityStr1);
         Personality personality2 = Personality.valueOf(personalityStr2);
-        player.sendMessage("Creating " + genderStr + " of breed " + breed.toString() + " with personallity " + personality1.toString() + " and " + personality2.toString() + "of variant " + variantStr);
+        Color color;
+        if (colorStr.equalsIgnoreCase("Buckskin")) {
+            color = Color.BROWN;
+        } else if (colorStr.equalsIgnoreCase("Bay")) {
+            color = Color.DARK_BROWN;
+        } else if (colorStr.equalsIgnoreCase("Palomino")) {
+            color = Color.CREAMY;
+        } else if (colorStr.equalsIgnoreCase("Dappled Gray")) {
+            color = Color.GRAY;
+        } else if (colorStr.equalsIgnoreCase("white")) {
+            color = Color.WHITE;
+        } else {
+            color = Color.BLACK;
+        }
         Horse h = player.getWorld().spawn(player.getLocation(), Horse.class);
-        MyHorse horse = new MyHorse(h, gender, breed, personality1, personality2);
+        MyHorse horse = new MyHorse(h, gender, breed, personality1, personality2, color);
         plugin.getEqDatabase().addHorse(horse);
         try {
             plugin.getEqDatabase().removeToken(player);
