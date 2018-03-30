@@ -23,14 +23,11 @@ public class CheckThread extends Thread {
 
     private boolean run;
 
-    private final EquestriCraftPlugin plugin;
-
-    public CheckThread(EquestriCraftPlugin plugin, Race r, List<RacePlayer> players) {
+    public CheckThread(Race r, List<RacePlayer> players) {
         super("RACE_THREAD");
         this.players = players;
         this.race = r;
         run = true;
-        this.plugin = plugin;
     }
 
     @Override
