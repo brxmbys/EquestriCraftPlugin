@@ -124,29 +124,29 @@ public class CustomHandler implements CommandExecutor, Listener {
             }
         } else {
             if (args[0].equalsIgnoreCase("allow")) {
-                if (sender.isOp()) {
-                    if (args.length >= 2) {
-                        OfflinePlayer player = Bukkit.getOfflinePlayer(args[1]);
-                        int amount = 1;
-                        if (args.length >= 3) {
-                            amount = Integer.parseInt(args[2]);
-                        }
-                        try {
-                            plugin.getEqDatabase().addTokens(player, amount);
-                            int total = plugin.getEqDatabase().getTokens(player);
-                            sender.sendMessage(ChatColor.GREEN + "This player now has " + total + " tokens");
-                            if (player.isOnline()) {
-                                Player onlinePlayer = (Player) player;
-                                onlinePlayer.sendMessage(ChatColor.GREEN + "You have been given " + amount + " custom horse tokens\nCurrent tokens: " + total);
-                            }
-                        } catch (SQLException ex) {
-                            sender.sendMessage(ChatColor.RED + "There was an error setting the players tokens");
-                        }
-                        return true;
-                    } else {
-                        sender.sendMessage("Invalid args");
+//                if (sender.isOp()) {
+                if (args.length >= 2) {
+                    OfflinePlayer player = Bukkit.getOfflinePlayer(args[1]);
+                    int amount = 1;
+                    if (args.length >= 3) {
+                        amount = Integer.parseInt(args[2]);
                     }
+                    try {
+                        plugin.getEqDatabase().addTokens(player, amount);
+                        int total = plugin.getEqDatabase().getTokens(player);
+                        sender.sendMessage(ChatColor.GREEN + "This player now has " + total + " tokens");
+                        if (player.isOnline()) {
+                            Player onlinePlayer = (Player) player;
+                            onlinePlayer.sendMessage(ChatColor.GREEN + "You have been given " + amount + " custom horse tokens\nCurrent tokens: " + total);
+                        }
+                    } catch (SQLException ex) {
+                        sender.sendMessage(ChatColor.RED + "There was an error setting the players tokens");
+                    }
+                    return true;
+                } else {
+                    sender.sendMessage("Invalid args");
                 }
+//                }
             } else if (args[0].equalsIgnoreCase("list")) {
                 if (sender.isOp()) {
                     try {

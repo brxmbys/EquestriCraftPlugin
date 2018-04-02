@@ -777,6 +777,10 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
         } else if (cmd.getName().equalsIgnoreCase("breeding")) {
             if (args.length > 0) {
                 if (args[0].equalsIgnoreCase("gapple")) {
+                    int amount = 1;
+                    if (args.length >= 2) {
+                        amount = Integer.parseInt(args[1]);
+                    }
                     if (!getConfig().getBoolean("tools.enable_breeding")) {
                         sender.sendMessage(ChatColor.RED + "This command has been disabled for now");
                         return true;
@@ -786,14 +790,14 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                         return true;
                     }
                     Player player = (Player) sender;
-                    if (economy.getBalance(player) >= GAPPLE_PRICE) {
-                        economy.withdrawPlayer(player, GAPPLE_PRICE);
+                    if (economy.getBalance(player) >= GAPPLE_PRICE * amount) {
+                        economy.withdrawPlayer(player, GAPPLE_PRICE * amount);
                     } else {
                         sender.sendMessage(ChatColor.RED + "You do not have enough money for a Breeding Apple");
                         return true;
                     }
                     final PlayerInventory inventory = player.getInventory();
-                    final ItemStack gapple = new ItemStack(Material.GOLDEN_APPLE, 1);
+                    final ItemStack gapple = new ItemStack(Material.GOLDEN_APPLE, amount);
                     final ItemMeta im = gapple.getItemMeta();
                     im.setDisplayName(BREEDING_APPLE);
                     final List<String> comments = new ArrayList<>();
@@ -801,7 +805,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     im.setLore(comments);
                     gapple.setItemMeta(im);
                     inventory.addItem(gapple);
-                    sender.sendMessage(ChatColor.GREEN + "You have purchased a Golden Apple for " + ChatColor.AQUA + "$" + GAPPLE_PRICE);
+                    sender.sendMessage(ChatColor.GREEN + "You have purchased " + amount + " Golden Apple(s) for " + ChatColor.AQUA + "$" + GAPPLE_PRICE * amount);
                     return true;
                 } else if (args[0].equalsIgnoreCase("check")) {
                     OfflinePlayer player;
@@ -1560,7 +1564,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
     public void onChat(AsyncPlayerChatEvent evt) {
         Player player = evt.getPlayer();
         String text = evt.getMessage();
-        String[] swearWords = new String[]{"demid" , "arse", "bugger", "Jesus Christ", "bitch", "bollocks", "shit", "tits", "bastard", "cock", "dick", "fanny", "knob", "prick", "cunt", "fuck"};
+        String[] swearWords = new String[]{"demid", "arse", "bugger", "Jesus Christ", "bitch", "bollocks", "shit", "tits", "bastard", "cock", "dick", "fanny", "knob", "prick", "cunt", "fuck"};
         for (String word : swearWords) {
             if (text.toLowerCase().contains(word.toLowerCase())) {
                 player.setGameMode(GameMode.SURVIVAL);
