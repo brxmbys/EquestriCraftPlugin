@@ -36,6 +36,7 @@ public class CustomHandler implements CommandExecutor, Listener {
 
     private final EquestriCraftPlugin plugin;
     private static final Inventory genderScreen = Bukkit.createInventory(null, 9, "Select Gender");
+    private static final Inventory breedTypeScreen = Bukkit.createInventory(null, 9, "Purebreed or Crossbreed?");
     private static final Inventory[] breedScreens;
     private static final Inventory personalityScreen1 = Bukkit.createInventory(null, 18, "Select Personality 1");
     private static final Inventory personalityScreen2 = Bukkit.createInventory(null, 18, "Select Personality 2");
@@ -46,6 +47,9 @@ public class CustomHandler implements CommandExecutor, Listener {
         genderScreen.setItem(3, createItem(new ItemStack(Material.STAINED_GLASS_PANE, 1, DyeColor.RED.getData()), "Stallion", "Male horse"));
         genderScreen.setItem(4, createItem(new ItemStack(Material.STAINED_GLASS_PANE, 1, DyeColor.PURPLE.getData()), "Mare", "Female horse"));
         genderScreen.setItem(5, createItem(new ItemStack(Material.STAINED_GLASS_PANE, 1, DyeColor.LIGHT_BLUE.getData()), "Gelding", "Gelded male horse"));
+
+        breedTypeScreen.setItem(3, createItem(new ItemStack(Material.STAINED_GLASS_PANE, 1), "Purebreed", "A single breed"));
+        breedTypeScreen.setItem(5, createItem(new ItemStack(Material.STAINED_GLASS_PANE, 1), "Crossbreed", "A mix of two breeds"));
 
         double breedCount = HorseBreed.values().length;
 
@@ -112,7 +116,7 @@ public class CustomHandler implements CommandExecutor, Listener {
                 Player player = (Player) sender;
                 try {
                     int tokens = plugin.getEqDatabase().getTokens(player);
-                    if (tokens < 1) {
+                    if (tokens < 1 && !player.isOp()) {
                         player.sendMessage(ChatColor.RED + "You do not have any tokens");
                         return true;
                     }
@@ -208,6 +212,26 @@ public class CustomHandler implements CommandExecutor, Listener {
             player.setMetadata("ch_gender", new FixedMetadataValue(plugin, gender.replace(" ", "")));
             player.sendMessage("You have chosen " + gender);
             player.closeInventory();
+            player.openInventory(breedTypeScreen);
+        }
+    }
+
+    @EventHandler
+    public void onBreedTypeClick(InventoryClickEvent event) {
+        Player player = (Player) event.getWhoClicked();
+        ItemStack clicked = event.getCurrentItem();
+        Inventory inventory = event.getInventory();
+        if (!inventory.getName().contains("Purebreed or Crossbreed")) {
+            return;
+        }
+        event.setCancelled(true);
+        if (null == clicked.getType()) {
+            return;
+        } else {
+            player.closeInventory();
+            String breed = clicked.getItemMeta().getDisplayName();
+            player.setMetadata("ch_breed_type", new FixedMetadataValue(plugin, breed));
+            player.sendMessage("You have chosen " + breed);
             player.openInventory(breedScreens[0]);
         }
     }
@@ -229,9 +253,15 @@ public class CustomHandler implements CommandExecutor, Listener {
                 player.openInventory(breedScreens[1]);
             } else {
                 String breed = clicked.getItemMeta().getDisplayName();
-                player.setMetadata("ch_breed", new FixedMetadataValue(plugin, breed.replace(" ", "")));
                 player.sendMessage("You have chosen " + breed);
-                player.openInventory(personalityScreen1);
+                if (player.getMetadata("ch_breed_type").get(0).asString().equalsIgnoreCase("Crossbreed")) {
+                    player.setMetadata("ch_breed_2", new FixedMetadataValue(plugin, breed.replace(" ", "")));
+                    player.setMetadata("ch_breed_type", new FixedMetadataValue(plugin, "Purebreed"));
+                    player.openInventory(breedScreens[0]);
+                } else {
+                    player.setMetadata("ch_breed_1", new FixedMetadataValue(plugin, breed.replace(" ", "")));
+                    player.openInventory(personalityScreen1);
+                }
             }
         }
     }
@@ -318,7 +348,11 @@ public class CustomHandler implements CommandExecutor, Listener {
 
     private void createHorse(Player player) {
         String genderStr = player.getMetadata("ch_gender").get(0).asString();
-        String breedStr = player.getMetadata("ch_breed").get(0).asString();
+        String breedStr1 = player.getMetadata("ch_breed_1").get(0).asString();
+        String breedStr2 = "";
+        if (!player.getMetadata("ch_breed_2").isEmpty()) {
+            breedStr2 = player.getMetadata("ch_breed_2").get(0).asString();
+        }
         String personalityStr1 = player.getMetadata("ch_personality1").get(0).asString();
         String personalityStr2 = player.getMetadata("ch_personality2").get(0).asString();
         String variantStr = player.getMetadata("ch_variant").get(0).asString();
@@ -333,7 +367,11 @@ public class CustomHandler implements CommandExecutor, Listener {
             gender = MyHorse.GELDING;
         }
 
-        HorseBreed breed = HorseBreed.valueOf(breedStr);
+        HorseBreed breed = HorseBreed.valueOf(breedStr1);
+        HorseBreed breed2 = null;
+        if(!breedStr2.equalsIgnoreCase("")){
+            breed2 = HorseBreed.valueOf(breedStr2);
+        }
         Personality personality1 = Personality.valueOf(personalityStr1);
         Personality personality2 = Personality.valueOf(personalityStr2);
         Color color;
@@ -351,13 +389,21 @@ public class CustomHandler implements CommandExecutor, Listener {
             color = Color.BLACK;
         }
         Horse h = player.getWorld().spawn(player.getLocation(), Horse.class);
-        MyHorse horse = new MyHorse(h, gender, breed, personality1, personality2, color);
+        MyHorse horse = new MyHorse(h, gender, breed, breed2, personality1, personality2, color);
         plugin.getEqDatabase().addHorse(horse);
         try {
             plugin.getEqDatabase().removeToken(player);
         } catch (SQLException ex) {
             plugin.getLogger().log(Level.SEVERE, null, ex);
         }
+        player.removeMetadata("ch_gender", plugin);
+        player.removeMetadata("ch_breed_1", plugin);
+        player.removeMetadata("ch_breed_2", plugin);
+        player.removeMetadata("ch_personality1", plugin);
+        player.removeMetadata("ch_personality2", plugin);
+        player.removeMetadata("ch_variant", plugin);
+        player.removeMetadata("ch_color", plugin);
+        player.removeMetadata("ch_breed_type", plugin);
     }
 
 }

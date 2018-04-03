@@ -118,7 +118,7 @@ public class MyHorse implements Serializable {
         this.ignored = ignored;
     }
 
-    public MyHorse(Horse h, int gender, HorseBreed br, Personality p1, Personality p2, Color c) {
+    public MyHorse(Horse h, int gender, HorseBreed br1, HorseBreed br2, Personality p1, Personality p2, Color c) {
         h.setColor(c);
         this.gender = gender;
         this.vaccinationTime = 0;
@@ -129,12 +129,19 @@ public class MyHorse implements Serializable {
         this.lastBreed = getCurrentTime();
         this.defecateSinceEat = true;
         this.uuid = h.getUniqueId();
-        this.breedArr = new HorseBreed[1];
-        this.breedArr[0] = br;
-        if (br == HorseBreed.Donkey) {
+        if (br2 != null) {
+            this.breedArr = new HorseBreed[2];
+        } else {
+            this.breedArr = new HorseBreed[1];
+        }
+        this.breedArr[0] = br1;
+        if (br1 == HorseBreed.Donkey) {
             h.setVariant(Variant.DONKEY);
-        } else if (br == HorseBreed.Mule) {
+        } else if (br1 == HorseBreed.Mule) {
             h.setVariant(Variant.MULE);
+        }
+        if (br2 != null) {
+            this.breedArr[1] = br2;
         }
         this.birthTime = getCurrentTime();
         this.personality = new Personality[]{p1, p2};
