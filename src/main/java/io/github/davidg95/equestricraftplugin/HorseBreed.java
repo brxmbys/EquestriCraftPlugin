@@ -82,7 +82,8 @@ public enum HorseBreed {
     Draft,
     Donkey,
     Mule,
-    Zebra;
+    Zebra,
+    Zorse;
 
     /**
      * Get a random horse breed.
