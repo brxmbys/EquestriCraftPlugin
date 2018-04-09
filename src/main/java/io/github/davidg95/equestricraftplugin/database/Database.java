@@ -1382,6 +1382,7 @@ public abstract class Database {
         final long stamp = lock.writeLock();
         try {
             s = conn.createStatement();
+            s.executeUpdate("update " + table + " set last_eat=" + new Date().getTime() + ", last_drink=" + new Date().getTime() + " where uuid='" + uuid.toString() + "'");
             s.executeUpdate("UPDATE " + table + " SET ignore = " + (ignore ? "1" : "0") + " WHERE uuid='" + uuid.toString() + "'");
         } catch (SQLException ex) {
             plugin.getLogger().log(Level.SEVERE, "Error changing horse", ex);

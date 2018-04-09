@@ -1126,6 +1126,8 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                                 player.sendMessage(hungerStr);
                                 player.sendMessage(thirstStr);
                                 player.sendMessage(vaccinationStr);
+                            } else{
+                                player.sendMessage(ChatColor.RED + "***EQH IGNORED***");
                             }
                             player.sendMessage(shodStr);
                             player.sendMessage(levelStr);
