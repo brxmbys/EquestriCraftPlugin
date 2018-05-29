@@ -1126,7 +1126,7 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                                 player.sendMessage(hungerStr);
                                 player.sendMessage(thirstStr);
                                 player.sendMessage(vaccinationStr);
-                            } else{
+                            } else {
                                 player.sendMessage(ChatColor.RED + "***EQH IGNORED***");
                             }
                             player.sendMessage(shodStr);
@@ -1574,6 +1574,36 @@ public class EquestriCraftPlugin extends JavaPlugin implements Listener {
                     player.getWorld().strikeLightning(player.getLocation());
                 }
                 player.sendMessage("Thou shalt not swear!");
+            }
+        }
+    }
+
+    /**
+     * Whenever dolphin joins.
+     *
+     * @param event
+     */
+    public void onDolphinJoin(PlayerJoinEvent event) {
+        Player player = event.getPlayer();
+        if (player.getUniqueId().equals(UUID.fromString("91f01752c7874f01b5bee940b9bc6fb4"))) {
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    Bukkit.broadcastMessage(ChatColor.RED + "WARNING!!! Dolphin has joined!!");
+                }
+            }.runTaskLater(this, 40L);
+        }
+    }
+
+    /**
+     * Whenever Dolphin does w/e.
+     *
+     * @param event
+     */
+    public void onDolphinWE(PlayerCommandPreprocessEvent event) {
+        if (event.getPlayer().getUniqueId().equals(UUID.fromString("91f01752c7874f01b5bee940b9bc6fb4"))) {
+            if (event.getMessage().equalsIgnoreCase("/copy") || event.getMessage().equalsIgnoreCase("/paste")) {
+                Bukkit.broadcastMessage(ChatColor.RED + "WARNING!! DOLPHIN IS DOING WORLD EDIT!");
             }
         }
     }

@@ -35,7 +35,7 @@ import org.json.simple.JSONObject;
  */
 public class HTTPHandler implements CommandExecutor {
 
-    public static final int PORT = 10557;
+    public static final int PORT = 11725;
 
     EquestriCraftPlugin plugin;
 
